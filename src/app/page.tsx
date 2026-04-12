@@ -2,7 +2,20 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { Search, ShoppingBag, Filter, ShoppingCart, Info, Check, Plus, Minus, Trash2, Send } from 'lucide-react';
+import { 
+  Search, 
+  ShoppingBag, 
+  Plus, 
+  Minus, 
+  Trash2, 
+  Send, 
+  Instagram, 
+  MessageCircle, 
+  ChevronRight,
+  X,
+  Star,
+  Info
+} from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,12 +35,12 @@ export default function Storefront() {
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'Todos'>('Todos');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'relevance' | 'price-asc' | 'price-desc' | 'az'>('relevance');
   const { toast } = useToast();
 
   // Checkout Form State
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [address, setAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro'>('Pix');
   const [changeAmount, setChangeAmount] = useState('');
 
@@ -38,14 +51,25 @@ export default function Storefront() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
-      const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    let result = products.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            p.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'Todos' || p.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [products, searchTerm, selectedCategory]);
+
+    if (sortOrder === 'price-asc') result.sort((a, b) => a.price - b.price);
+    if (sortOrder === 'price-desc') result.sort((a, b) => b.price - a.price);
+    if (sortOrder === 'az') result.sort((a, b) => a.name.localeCompare(b.name));
+
+    return result;
+  }, [products, searchTerm, selectedCategory, sortOrder]);
 
   const addToCart = (product: Product) => {
+    if (product.stock === 0) {
+      toast({ variant: "destructive", title: "Esgotado", description: "Infelizmente este item está sem estoque." });
+      return;
+    }
     const existing = cart.find(item => item.id === product.id);
     let newCart;
     if (existing) {
@@ -55,7 +79,7 @@ export default function Storefront() {
     }
     setCart(newCart);
     saveCart(newCart);
-    toast({ title: "Adicionado!", description: `${product.name} foi adicionado ao carrinho.` });
+    toast({ title: "Adicionado!", description: `${product.name} foi adicionado à sacola.` });
   };
 
   const updateQuantity = (id: string, delta: number) => {
@@ -71,20 +95,17 @@ export default function Storefront() {
   };
 
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const freeShippingLimit = 150;
-  const isFreeShipping = cartTotal >= freeShippingLimit;
 
   const handleCheckout = () => {
-    if (!customerName || !customerPhone || !address) {
-      toast({ variant: "destructive", title: "Erro", description: "Por favor, preencha todos os campos obrigatórios." });
+    if (!customerName || !customerPhone) {
+      toast({ variant: "destructive", title: "Erro", description: "Por favor, preencha seu nome e telefone." });
       return;
     }
 
     const order: Order = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substr(2, 9).toUpperCase(),
       customerName,
       customerPhone,
-      address,
       items: cart,
       total: cartTotal,
       paymentMethod,
@@ -96,89 +117,95 @@ export default function Storefront() {
     saveOrder(order);
 
     // Format WhatsApp Message
-    const itemsText = cart.map(i => `${i.quantity}x ${i.name} - R$ ${(i.price * i.quantity).toFixed(2)}`).join('%0A');
-    const paymentText = paymentMethod === 'Pix' ? 'Pix (Chave: CNPJ 00.000.000/0001-00)' : `Dinheiro (Troco para R$ ${changeAmount || cartTotal})`;
-    const message = `*Novo Pedido Flor de Batom*%0A%0A*Cliente:* ${customerName}%0A*Telefone:* ${customerPhone}%0A*Endereço:* ${address}%0A%0A*Itens:*%0A${itemsText}%0A%0A*Total:* R$ ${cartTotal.toFixed(2)}%0A*Pagamento:* ${paymentText}`;
+    const NUMERO_LOJA = "5591987199039";
+    const linhasProdutos = cart.map(i =>
+      `• ${i.name} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
+    ).join('\n');
+
+    const linhaPagamento = paymentMethod === 'Dinheiro'
+      ? `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`
+      : `📱 Pix — comprovante a enviar`;
+
+    const msg = encodeURIComponent(
+      `🌸 *NOVO PEDIDO — Flor de Batom Makeup*\n\n` +
+      `👤 *Cliente:* ${customerName}\n` +
+      `📱 *Telefone:* ${customerPhone}\n\n` +
+      `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
+      `🚚 *Entrega:* Grátis\n` +
+      `💰 *TOTAL: R$ ${cartTotal.toFixed(2).replace('.', ',')}*\n` +
+      `💳 *Pagamento:* ${linhaPagamento}\n\n` +
+      `_Pedido enviado pelo catálogo online_`
+    );
     
-    window.open(`https://wa.me/5511999999999?text=${message}`, '_blank');
+    window.open(`https://wa.me/${NUMERO_LOJA}?text=${msg}`, '_blank');
     
     setCart([]);
     saveCart([]);
     setIsCheckoutOpen(false);
-    toast({ title: "Pedido Enviado!", description: "Você será redirecionado para o WhatsApp." });
+    toast({ title: "Pedido Enviado!", description: "Siga para o WhatsApp para confirmar." });
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="sticky top-0 z-[100] w-full bg-white border-b shadow-sm h-16">
+        <div className="container mx-auto px-4 h-full flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-lg font-bold">FB</div>
+            <h1 className="text-xl font-headline font-bold text-primary hidden sm:block">Flor de Batom Makeup</h1>
+          </div>
+          
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+            <a href="#" className="hover:text-primary transition-colors">Início</a>
+            <a href="#catalogo" className="hover:text-primary transition-colors">Catálogo</a>
+            <a href="#contato" className="hover:text-primary transition-colors">Contato</a>
+          </nav>
+
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-headline font-bold text-primary tracking-tight">Flor de Batom</h1>
-          </div>
-          <div className="flex-1 max-w-md mx-8 hidden md:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Buscar produtos..." 
-                className="pl-10 bg-muted/50 border-none focus-visible:ring-primary/20"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-             <Sheet>
+            <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-primary">
+                <Button variant="ghost" size="icon" className="relative text-primary hover:bg-primary/5">
                   <ShoppingBag className="h-6 w-6" />
                   {cart.length > 0 && (
-                    <Badge className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[20px] h-5 flex items-center justify-center bg-primary text-white text-[10px]">
+                    <Badge className="absolute -top-1 -right-1 px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-primary text-white text-[10px] rounded-full">
                       {cart.reduce((a, b) => a + b.quantity, 0)}
                     </Badge>
                   )}
                 </Button>
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
-                <SheetHeader className="p-6 border-b">
-                  <SheetTitle className="flex items-center gap-2 font-headline text-2xl">
-                    <ShoppingCart className="h-5 w-5" /> Meu Carrinho
-                  </SheetTitle>
+                <SheetHeader className="p-6 border-b flex flex-row items-center justify-between">
+                  <SheetTitle className="font-headline text-2xl text-primary">Minha Sacola</SheetTitle>
                 </SheetHeader>
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
                   {cart.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-                      <ShoppingBag className="h-12 w-12 mb-4 opacity-20" />
-                      <p>Seu carrinho está vazio</p>
+                    <div className="flex flex-col items-center justify-center h-full text-center py-10">
+                      <ShoppingBag className="h-16 w-16 mb-4 opacity-10 text-primary" />
+                      <p className="text-lg font-headline">Sua sacola está vazia 🌸</p>
+                      <Button variant="link" className="text-primary mt-2" onClick={() => document.querySelector('header')?.scrollIntoView()}>Ver Produtos</Button>
                     </div>
                   ) : (
                     <>
-                      <div className="bg-accent/30 p-4 rounded-lg flex items-center gap-3">
-                        <Info className="h-5 w-5 text-primary" />
-                        <div className="text-sm">
-                          {isFreeShipping ? (
-                            <span className="font-medium text-primary">Parabéns! Você ganhou Frete Grátis!</span>
-                          ) : (
-                            <span>Faltam <span className="font-bold text-primary">R$ {(freeShippingLimit - cartTotal).toFixed(2)}</span> para ganhar **Frete Grátis**!</span>
-                          )}
-                        </div>
+                      <div className="bg-green-50 p-4 rounded-lg flex items-center gap-3 border border-green-100">
+                        <Info className="h-5 w-5 text-green-600" />
+                        <p className="text-sm font-medium text-green-700">🚚 Entrega Grátis em todos os pedidos!</p>
                       </div>
                       <div className="space-y-4">
                         {cart.map(item => (
                           <div key={item.id} className="flex gap-4 items-center">
-                            <div className="relative h-20 w-20 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+                            <div className="relative h-16 w-16 flex-shrink-0 rounded-md overflow-hidden bg-muted border">
                               <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium truncate">{item.name}</h4>
-                              <p className="text-sm text-muted-foreground">R$ {item.price.toFixed(2)}</p>
+                              <h4 className="font-medium text-sm truncate">{item.name}</h4>
+                              <p className="text-xs text-primary font-bold">R$ {item.price.toFixed(2)}</p>
                               <div className="flex items-center gap-2 mt-2">
-                                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, -1)}><Minus className="h-3 w-3" /></Button>
-                                <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, 1)}><Plus className="h-3 w-3" /></Button>
+                                <Button variant="outline" size="icon" className="h-6 w-6 rounded-full" onClick={() => updateQuantity(item.id, -1)}><Minus className="h-3 w-3" /></Button>
+                                <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
+                                <Button variant="outline" size="icon" className="h-6 w-6 rounded-full" onClick={() => updateQuantity(item.id, 1)}><Plus className="h-3 w-3" /></Button>
                               </div>
                             </div>
-                            <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => updateQuantity(item.id, -item.quantity)}><Trash2 className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => updateQuantity(item.id, -item.quantity)}><Trash2 className="h-4 w-4" /></Button>
                           </div>
                         ))}
                       </div>
@@ -186,12 +213,12 @@ export default function Storefront() {
                   )}
                 </div>
                 {cart.length > 0 && (
-                  <SheetFooter className="p-6 border-t flex flex-col gap-4 bg-muted/20">
+                  <SheetFooter className="p-6 border-t bg-white flex flex-col gap-4">
                     <div className="flex justify-between items-center w-full">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span className="text-xl font-bold">R$ {cartTotal.toFixed(2)}</span>
+                      <span className="text-muted-foreground font-medium">Subtotal</span>
+                      <span className="text-2xl font-headline font-bold text-primary">R$ {cartTotal.toFixed(2)}</span>
                     </div>
-                    <Button className="w-full bg-primary hover:bg-primary/90 py-6 text-lg" onClick={() => setIsCheckoutOpen(true)}>
+                    <Button className="w-full bg-primary hover:bg-primary/90 py-6 text-lg rounded-full" onClick={() => setIsCheckoutOpen(true)}>
                       Finalizar Pedido
                     </Button>
                   </SheetFooter>
@@ -202,38 +229,70 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* Category Navigation Bar */}
-      <div className="bg-background border-b sticky top-16 z-40">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+      {/* Hero Banner */}
+      <section className="hero-pattern h-[100px] sm:h-[120px] flex flex-col items-center justify-center text-white text-center px-4">
+        <h2 className="text-2xl sm:text-3xl font-headline font-bold">Flor de Batom Makeup</h2>
+        <p className="text-xs sm:text-sm italic opacity-90 font-light">Maquiagem que transforma — produtos para sua beleza</p>
+      </section>
+
+      {/* Categories Bar */}
+      <div className="sticky top-16 z-[90] bg-white border-b overflow-x-auto no-scrollbar py-3">
+        <div className="container mx-auto px-4 flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            className={`rounded-full px-5 h-9 text-xs font-medium shrink-0 transition-all ${selectedCategory === 'Todos' ? 'pill-active shadow-md' : 'pill-inactive'}`}
+            onClick={() => setSelectedCategory('Todos')}
+          >
+            Todos
+          </Button>
+          {CATEGORIES.map(cat => (
             <Button 
-              variant={selectedCategory === 'Todos' ? 'default' : 'outline'} 
-              size="sm" 
-              className="rounded-full px-5"
-              onClick={() => setSelectedCategory('Todos')}
+              key={cat} 
+              variant="ghost" 
+              className={`rounded-full px-5 h-9 text-xs font-medium shrink-0 transition-all ${selectedCategory === cat ? 'pill-active shadow-md' : 'pill-inactive'}`}
+              onClick={() => setSelectedCategory(cat)}
             >
-              Todos
+              {cat}
             </Button>
-            {CATEGORIES.map(cat => (
-              <Button 
-                key={cat} 
-                variant={selectedCategory === cat ? 'default' : 'outline'} 
-                size="sm" 
-                className="rounded-full px-5"
-                onClick={() => setSelectedCategory(cat)}
-              >
-                {cat}
-              </Button>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-          {filteredProducts.map(product => (
-            <Card key={product.id} className="group overflow-hidden border-none shadow-sm product-card-hover bg-white flex flex-col h-full">
+      {/* Toolbar */}
+      <div className="container mx-auto px-4 py-6" id="catalogo">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="relative w-full md:max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Buscar produtos..." 
+              className="pl-10 h-11 border-border/50 rounded-lg focus-visible:ring-primary/20"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center justify-between w-full md:w-auto gap-4">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">{filteredProducts.length} produtos</span>
+            <select 
+              className="text-xs font-medium bg-transparent border-none focus:ring-0 cursor-pointer text-primary"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as any)}
+            >
+              <option value="relevance">RELEVÂNCIA</option>
+              <option value="price-asc">MENOR PREÇO</option>
+              <option value="price-desc">MAIOR PREÇO</option>
+              <option value="az">A – Z</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Product Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 mt-8">
+          {filteredProducts.map((product, idx) => (
+            <Card 
+              key={product.id} 
+              className="group overflow-hidden border-none shadow-none bg-white flex flex-col h-full product-card-hover fade-in-up"
+              style={{ animationDelay: `${idx * 0.05}s` }}
+            >
               <div 
                 className="relative aspect-square overflow-hidden cursor-pointer"
                 onClick={() => setSelectedProduct(product)}
@@ -245,23 +304,33 @@ export default function Storefront() {
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   data-ai-hint="beauty makeup product"
                 />
+                <Badge className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold border-none uppercase tracking-tighter">
+                  {product.category}
+                </Badge>
                 {product.isFeatured && (
-                  <Badge className="absolute top-2 left-2 bg-primary text-white">Destaque</Badge>
+                  <Badge className="absolute top-2 right-2 bg-yellow-400 text-black text-[10px] font-bold border-none">
+                    ★ Destaque
+                  </Badge>
+                )}
+                {product.stock === 0 && (
+                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                    <Badge variant="outline" className="bg-white text-carbon border-carbon font-bold uppercase">Esgotado</Badge>
+                  </div>
                 )}
               </div>
-              <CardContent className="p-3 md:p-4 flex flex-col flex-1">
+              <CardContent className="p-3 flex flex-col flex-1">
                 <div className="flex-1">
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">{product.category}</p>
-                  <h3 className="font-medium text-sm md:text-base line-clamp-2 leading-tight mb-2 h-10 group-hover:text-primary transition-colors">
+                  <h3 className="font-medium text-sm line-clamp-2 leading-tight mb-1 group-hover:text-primary transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
                     {product.name}
                   </h3>
-                  <p className="text-lg font-bold text-primary">R$ {product.price.toFixed(2)}</p>
+                  <p className="text-base font-bold text-primary font-body">R$ {product.price.toFixed(2)}</p>
                 </div>
                 <Button 
-                  className="w-full mt-4 bg-primary hover:bg-primary/90 gap-2 h-9 text-sm"
+                  className="w-full mt-3 bg-primary hover:bg-primary/90 gap-2 h-9 text-xs rounded-md"
                   onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                  disabled={product.stock === 0}
                 >
-                  <Plus className="h-4 w-4" /> Adicionar
+                  <Plus className="h-3 w-3" /> {product.stock === 0 ? 'Indisponível' : 'Adicionar'}
                 </Button>
               </CardContent>
             </Card>
@@ -269,37 +338,92 @@ export default function Storefront() {
         </div>
 
         {filteredProducts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <Info className="h-12 w-12 mb-4 opacity-20" />
-            <p className="text-lg">Nenhum produto encontrado.</p>
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground text-center">
+            <Info className="h-12 w-12 mb-4 opacity-10 text-primary" />
+            <p className="text-lg font-headline">Nenhum produto encontrado.</p>
+            <Button variant="link" className="text-primary" onClick={() => { setSearchTerm(''); setSelectedCategory('Todos'); }}>Limpar Filtros</Button>
           </div>
         )}
-      </main>
+      </div>
+
+      {/* Contact Section */}
+      <section className="bg-muted/30 py-16 mt-12" id="contato">
+        <div className="container mx-auto px-4 text-center max-w-2xl">
+          <h2 className="text-3xl font-headline font-bold text-primary mb-2">Fale Conosco</h2>
+          <p className="text-muted-foreground mb-8">Dúvidas ou pedidos especiais? Estamos prontos para te atender.</p>
+          
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Button 
+              className="bg-[#25D366] hover:bg-[#1fb355] h-14 text-white font-bold gap-3 rounded-xl shadow-lg"
+              onClick={() => window.open('https://wa.me/5591987199039', '_blank')}
+            >
+              <MessageCircle className="h-6 w-6" /> WhatsApp Loja
+            </Button>
+            <Button 
+              className="bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] h-14 text-white font-bold gap-3 rounded-xl shadow-lg"
+              onClick={() => window.open('https://www.instagram.com/flordebatom.makeup', '_blank')}
+            >
+              <Instagram className="h-6 w-6" /> Instagram
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-6 uppercase tracking-widest font-medium">Segunda a Sábado, das 9h às 18h</p>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-carbon text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+            <div>
+              <h2 className="text-2xl font-headline font-bold text-white mb-2">Flor de Batom Makeup</h2>
+              <p className="text-gray-400 text-sm max-w-xs">Maquiagem premium que transforma. O melhor do mundo da beleza na sua mão.</p>
+            </div>
+            <div className="flex flex-col items-center md:items-end gap-4">
+              <div className="flex gap-4">
+                <a href="#" className="hover:text-primary transition-colors">Início</a>
+                <a href="#catalogo" className="hover:text-primary transition-colors">Catálogo</a>
+                <a href="#contato" className="hover:text-primary transition-colors">Contato</a>
+              </div>
+              <p className="text-xs text-gray-500">© 2026 Flor de Batom Makeup — Todos os direitos reservados</p>
+            </div>
+          </div>
+        </div>
+      </footer>
 
       {/* Product Details Modal */}
       <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
-        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden border-none shadow-2xl">
           {selectedProduct && (
-            <div className="flex flex-col md:flex-row">
-              <div className="relative aspect-square md:w-1/2 bg-muted">
+            <div className="flex flex-col md:flex-row h-full max-h-[90vh] overflow-y-auto">
+              <div className="relative aspect-[4/3] md:aspect-square md:w-1/2 bg-muted border-b md:border-b-0 md:border-r">
                 <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} fill className="object-cover" />
+                <Badge className="absolute top-4 left-4 bg-primary text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1">
+                  {selectedProduct.category}
+                </Badge>
               </div>
-              <div className="p-6 md:w-1/2 flex flex-col">
-                <DialogHeader className="mb-4">
-                  <p className="text-xs text-primary font-bold uppercase tracking-widest">{selectedProduct.category}</p>
-                  <DialogTitle className="text-2xl font-headline mt-1">{selectedProduct.name}</DialogTitle>
-                </DialogHeader>
-                <div className="flex-1">
-                  <p className="text-2xl font-bold text-primary mb-4">R$ {selectedProduct.price.toFixed(2)}</p>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+              <div className="p-8 md:w-1/2 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-3xl font-headline font-bold text-primary mb-2 leading-tight">{selectedProduct.name}</h3>
+                  <p className="text-2xl font-bold text-primary mb-6">R$ {selectedProduct.price.toFixed(2)}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-8 border-t pt-4">
                     {selectedProduct.description}
                   </p>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
-                    <Check className="h-3 w-3" /> Em estoque ({selectedProduct.stock} unidades)
-                  </div>
-                  <Button className="w-full bg-primary hover:bg-primary/90 h-12" onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}>
+                <div className="space-y-4">
+                  {selectedProduct.stock > 0 ? (
+                    <div className="flex items-center gap-2 text-xs text-green-600 font-bold bg-green-50 px-3 py-1.5 rounded-full w-fit">
+                      < स्टार className="h-3 w-3 fill-current" /> Em estoque ({selectedProduct.stock} unidades)
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-destructive font-bold bg-destructive/5 px-3 py-1.5 rounded-full w-fit">
+                      <X className="h-3 w-3" /> Esgotado no momento
+                    </div>
+                  )}
+                  <Button 
+                    className="w-full bg-primary hover:bg-primary/90 h-14 text-lg font-bold rounded-xl shadow-lg shadow-primary/20" 
+                    onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
+                    disabled={selectedProduct.stock === 0}
+                  >
                     Adicionar ao Carrinho
                   </Button>
                 </div>
@@ -313,74 +437,68 @@ export default function Storefront() {
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-headline">Finalizar Pedido</DialogTitle>
-            <DialogDescription>
-              Preencha seus dados para enviarmos o pedido via WhatsApp.
+            <DialogTitle className="text-2xl font-headline text-primary">Finalizar Pedido</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Preencha seus dados básicos para enviarmos via WhatsApp.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-6 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Nome Completo</Label>
-              <Input id="name" placeholder="Como devemos te chamar?" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+              <Label htmlFor="name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Nome Completo *</Label>
+              <Input id="name" placeholder="Como devemos te chamar?" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="h-11 rounded-lg border-muted-foreground/20" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="phone">Telefone / WhatsApp</Label>
-              <Input id="phone" placeholder="(00) 00000-0000" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
+              <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Telefone / WhatsApp *</Label>
+              <Input id="phone" placeholder="(91) 99999-9999" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="h-11 rounded-lg border-muted-foreground/20" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="address">Endereço Completo</Label>
-              <Input id="address" placeholder="Rua, Número, Bairro, Cidade" value={address} onChange={(e) => setAddress(e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label>Forma de Pagamento</Label>
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Forma de Pagamento *</Label>
               <RadioGroup value={paymentMethod} onValueChange={(v: 'Pix' | 'Dinheiro') => setPaymentMethod(v)} className="flex gap-4">
-                <div className="flex items-center space-x-2 border p-3 rounded-lg flex-1 cursor-pointer hover:bg-muted">
+                <div className={`flex items-center space-x-2 border-2 p-4 rounded-xl flex-1 cursor-pointer transition-all ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/30'}`}>
                   <RadioGroupItem value="Pix" id="pix" />
-                  <Label htmlFor="pix" className="cursor-pointer">Pix</Label>
+                  <Label htmlFor="pix" className="cursor-pointer font-bold flex flex-col">
+                    <span>📱 Pix</span>
+                    <span className="text-[10px] font-normal text-muted-foreground">Chave enviada no Whats</span>
+                  </Label>
                 </div>
-                <div className="flex items-center space-x-2 border p-3 rounded-lg flex-1 cursor-pointer hover:bg-muted">
+                <div className={`flex items-center space-x-2 border-2 p-4 rounded-xl flex-1 cursor-pointer transition-all ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/30'}`}>
                   <RadioGroupItem value="Dinheiro" id="cash" />
-                  <Label htmlFor="cash" className="cursor-pointer">Dinheiro</Label>
+                  <Label htmlFor="cash" className="cursor-pointer font-bold flex flex-col">
+                    <span>💵 Dinheiro</span>
+                    <span className="text-[10px] font-normal text-muted-foreground">Pagamento na entrega</span>
+                  </Label>
                 </div>
               </RadioGroup>
             </div>
             {paymentMethod === 'Dinheiro' && (
-              <div className="grid gap-2 fade-in">
-                <Label htmlFor="change">Troco para quanto?</Label>
-                <Input id="change" type="number" placeholder="Ex: 100" value={changeAmount} onChange={(e) => setChangeAmount(e.target.value)} />
+              <div className="grid gap-2 animate-in fade-in slide-in-from-top-1">
+                <Label htmlFor="change" className="text-xs font-bold text-muted-foreground">Precisa de troco? Para quanto?</Label>
+                <Input id="change" type="number" placeholder="Ex: 100" value={changeAmount} onChange={(e) => setChangeAmount(e.target.value)} className="h-11" />
               </div>
             )}
             {paymentMethod === 'Pix' && (
-              <div className="bg-primary/5 p-3 rounded-lg border border-primary/20 flex gap-3 items-start fade-in">
-                <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                <div className="text-xs space-y-1">
-                  <p className="font-bold text-primary">Instruções Pix</p>
-                  <p>A chave será enviada no WhatsApp. O pedido só será processado após a confirmação do pagamento.</p>
+              <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 flex gap-3 items-start animate-in fade-in slide-in-from-top-1">
+                <Info className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                <div className="text-xs space-y-1.5">
+                  <p className="font-bold text-primary uppercase tracking-wider">Instruções Pix</p>
+                  <p>Chave Pix: <strong>(91) 98719-9039</strong></p>
+                  <p className="text-muted-foreground">⚠️ Após o pagamento, envie o comprovante para confirmar seu pedido pelo WhatsApp da loja.</p>
                 </div>
               </div>
             )}
+            
+            <div className="bg-green-50 p-3 rounded-lg border border-green-100 flex items-center justify-between">
+              <span className="text-xs font-bold text-green-700 uppercase">Total a Pagar:</span>
+              <span className="text-xl font-headline font-bold text-green-800">R$ {cartTotal.toFixed(2)}</span>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCheckoutOpen(false)}>Cancelar</Button>
-            <Button className="bg-primary hover:bg-primary/90 gap-2 px-8" onClick={handleCheckout}>
-              <Send className="h-4 w-4" /> Confirmar no WhatsApp
+            <Button className="w-full bg-[#25D366] hover:bg-[#1fb355] gap-3 h-14 text-lg font-bold rounded-xl shadow-lg" onClick={handleCheckout}>
+              <MessageCircle className="h-6 w-6" /> Enviar Pedido no WhatsApp
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Mobile Sticky Footer (only search on mobile) */}
-      <div className="md:hidden sticky bottom-0 z-50 p-4 bg-background/80 backdrop-blur border-t flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar..." 
-            className="pl-10 h-12 rounded-full border-none bg-muted shadow-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
     </div>
   );
 }

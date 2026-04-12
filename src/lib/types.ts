@@ -1,4 +1,4 @@
-export type ProductCategory = 'Labiais' | 'Olhos' | 'Rosto' | 'Skincare' | 'Acessórios' | 'Kits';
+export type ProductCategory = 'Batom' | 'Delineador' | 'Base' | 'Sombra' | 'Blush' | 'Máscara de Cílios' | 'Primer' | 'Contorno' | 'Gloss' | 'Corretivo';
 
 export interface Product {
   id: string;
@@ -27,7 +27,17 @@ export interface Order {
   change?: number;
   status: OrderStatus;
   createdAt: string;
-  address: string;
 }
 
-export const CATEGORIES: ProductCategory[] = ['Labiais', 'Olhos', 'Rosto', 'Skincare', 'Acessórios', 'Kits'];
+export const CATEGORIES: ProductCategory[] = [
+  'Batom', 
+  'Delineador', 
+  'Base', 
+  'Sombra', 
+  'Blush', 
+  'Máscara de Cílios', 
+  'Primer', 
+  'Contorno', 
+  'Gloss', 
+  'Corretivo'
+];

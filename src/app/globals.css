@@ -4,47 +4,26 @@
 
 @layer base {
   :root {
-    --background: 320 20% 96%; /* #F5F1F3 */
-    --foreground: 327 70% 15%;
+    --background: 32 30% 98%; /* #FAF7F5 (Creme) */
+    --foreground: 0 0% 10%; /* #1A1A1A (Carbon) */
     --card: 0 0% 100%;
-    --card-foreground: 327 70% 15%;
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 327 70% 15%;
-    --primary: 327 69% 29%; /* #7F174A */
-    --primary-foreground: 320 20% 98%;
-    --secondary: 336 67% 88%; /* #F8C8DC */
-    --secondary-foreground: 327 69% 20%;
-    --muted: 320 10% 90%;
-    --muted-foreground: 327 30% 40%;
-    --accent: 336 67% 92%;
-    --accent-foreground: 327 69% 29%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 351 63% 29%; /* #7B1C2A (Vinho) */
+    --primary-foreground: 32 30% 98%;
+    --secondary: 351 44% 43%; /* #9E3D4D (Vinho Suave) */
+    --secondary-foreground: 32 30% 98%;
+    --muted: 32 10% 92%;
+    --muted-foreground: 0 0% 29%;
+    --accent: 351 63% 95%;
+    --accent-foreground: 351 63% 29%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 327 20% 88%;
-    --input: 327 20% 88%;
-    --ring: 327 69% 29%;
-    --radius: 0.75rem;
-  }
-  .dark {
-    --background: 327 70% 5%;
-    --foreground: 320 20% 98%;
-    --card: 327 70% 8%;
-    --card-foreground: 320 20% 98%;
-    --popover: 327 70% 8%;
-    --popover-foreground: 320 20% 98%;
-    --primary: 327 69% 40%;
-    --primary-foreground: 320 20% 98%;
-    --secondary: 327 40% 20%;
-    --secondary-foreground: 320 20% 98%;
-    --muted: 327 40% 15%;
-    --muted-foreground: 327 20% 65%;
-    --accent: 327 40% 20%;
-    --accent-foreground: 320 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 327 40% 20%;
-    --input: 327 40% 20%;
-    --ring: 327 69% 40%;
+    --border: 32 10% 88%;
+    --input: 32 10% 88%;
+    --ring: 351 63% 29%;
+    --radius: 0.5rem;
   }
 }
 
@@ -53,31 +32,44 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
   }
 }
 
+/* Custom styles for the catalog */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hero-pattern {
+  background-color: var(--primary);
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 10px);
+}
+
 .product-card-hover {
   @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
 }
 
-.fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.slide-in-right {
-  animation: slideInRight 0.3s ease-out forwards;
+.pill-active {
+  @apply bg-primary text-white;
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+.pill-inactive {
+  @apply bg-white border border-border text-foreground hover:border-primary hover:text-primary;
 }
