@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,7 +24,7 @@
     --border: 32 10% 88%;
     --input: 32 10% 88%;
     --ring: 351 63% 29%;
-    --radius: 0.5rem;
+    --radius: 1rem;
   }
 }
 
@@ -33,10 +34,23 @@
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
+    -webkit-tap-highlight-color: transparent;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
   }
+}
+
+/* Scrollbar personalizada mais fina */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
 }
 
 /* Custom styles for the catalog */
@@ -50,19 +64,26 @@
 
 .hero-pattern {
   background-color: var(--primary);
-  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 10px);
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 15px);
 }
 
 .product-card-hover {
-  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  @apply transition-all duration-300;
+}
+
+@media (min-width: 1024px) {
+  .product-card-hover:hover {
+    @apply -translate-y-2 shadow-xl shadow-primary/5;
+  }
 }
 
 .fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -71,5 +92,17 @@
 }
 
 .pill-inactive {
-  @apply bg-white border border-border text-foreground hover:border-primary hover:text-primary;
+  @apply bg-white border border-border text-muted-foreground hover:border-primary/50 hover:text-primary active:bg-primary/5;
+}
+
+/* Otimização de toque em botões e inputs */
+button, input, select, textarea {
+  @apply outline-none;
+}
+
+/* Mobile optimizations for dense grid */
+@media (max-width: 640px) {
+  .container {
+    @apply px-3;
+  }
 }
