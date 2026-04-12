@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -148,7 +149,7 @@ export default function Storefront() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-[100] w-full bg-white border-b shadow-sm h-16">
+      <header className="sticky top-0 z-40 w-full bg-white border-b shadow-sm h-16">
         <div className="container mx-auto px-4 h-full flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-lg font-bold">FB</div>
@@ -236,7 +237,7 @@ export default function Storefront() {
       </section>
 
       {/* Categories Bar */}
-      <div className="sticky top-16 z-[90] bg-white border-b overflow-x-auto no-scrollbar py-3">
+      <div className="sticky top-16 z-30 bg-white border-b overflow-x-auto no-scrollbar py-3">
         <div className="container mx-auto px-4 flex items-center gap-2">
           <Button 
             variant="ghost" 
@@ -412,7 +413,7 @@ export default function Storefront() {
                 <div className="space-y-4">
                   {selectedProduct.stock > 0 ? (
                     <div className="flex items-center gap-2 text-xs text-green-600 font-bold bg-green-50 px-3 py-1.5 rounded-full w-fit">
-                      < स्टार className="h-3 w-3 fill-current" /> Em estoque ({selectedProduct.stock} unidades)
+                      <Star className="h-3 w-3 fill-current" /> Em estoque ({selectedProduct.stock} unidades)
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 text-xs text-destructive font-bold bg-destructive/5 px-3 py-1.5 rounded-full w-fit">
