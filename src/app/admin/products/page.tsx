@@ -29,7 +29,7 @@ export default function AdminProducts() {
     name: '',
     description: '',
     price: 0,
-    category: 'Labiais',
+    category: 'Batom',
     imageUrl: '',
     isFeatured: false,
     stock: 0
@@ -41,13 +41,21 @@ export default function AdminProducts() {
 
   const openAddModal = () => {
     setEditingProduct(null);
-    setFormData({ name: '', description: '', price: 0, category: 'Labiais', imageUrl: `https://picsum.photos/seed/${Math.random()}/400/400`, isFeatured: false, stock: 0 });
+    setFormData({ 
+      name: '', 
+      description: '', 
+      price: 0, 
+      category: 'Batom', 
+      imageUrl: `https://picsum.photos/seed/${Math.random()}/400/400`, 
+      isFeatured: false, 
+      stock: 0 
+    });
     setIsModalOpen(true);
   };
 
   const openEditModal = (product: Product) => {
     setEditingProduct(product);
-    setFormData(product);
+    setFormData({ ...product });
     setIsModalOpen(true);
   };
 
@@ -62,13 +70,28 @@ export default function AdminProducts() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let updated;
+    let updated: Product[];
+    
+    const productData = {
+      name: formData.name || '',
+      description: formData.description || '',
+      price: Number(formData.price) || 0,
+      category: (formData.category as ProductCategory) || 'Batom',
+      imageUrl: formData.imageUrl || '',
+      isFeatured: !!formData.isFeatured,
+      stock: Number(formData.stock) || 0,
+    };
+
     if (editingProduct) {
-      updated = products.map(p => p.id === editingProduct.id ? { ...formData as Product } : p);
+      updated = products.map(p => p.id === editingProduct.id ? { ...productData, id: p.id } : p);
     } else {
-      const newProduct = { ...formData as Product, id: Math.random().toString(36).substr(2, 9) };
+      const newProduct: Product = { 
+        ...productData, 
+        id: Math.random().toString(36).substr(2, 9) 
+      };
       updated = [...products, newProduct];
     }
+
     setProducts(updated);
     saveProducts(updated);
     setIsModalOpen(false);
