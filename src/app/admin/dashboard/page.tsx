@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -199,7 +198,8 @@ export default function AdminDashboard() {
                       <div className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full inline-block ${
                         order.status === 'Entregue' ? 'bg-green-100 text-green-700' : 
                         order.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 
-                        order.status === 'Pendente' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                        order.status === 'Pendente' ? 'bg-orange-100 text-orange-700' : 
+                        order.status === 'Pago' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
                       }`}>
                         {order.status}
                       </div>

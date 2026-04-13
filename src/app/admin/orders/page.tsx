@@ -31,12 +31,51 @@ export default function AdminOrders() {
     return () => window.removeEventListener('storage', loadOrders);
   }, []);
 
+  const sendWhatsAppStatusUpdate = (order: Order) => {
+    const telefone = order.customerPhone.replace(/\D/g, '');
+    const nome = order.customerName;
+    const id = order.orderNumber || order.id.substr(0, 6);
+    const status = order.status;
+
+    let mensagem = "";
+
+    switch(status) {
+      case "Pago":
+        mensagem = `🌸 *Flor de Batom Makeup*\n\n💖 Olá ${nome}!\nSeu pedido #${id} foi CONFIRMADO e já estamos separando seus produtinhos 💄✨`;
+        break;
+      case "Enviado":
+        mensagem = `🌸 *Flor de Batom Makeup*\n\n🚚 ${nome}, seu pedido #${id} já foi enviado e está a caminho! Em breve chega até você 😍`;
+        break;
+      case "Entregue":
+        mensagem = `🌸 *Flor de Batom Makeup*\n\n✨ ${nome}, seu pedido #${id} foi entregue! Obrigada pela sua compra 💕`;
+        break;
+      case "Cancelado":
+        mensagem = `🌸 *Flor de Batom Makeup*\n\n⚠️ ${nome}, seu pedido #${id} foi cancelado. Qualquer dúvida estamos à disposição!`;
+        break;
+      default:
+        return;
+    }
+
+    if (!mensagem) return;
+
+    const msg = encodeURIComponent(mensagem);
+    window.open(`https://wa.me/55${telefone}?text=${msg}`, '_blank');
+  };
+
   const handleStatusChange = (id: string, status: OrderStatus) => {
     updateOrderStatus(id, status);
+    
+    // Buscar o pedido atualizado para disparar o WhatsApp
+    const order = orders.find(o => o.id === id);
+    if (order) {
+      const updatedOrder = { ...order, status };
+      sendWhatsAppStatusUpdate(updatedOrder);
+    }
+
     loadOrders();
     toast({ 
       title: status === 'Cancelado' ? "Pedido Cancelado" : "Status Atualizado", 
-      description: status === 'Cancelado' ? "O pedido foi marcado como cancelado e ignorado nas métricas." : `Pedido marcado como ${status}.` 
+      description: status === 'Cancelado' ? "O pedido foi marcado como cancelado e o cliente será notificado." : `Pedido marcado como ${status}. Notificação enviada.` 
     });
   };
 
@@ -138,8 +177,8 @@ export default function AdminOrders() {
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
       case 'Pendente': return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 gap-1"><Clock className="h-3 w-3" /> {status}</Badge>;
-      case 'Em Separação': return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 gap-1"><Package className="h-3 w-3" /> {status}</Badge>;
-      case 'Em Entrega': return <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 gap-1"><Truck className="h-3 w-3" /> {status}</Badge>;
+      case 'Pago': return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 gap-1"><Package className="h-3 w-3" /> {status}</Badge>;
+      case 'Enviado': return <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 gap-1"><Truck className="h-3 w-3" /> {status}</Badge>;
       case 'Entregue': return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 gap-1"><CheckCircle2 className="h-3 w-3" /> {status}</Badge>;
       case 'Cancelado': return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 gap-1"><XCircle className="h-3 w-3" /> {status}</Badge>;
     }
@@ -173,8 +212,8 @@ export default function AdminOrders() {
             <SelectContent>
               <SelectItem value="Todos">Todos Status</SelectItem>
               <SelectItem value="Pendente">Pendente</SelectItem>
-              <SelectItem value="Em Separação">Em Separação</SelectItem>
-              <SelectItem value="Em Entrega">Em Entrega</SelectItem>
+              <SelectItem value="Pago">Pago</SelectItem>
+              <SelectItem value="Enviado">Enviado</SelectItem>
               <SelectItem value="Entregue">Entregue</SelectItem>
               <SelectItem value="Cancelado">Cancelado</SelectItem>
             </SelectContent>
@@ -224,8 +263,8 @@ export default function AdminOrders() {
                       <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Pendente">Pendente</SelectItem>
-                        <SelectItem value="Em Separação">Em Separação</SelectItem>
-                        <SelectItem value="Em Entrega">Em Entrega</SelectItem>
+                        <SelectItem value="Pago">Pago</SelectItem>
+                        <SelectItem value="Enviado">Enviado</SelectItem>
                         <SelectItem value="Entregue">Entregue</SelectItem>
                         <SelectItem value="Cancelado">Cancelado</SelectItem>
                       </SelectContent>

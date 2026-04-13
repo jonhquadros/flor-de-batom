@@ -15,7 +15,7 @@ export interface CartItem extends Product {
   selectedColor?: string; // Cor escolhida pelo cliente
 }
 
-export type OrderStatus = 'Pendente' | 'Em Separação' | 'Em Entrega' | 'Entregue' | 'Cancelado';
+export type OrderStatus = 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado';
 
 export interface Order {
   id: string;
