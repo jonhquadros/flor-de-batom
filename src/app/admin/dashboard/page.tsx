@@ -6,7 +6,7 @@ import { Package, ShoppingBag, DollarSign, TrendingUp } from 'lucide-react';
 import { getStoredOrders, getStoredProducts } from '@/lib/storage-utils';
 import { Order, Product } from '@/lib/types';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -19,30 +19,43 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadData();
+    // Ouvinte para mudanças no localStorage
     window.addEventListener('storage', loadData);
     return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  // Filtramos pedidos cancelados das métricas financeiras
+  // Filtramos pedidos cancelados das métricas financeiras e gráficos de vendas
   const activeOrders = orders.filter(o => o.status !== 'Cancelado');
   
   const totalRevenue = activeOrders.reduce((sum, order) => sum + order.total, 0);
   const totalOrdersCount = activeOrders.length;
   const totalProducts = products.length;
   
-  const categoryCount = products.reduce((acc, p) => {
-    acc[p.category] = (acc[p.category] || 0) + 1;
+  // Cálculo de Vendas por Categoria (apenas pedidos ativos)
+  const salesByCategory = activeOrders.reduce((acc, order) => {
+    order.items.forEach(item => {
+      acc[item.category] = (acc[item.category] || 0) + item.quantity;
+    });
     return acc;
   }, {} as Record<string, number>);
 
-  const chartData = Object.entries(categoryCount).map(([name, count]) => ({
-    name,
-    count
-  }));
+  // Garantir que categorias existentes apareçam mesmo com zero vendas (opcional, mas visualmente melhor)
+  products.forEach(p => {
+    if (!salesByCategory[p.category]) {
+      salesByCategory[p.category] = 0;
+    }
+  });
+
+  const chartData = Object.entries(salesByCategory)
+    .map(([name, count]) => ({
+      name,
+      count
+    }))
+    .sort((a, b) => b.count - a.count); // Ordenar pelas mais vendidas
 
   const chartConfig = {
     count: {
-      label: "Quantidade",
+      label: "Itens Vendidos",
       color: "hsl(var(--primary))",
     },
   } satisfies ChartConfig;
@@ -80,13 +93,29 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle className="font-headline">Produtos por Categoria</CardTitle>
+            <CardTitle className="font-headline">Vendas por Categoria</CardTitle>
+            <p className="text-xs text-muted-foreground">Volume de itens vendidos em pedidos ativos.</p>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[350px] pb-10">
             <ChartContainer config={chartConfig}>
-              <BarChart data={chartData}>
-                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
+              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#888888" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                />
+                <YAxis 
+                  stroke="#888888" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tickFormatter={(value) => `${value}`} 
+                />
                 <Tooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="count" fill="var(--color-count)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -105,21 +134,22 @@ export default function AdminDashboard() {
               <div className="divide-y">
                 {orders.slice(-5).reverse().map((order) => (
                   <div key={order.id} className="p-4 flex justify-between items-center hover:bg-muted/30 transition-colors">
-                    <div>
+                    <div className="space-y-1">
                       <p className="font-bold text-primary">
                         {order.orderNumber ? `#${order.orderNumber}` : `#${order.id.substr(0, 6)}`}
                       </p>
-                      <p className="font-medium text-sm">{order.customerName}</p>
+                      <p className="font-medium text-sm leading-none">{order.customerName}</p>
                       <p className="text-[10px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">R$ {order.total.toFixed(2)}</p>
-                      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                    <div className="text-right space-y-2">
+                      <p className="font-bold text-primary leading-none">R$ {order.total.toFixed(2)}</p>
+                      <div className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full inline-block ${
                         order.status === 'Entregue' ? 'bg-green-100 text-green-700' : 
-                        order.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                        order.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 
+                        order.status === 'Pendente' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
                       }`}>
                         {order.status}
-                      </span>
+                      </div>
                     </div>
                   </div>
                 ))}
