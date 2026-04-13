@@ -186,7 +186,7 @@ export default function Storefront() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#FDFCFB] text-foreground">
+    <div className="flex min-h-screen bg-[#FDFCFB] text-foreground font-poppins">
       {/* Sidebar Desktop */}
       <aside className="hidden lg:flex w-64 flex-col bg-white border-r sticky top-0 h-screen overflow-y-auto z-40 p-6 space-y-8">
         <div className="flex items-center gap-3">
@@ -199,7 +199,7 @@ export default function Storefront() {
         <nav className="space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">Categorias</p>
           <button 
-            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
+            className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
             onClick={() => setSelectedCategory('Todos')}
           >
             Todos os Produtos
@@ -207,7 +207,7 @@ export default function Storefront() {
           {categories.map(cat => (
             <button 
               key={cat.id} 
-              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${selectedCategory === cat.name ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
+              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === cat.name ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
               onClick={() => setSelectedCategory(cat.name)}
             >
               {cat.name}
@@ -269,7 +269,7 @@ export default function Storefront() {
                               <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-sm truncate">{item.name}</h4>
+                              <h4 className="font-display font-bold text-sm truncate text-primary">{item.name}</h4>
                               {item.selectedColor && (
                                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Cor: {item.selectedColor}</p>
                               )}
@@ -308,7 +308,7 @@ export default function Storefront() {
         </header>
 
         <main className="flex-1 pb-20">
-          {/* Banner Hero - Layout Limpo e Moderno */}
+          {/* Banner Hero */}
           <div className="px-4 pt-4 md:pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="container mx-auto">
               <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[200px] md:min-h-[260px] flex flex-col justify-center items-center shadow-xl shadow-primary/10 transition-all">
@@ -318,7 +318,7 @@ export default function Storefront() {
                       <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.15em]">Coleção Exclusiva</span>
                     </div>
                     
-                    <h2 className="text-2xl md:text-5xl font-headline font-bold text-white leading-[1.2] drop-shadow-lg">
+                    <h2 className="text-2xl md:text-5xl font-display font-bold text-white leading-[1.2] drop-shadow-lg">
                       Realce sua beleza todos os dias 💓
                     </h2>
                     
@@ -326,7 +326,6 @@ export default function Storefront() {
                       Maquiagens selecionadas para valorizar sua autoestima com delicadeza ✨
                     </p>
 
-                    {/* Benefícios Compactos */}
                     <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2 pt-1">
                       <div className="flex items-center gap-1.5 text-white/90 text-[10px] md:text-sm font-medium">
                         <Truck className="h-3 w-3 md:h-4 md:w-4" /> Entrega grátis
@@ -337,7 +336,6 @@ export default function Storefront() {
                     </div>
                   </div>
                   
-                  {/* Logo Circular Compacto */}
                   <div className="relative h-24 w-24 md:h-40 md:w-40 shrink-0">
                     <div className="absolute inset-0 bg-white/15 backdrop-blur-2xl rounded-full scale-110 border border-white/30 shadow-xl" />
                     <div className="relative h-full w-full rounded-full overflow-hidden border-2 md:border-4 border-white/20 shadow-lg">
@@ -359,7 +357,7 @@ export default function Storefront() {
             <div className="flex gap-2 min-w-max">
               <Button 
                 variant="ghost" 
-                className={`rounded-full px-6 h-10 font-bold transition-all ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-lg' : 'bg-white border text-muted-foreground'}`}
+                className={`rounded-full px-6 h-10 font-bold uppercase tracking-wider transition-all ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-lg' : 'bg-white border text-muted-foreground'}`}
                 onClick={() => setSelectedCategory('Todos')}
               >
                 Todos
@@ -368,7 +366,7 @@ export default function Storefront() {
                 <Button 
                   key={cat.id} 
                   variant="ghost" 
-                  className={`rounded-full px-6 h-10 font-bold transition-all ${selectedCategory === cat.name ? 'bg-primary text-white shadow-lg' : 'bg-white border text-muted-foreground'}`}
+                  className={`rounded-full px-6 h-10 font-bold uppercase tracking-wider transition-all ${selectedCategory === cat.name ? 'bg-primary text-white shadow-lg' : 'bg-white border text-muted-foreground'}`}
                   onClick={() => setSelectedCategory(cat.name)}
                 >
                   {cat.name}
@@ -380,11 +378,11 @@ export default function Storefront() {
           {/* Grid de Produtos */}
           <div className="container mx-auto px-4 mt-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl md:text-2xl font-headline font-bold text-primary flex items-center gap-2">
-                {selectedCategory} <span className="text-[10px] md:text-sm font-body text-muted-foreground font-medium">({filteredProducts.length} itens)</span>
+              <h3 className="text-xl md:text-2xl font-display font-bold text-primary flex items-center gap-2">
+                {selectedCategory} <span className="text-[10px] md:text-sm font-poppins text-muted-foreground font-medium">({filteredProducts.length} itens)</span>
               </h3>
               <select 
-                className="bg-transparent text-xs font-bold text-primary focus:ring-0 cursor-pointer appearance-none border-none pr-4"
+                className="bg-transparent text-[10px] md:text-xs font-bold text-primary focus:ring-0 cursor-pointer appearance-none border-none pr-4 tracking-widest"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as any)}
               >
@@ -398,7 +396,7 @@ export default function Storefront() {
               {filteredProducts.map((product, idx) => (
                 <Card 
                   key={product.id} 
-                  className="group relative border-none bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 fade-in-up flex flex-col h-full"
+                  className="group relative border-none bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 fade-in-up flex flex-col h-full"
                   style={{ animationDelay: `${idx * 0.05}s` }}
                 >
                   <div 
@@ -424,11 +422,11 @@ export default function Storefront() {
                   </div>
                   <CardContent className="p-3 md:p-5 flex flex-col flex-1">
                     <div className="flex-1 space-y-1">
-                      <p className="text-[10px] font-bold text-primary/60 uppercase tracking-tighter">{product.category}</p>
-                      <h4 className="font-medium text-xs md:text-sm leading-tight line-clamp-2 min-h-[2.5em] group-hover:text-primary transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                      <p className="text-[9px] md:text-[10px] font-bold text-primary/60 uppercase tracking-widest">{product.category}</p>
+                      <h4 className="font-display font-bold text-sm md:text-base leading-tight line-clamp-2 min-h-[2.5em] text-primary group-hover:text-primary/80 transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
                         {product.name}
                       </h4>
-                      <p className="text-base md:text-xl font-headline font-bold text-primary">{product.price.toFixed(2)}</p>
+                      <p className="text-base md:text-xl font-poppins font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
                     </div>
                     
                     <button 
@@ -436,7 +434,7 @@ export default function Storefront() {
                       onClick={() => setSelectedProduct(product)}
                       disabled={product.stock === 0}
                     >
-                      <Plus className="h-5 w-5 md:h-6 md:h-6" />
+                      <Plus className="h-5 w-5 md:h-6 md:w-6" />
                     </button>
                   </CardContent>
                 </Card>
@@ -447,7 +445,7 @@ export default function Storefront() {
           {/* Sessão Fale Conosco */}
           <section className="bg-muted/40 py-12 md:py-20 mt-16" id="contato">
             <div className="container mx-auto px-4 text-center max-w-2xl">
-              <h2 className="text-2xl md:text-4xl font-headline font-bold text-primary mb-3">Fale Conosco</h2>
+              <h2 className="text-2xl md:text-4xl font-display font-bold text-primary mb-3">Fale Conosco</h2>
               <p className="text-xs md:text-base text-muted-foreground mb-10 leading-relaxed px-4">Dúvidas sobre produtos ou pedidos especiais? Estamos prontos para te atender pessoalmente.</p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
@@ -493,7 +491,7 @@ export default function Storefront() {
             </SheetHeader>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               <button 
-                className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold transition-all flex items-center justify-between ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
+                className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
                 onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}
               >
                 Todos {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}
@@ -501,7 +499,7 @@ export default function Storefront() {
               {categories.map(cat => (
                 <button 
                   key={cat.id} 
-                  className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold transition-all flex items-center justify-between ${selectedCategory === cat.name ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
+                  className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between ${selectedCategory === cat.name ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
                   onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}
                 >
                   {cat.name} {selectedCategory === cat.name && <ChevronRight className="h-5 w-5" />}
@@ -555,10 +553,10 @@ export default function Storefront() {
                     )}
 
                     <div className="space-y-1">
-                      <p className="text-3xl md:text-4xl font-poppins font-semibold text-primary">{selectedProduct.price.toFixed(2)}</p>
+                      <p className="text-3xl md:text-4xl font-poppins font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
                     </div>
 
-                    <p className="text-muted-foreground text-sm leading-relaxed border-t pt-6 font-poppins font-normal">
+                    <p className="text-muted-foreground text-sm font-poppins font-normal leading-relaxed border-t pt-6">
                       {selectedProduct.description}
                     </p>
                   </div>
@@ -570,7 +568,7 @@ export default function Storefront() {
                     onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); setSelectedColor(''); }}
                     disabled={selectedProduct.stock === 0}
                   >
-                    Adicionar
+                    Adicionar ao Carrinho
                   </Button>
                   <button 
                     className="w-full text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-2"
