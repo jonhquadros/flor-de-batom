@@ -1,4 +1,4 @@
-import { Product, Order, CartItem, INITIAL_CATEGORIES, Category } from './types';
+import { Product, Order, CartItem, INITIAL_CATEGORIES, Category, OrderStatus } from './types';
 
 const PRODUCTS_KEY = 'flordebatom_produtos_v2';
 const ORDERS_KEY = 'flordebatom_pedidos_v2';
@@ -71,11 +71,50 @@ export const updateOrder = (updatedOrder: Order) => {
   window.dispatchEvent(new Event('storage'));
 };
 
-export const updateOrderStatus = (orderId: string, status: Order['status']) => {
+export const updateOrderStatus = (orderId: string, status: OrderStatus) => {
   if (typeof window === 'undefined') return;
+  
   const orders = getStoredOrders();
-  const updated = orders.map(o => o.id === orderId ? { ...o, status } : o);
-  localStorage.setItem(ORDERS_KEY, JSON.stringify(updated));
+  const products = getStoredProducts();
+  const orderIndex = orders.findIndex(o => o.id === orderId);
+  
+  if (orderIndex === -1) return;
+  
+  const order = orders[orderIndex];
+  const oldStatus = order.status;
+  const newStatus = status;
+
+  // Status que representam uma venda confirmada (saída de estoque)
+  const soldStatuses: OrderStatus[] = ['Pago', 'Enviado', 'Entregue'];
+  const wasSold = soldStatuses.includes(oldStatus);
+  const isSold = soldStatuses.includes(newStatus);
+
+  // Lógica de Gestão de Estoque
+  if (!wasSold && isSold) {
+    // Transição de Pendente/Cancelado para Pago (ou similar): BAIXA NO ESTOQUE
+    const updatedProducts = products.map(p => {
+      const itemInOrder = order.items.find(item => item.id === p.id);
+      if (itemInOrder) {
+        return { ...p, stock: Math.max(0, p.stock - itemInOrder.quantity) };
+      }
+      return p;
+    });
+    saveProducts(updatedProducts);
+  } else if (wasSold && !isSold) {
+    // Transição de Pago/Enviado para Cancelado (ou Pendente): RETORNO AO ESTOQUE
+    const updatedProducts = products.map(p => {
+      const itemInOrder = order.items.find(item => item.id === p.id);
+      if (itemInOrder) {
+        return { ...p, stock: p.stock + itemInOrder.quantity };
+      }
+      return p;
+    });
+    saveProducts(updatedProducts);
+  }
+
+  // Atualiza o status no pedido
+  order.status = newStatus;
+  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
   window.dispatchEvent(new Event('storage'));
 };
 
