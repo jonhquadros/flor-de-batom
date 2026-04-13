@@ -527,7 +527,7 @@ export default function Storefront() {
                 <div className="space-y-8">
                   <DialogHeader className="text-left space-y-2">
                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-60">{selectedProduct.category}</p>
-                    <DialogTitle className="text-3xl md:text-4xl font-headline font-bold text-primary leading-tight">{selectedProduct.name}</DialogTitle>
+                    <DialogTitle className="text-3xl md:text-4xl font-display font-bold text-primary leading-tight">{selectedProduct.name}</DialogTitle>
                     <DialogDescription className="sr-only">Visualizar detalhes de {selectedProduct.name}</DialogDescription>
                   </DialogHeader>
 
@@ -555,10 +555,10 @@ export default function Storefront() {
                     )}
 
                     <div className="space-y-1">
-                      <p className="text-3xl md:text-4xl font-headline font-bold text-primary">{selectedProduct.price.toFixed(2)}</p>
+                      <p className="text-3xl md:text-4xl font-poppins font-semibold text-primary">{selectedProduct.price.toFixed(2)}</p>
                     </div>
 
-                    <p className="text-muted-foreground text-sm leading-relaxed border-t pt-6">
+                    <p className="text-muted-foreground text-sm leading-relaxed border-t pt-6 font-poppins font-normal">
                       {selectedProduct.description}
                     </p>
                   </div>
@@ -566,7 +566,7 @@ export default function Storefront() {
 
                 <div className="mt-10 space-y-4">
                   <Button 
-                    className="w-full bg-primary hover:bg-primary/90 h-16 text-lg font-bold rounded-3xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" 
+                    className="w-full bg-primary hover:bg-primary/90 h-16 text-lg font-poppins font-bold rounded-3xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" 
                     onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); setSelectedColor(''); }}
                     disabled={selectedProduct.stock === 0}
                   >

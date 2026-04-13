@@ -12,6 +12,8 @@ export default {
       fontFamily: {
         body: ['DM Sans', 'sans-serif'],
         headline: ['Cormorant Garamond', 'serif'],
+        display: ['Playfair Display', 'serif'],
+        poppins: ['Poppins', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
