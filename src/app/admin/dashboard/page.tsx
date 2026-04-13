@@ -29,29 +29,24 @@ export default function AdminDashboard() {
   
   const totalRevenue = activeOrders.reduce((sum, order) => sum + order.total, 0);
   const totalOrdersCount = activeOrders.length;
-  const totalProducts = products.length;
+  const totalProductsCount = products.length;
   
-  // Cálculo de Vendas por Categoria (apenas pedidos ativos)
-  const salesByCategory = activeOrders.reduce((acc, order) => {
+  // Cálculo de Vendas por Produto (apenas pedidos ativos)
+  const salesByProduct = activeOrders.reduce((acc, order) => {
     order.items.forEach(item => {
-      acc[item.category] = (acc[item.category] || 0) + item.quantity;
+      acc[item.name] = (acc[item.name] || 0) + item.quantity;
     });
     return acc;
   }, {} as Record<string, number>);
 
-  // Garantir que categorias existentes apareçam mesmo com zero vendas (opcional, mas visualmente melhor)
-  products.forEach(p => {
-    if (!salesByCategory[p.category]) {
-      salesByCategory[p.category] = 0;
-    }
-  });
-
-  const chartData = Object.entries(salesByCategory)
+  // Preparamos os dados para o gráfico (Top 10 produtos mais vendidos para não poluir o visual)
+  const chartData = Object.entries(salesByProduct)
     .map(([name, count]) => ({
       name,
       count
     }))
-    .sort((a, b) => b.count - a.count); // Ordenar pelas mais vendidas
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10); // Mostramos apenas os top 10
 
   const chartConfig = {
     count: {
@@ -63,7 +58,7 @@ export default function AdminDashboard() {
   const stats = [
     { label: 'Receita Total', value: `R$ ${totalRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
     { label: 'Vendas Ativas', value: totalOrdersCount, icon: ShoppingBag, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Produtos Ativos', value: totalProducts, icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
+    { label: 'Produtos Ativos', value: totalProductsCount, icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
     { label: 'Ticket Médio', value: `R$ ${(totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
   ];
 
@@ -93,12 +88,12 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle className="font-headline">Vendas por Categoria</CardTitle>
-            <p className="text-xs text-muted-foreground">Volume de itens vendidos em pedidos ativos.</p>
+            <CardTitle className="font-headline">Produtos Mais Vendidos</CardTitle>
+            <p className="text-xs text-muted-foreground">Top 10 itens com maior volume de saída.</p>
           </CardHeader>
           <CardContent className="h-[350px] pb-10">
             <ChartContainer config={chartConfig}>
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 20 }}>
+              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
                 <XAxis 
                   dataKey="name" 
                   stroke="#888888" 
@@ -108,6 +103,7 @@ export default function AdminDashboard() {
                   interval={0}
                   angle={-45}
                   textAnchor="end"
+                  height={60}
                 />
                 <YAxis 
                   stroke="#888888" 
