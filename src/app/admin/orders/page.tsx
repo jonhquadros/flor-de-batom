@@ -1,20 +1,24 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { Download, Search, CheckCircle2, Package, Truck, Clock } from 'lucide-react';
+import { Download, Search, CheckCircle2, Package, Truck, Clock, Eye, MessageCircle, Save, Trash2, Plus, Minus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Order, OrderStatus } from '@/lib/types';
-import { getStoredOrders, updateOrderStatus } from '@/lib/storage-utils';
+import { Order, OrderStatus, CartItem } from '@/lib/types';
+import { getStoredOrders, updateOrderStatus, updateOrder } from '@/lib/storage-utils';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { toast } = useToast();
 
   const loadOrders = () => {
@@ -31,6 +35,67 @@ export default function AdminOrders() {
     updateOrderStatus(id, status);
     loadOrders();
     toast({ title: "Status Atualizado", description: `Pedido marcado como ${status}.` });
+  };
+
+  const openDetails = (order: Order) => {
+    setSelectedOrder({ ...order }); // Clone to avoid direct mutations
+    setIsDetailsOpen(true);
+  };
+
+  const handleUpdateItemQuantity = (id: string, delta: number) => {
+    if (!selectedOrder || selectedOrder.status !== 'Pendente') return;
+
+    const updatedItems = selectedOrder.items.map(item => {
+      if (item.id === id) {
+        return { ...item, quantity: Math.max(0, item.quantity + delta) };
+      }
+      return item;
+    }).filter(item => item.quantity > 0);
+
+    const newTotal = updatedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    setSelectedOrder({ ...selectedOrder, items: updatedItems, total: newTotal });
+  };
+
+  const handleRemoveItem = (id: string) => {
+    if (!selectedOrder || selectedOrder.status !== 'Pendente') return;
+
+    const updatedItems = selectedOrder.items.filter(item => item.id !== id);
+    const newTotal = updatedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    setSelectedOrder({ ...selectedOrder, items: updatedItems, total: newTotal });
+  };
+
+  const saveOrderChanges = () => {
+    if (!selectedOrder) return;
+    updateOrder(selectedOrder);
+    loadOrders();
+    setIsDetailsOpen(false);
+    toast({ title: "Pedido Atualizado", description: "As alterações foram salvas com sucesso." });
+  };
+
+  const resendToWhatsApp = () => {
+    if (!selectedOrder) return;
+
+    const NUMERO_LOJA = "5591987199039";
+    const linhasProdutos = selectedOrder.items.map(i =>
+      `• ${i.name} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
+    ).join('\n');
+
+    const linhaPagamento = selectedOrder.paymentMethod === 'Dinheiro'
+      ? `💵 Dinheiro${selectedOrder.change ? ` (troco para R$ ${selectedOrder.change})` : ' (sem troco)'}`
+      : `📱 Pix — comprovante a enviar`;
+
+    const msg = encodeURIComponent(
+      `🌸 *PEDIDO ATUALIZADO #${selectedOrder.orderNumber} — Flor de Batom Makeup*\n\n` +
+      `👤 *Cliente:* ${selectedOrder.customerName}\n` +
+      `📱 *Telefone:* ${selectedOrder.customerPhone}\n\n` +
+      `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
+      `🚚 *Entrega:* Grátis\n` +
+      `💰 *NOVO TOTAL: R$ ${selectedOrder.total.toFixed(2).replace('.', ',')}*\n` +
+      `💳 *Pagamento:* ${linhaPagamento}\n\n` +
+      `_Versão atualizada pelo painel administrativo_`
+    );
+    
+    window.open(`https://wa.me/${NUMERO_LOJA}?text=${msg}`, '_blank');
   };
 
   const exportToCSV = () => {
@@ -144,7 +209,10 @@ export default function AdminOrders() {
                   </TableCell>
                   <TableCell className="font-bold text-primary">R$ {order.total.toFixed(2)}</TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right flex items-center justify-end gap-2 h-12">
+                    <Button variant="ghost" size="icon" onClick={() => openDetails(order)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
                     <Select value={order.status} onValueChange={(v: OrderStatus) => handleStatusChange(order.id, v)}>
                       <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -161,6 +229,89 @@ export default function AdminOrders() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Details/Edit Modal */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-headline flex items-center gap-2">
+              Detalhes do Pedido {selectedOrder?.orderNumber ? `#${selectedOrder.orderNumber}` : ''}
+              {selectedOrder?.status === 'Pendente' && <Badge className="ml-2">Editável</Badge>}
+            </DialogTitle>
+            <DialogDescription>
+              Visualize o resumo ou edite itens (apenas se pendente).
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedOrder && (
+            <div className="space-y-6 pt-4">
+              <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg text-sm">
+                <div>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Cliente</Label>
+                  <p className="font-medium">{selectedOrder.customerName}</p>
+                </div>
+                <div>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Telefone</Label>
+                  <p className="font-medium">{selectedOrder.customerPhone}</p>
+                </div>
+                <div>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Pagamento</Label>
+                  <p className="font-medium">{selectedOrder.paymentMethod} {selectedOrder.change ? `(Troco para R$ ${selectedOrder.change})` : ''}</p>
+                </div>
+                <div>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Data</Label>
+                  <p className="font-medium">{new Date(selectedOrder.createdAt).toLocaleString('pt-BR')}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">Itens do Pedido</Label>
+                <div className="border rounded-lg divide-y bg-white">
+                  {selectedOrder.items.map(item => (
+                    <div key={item.id} className="p-3 flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">{item.name}</p>
+                        <p className="text-[10px] text-muted-foreground">Preço unitário: R$ {item.price.toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {selectedOrder.status === 'Pendente' ? (
+                          <>
+                            <Button variant="outline" size="icon" className="h-7 w-7 rounded-full" onClick={() => handleUpdateItemQuantity(item.id, -1)}><Minus className="h-3 w-3" /></Button>
+                            <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
+                            <Button variant="outline" size="icon" className="h-7 w-7 rounded-full" onClick={() => handleUpdateItemQuantity(item.id, 1)}><Plus className="h-3 w-3" /></Button>
+                            <Button variant="ghost" size="icon" className="text-destructive h-7 w-7" onClick={() => handleRemoveItem(item.id)}><Trash2 className="h-3 w-3" /></Button>
+                          </>
+                        ) : (
+                          <span className="text-xs font-bold">{item.quantity}x R$ {item.price.toFixed(2)}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {selectedOrder.items.length === 0 && (
+                    <div className="p-6 text-center text-muted-foreground text-xs italic">Nenhum item restante no pedido.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center bg-primary/5 p-4 rounded-xl border border-primary/10">
+                <span className="font-bold text-primary uppercase text-xs tracking-widest">Total Atual</span>
+                <span className="text-2xl font-headline font-bold text-primary">R$ {selectedOrder.total.toFixed(2)}</span>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="outline" className="flex-1 gap-2 border-green-200 text-green-700 hover:bg-green-50" onClick={resendToWhatsApp}>
+                  <MessageCircle className="h-4 w-4" /> Reenviar no WhatsApp
+                </Button>
+                {selectedOrder.status === 'Pendente' && (
+                  <Button className="flex-1 gap-2 bg-primary hover:bg-primary/90" onClick={saveOrderChanges}>
+                    <Save className="h-4 w-4" /> Salvar Alterações
+                  </Button>
+                )}
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

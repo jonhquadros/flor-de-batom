@@ -63,6 +63,14 @@ export const saveOrder = (order: Order) => {
   window.dispatchEvent(new Event('storage'));
 };
 
+export const updateOrder = (updatedOrder: Order) => {
+  if (typeof window === 'undefined') return;
+  const orders = getStoredOrders();
+  const updated = orders.map(o => o.id === updatedOrder.id ? updatedOrder : o);
+  localStorage.setItem(ORDERS_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event('storage'));
+};
+
 export const updateOrderStatus = (orderId: string, status: Order['status']) => {
   if (typeof window === 'undefined') return;
   const orders = getStoredOrders();
