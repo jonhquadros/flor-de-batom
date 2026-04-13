@@ -89,23 +89,25 @@ export const updateOrderStatus = (orderId: string, status: OrderStatus) => {
   const wasSold = soldStatuses.includes(oldStatus);
   const isSold = soldStatuses.includes(newStatus);
 
-  // Lógica de Gestão de Estoque
+  // Lógica de Gestão de Estoque (Corrigida para somar variantes do mesmo produto)
   if (!wasSold && isSold) {
-    // Transição de Pendente/Cancelado para Pago (ou similar): BAIXA NO ESTOQUE
+    // Transição de Pendente/Cancelado para Pago: BAIXA NO ESTOQUE
     const updatedProducts = products.map(p => {
-      const itemInOrder = order.items.find(item => item.id === p.id);
-      if (itemInOrder) {
-        return { ...p, stock: Math.max(0, p.stock - itemInOrder.quantity) };
+      const itemsOfThisProduct = order.items.filter(item => item.id === p.id);
+      if (itemsOfThisProduct.length > 0) {
+        const totalQty = itemsOfThisProduct.reduce((sum, i) => sum + i.quantity, 0);
+        return { ...p, stock: Math.max(0, p.stock - totalQty) };
       }
       return p;
     });
     saveProducts(updatedProducts);
   } else if (wasSold && !isSold) {
-    // Transição de Pago/Enviado para Cancelado (ou Pendente): RETORNO AO ESTOQUE
+    // Transição de Pago para Cancelado/Pendente: RETORNO AO ESTOQUE
     const updatedProducts = products.map(p => {
-      const itemInOrder = order.items.find(item => item.id === p.id);
-      if (itemInOrder) {
-        return { ...p, stock: p.stock + itemInOrder.quantity };
+      const itemsOfThisProduct = order.items.filter(item => item.id === p.id);
+      if (itemsOfThisProduct.length > 0) {
+        const totalQty = itemsOfThisProduct.reduce((sum, i) => sum + i.quantity, 0);
+        return { ...p, stock: p.stock + totalQty };
       }
       return p;
     });

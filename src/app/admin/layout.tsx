@@ -102,14 +102,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex-1 flex flex-col min-w-0 lg:ml-72">
         {/* Mobile Header */}
         <header className="lg:hidden h-16 bg-carbon text-white flex items-center justify-between px-4 sticky top-0 z-50 shadow-md">
-          <div className="flex items-center gap-2">
-            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/20">
+          <div className="flex items-center gap-3">
+            <div className="relative w-9 h-9 rounded-full overflow-hidden border border-white/20 shrink-0">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
             </div>
-            <h2 className="text-lg font-bold truncate max-w-[200px]">Gestão Flor de Batom</h2>
+            <h2 className="text-lg font-bold truncate">Gestão Flor de Batom</h2>
           </div>
-          <Button variant="ghost" size="icon" className="hover:bg-white/10" onClick={() => setIsMobileMenuOpen(true)}>
-            <Menu className="h-6 w-6" />
+          <Button variant="ghost" size="icon" className="hover:bg-white/10 ml-2" onClick={() => setIsMobileMenuOpen(true)}>
+            <Menu className="h-7 w-7" />
           </Button>
         </header>
 

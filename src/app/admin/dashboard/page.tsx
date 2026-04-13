@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -13,17 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-  });
-
-  const loadData = () => {
-    setOrders(getStoredOrders());
-    setProducts(getStoredProducts());
-  };
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+    setSelectedMonth(currentMonth);
+    
+    const loadData = () => {
+      setOrders(getStoredOrders());
+      setProducts(getStoredProducts());
+      setIsLoaded(true);
+    };
+
     loadData();
     window.addEventListener('storage', loadData);
     return () => window.removeEventListener('storage', loadData);
@@ -44,32 +46,32 @@ export default function AdminDashboard() {
     return Array.from(months).sort().reverse();
   }, [orders]);
 
-  const activeOrders = orders.filter(o => o.status !== 'Cancelado');
+  const activeOrders = useMemo(() => orders.filter(o => o.status !== 'Cancelado'), [orders]);
   
-  const filteredOrdersForChart = activeOrders.filter(order => {
+  const filteredOrdersForChart = useMemo(() => activeOrders.filter(order => {
     const orderDate = new Date(order.createdAt);
     const orderMonth = `${orderDate.getFullYear()}-${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
     return orderMonth === selectedMonth;
-  });
+  }), [activeOrders, selectedMonth]);
 
   const totalRevenue = activeOrders.reduce((sum, order) => sum + order.total, 0);
   const totalOrdersCount = activeOrders.length;
   const totalProductsCount = products.length;
   
-  const salesByProduct = filteredOrdersForChart.reduce((acc, order) => {
+  const salesByProduct = useMemo(() => filteredOrdersForChart.reduce((acc, order) => {
     order.items.forEach(item => {
       acc[item.name] = (acc[item.name] || 0) + item.quantity;
     });
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, number>), [filteredOrdersForChart]);
 
-  const chartData = Object.entries(salesByProduct)
+  const chartData = useMemo(() => Object.entries(salesByProduct)
     .map(([name, count]) => ({
       name,
       count
     }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+    .slice(0, 10), [salesByProduct]);
 
   const chartConfig = {
     count: {
@@ -84,6 +86,8 @@ export default function AdminDashboard() {
     { label: 'Produtos Ativos', value: totalProductsCount.toString(), icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
     { label: 'Ticket Médio', value: `R$ ${(totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
   ];
+
+  if (!isLoaded) return null;
 
   return (
     <div className="space-y-6 md:space-y-8 font-poppins">
