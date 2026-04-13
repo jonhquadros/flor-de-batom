@@ -35,11 +35,11 @@ export default function AdminCategories() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta categoria? Isso não removerá os produtos, mas eles podem perder o filtro.')) {
+    if (confirm('Excluir categoria?')) {
       const updated = categories.filter(c => c.id !== id);
       setCategories(updated);
       saveCategories(updated);
-      toast({ title: "Removida", description: "A categoria foi excluída com sucesso." });
+      toast({ title: "Removida" });
     }
   };
 
@@ -61,76 +61,79 @@ export default function AdminCategories() {
     setCategories(updated);
     saveCategories(updated);
     setIsModalOpen(false);
-    toast({ title: "Sucesso!", description: editingCategory ? "Categoria atualizada." : "Categoria criada." });
+    toast({ title: "Sucesso!", description: editingCategory ? "Atualizada." : "Criada." });
   };
 
   return (
     <div className="space-y-6 font-poppins">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Categorias</h1>
-          <p className="text-muted-foreground">Gerencie os filtros da sua vitrine.</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Categorias</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Gestão de filtros da vitrine.</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 gap-2" onClick={openAddModal}>
+        <Button className="bg-primary hover:bg-primary/90 gap-2 w-full sm:w-auto font-bold rounded-xl" onClick={openAddModal}>
           <Plus className="h-4 w-4" /> Nova Categoria
         </Button>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12"></TableHead>
-              <TableHead>Nome da Categoria</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categories.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center py-10 text-muted-foreground">
-                  Nenhuma categoria cadastrada.
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/30">
+                <TableHead className="w-12"></TableHead>
+                <TableHead className="text-xs">Nome</TableHead>
+                <TableHead className="text-right text-xs">Ações</TableHead>
               </TableRow>
-            ) : (
-              categories.map(cat => (
-                <TableRow key={cat.id}>
-                  <TableCell><Tags className="h-4 w-4 text-muted-foreground" /></TableCell>
-                  <TableCell className="font-medium">{cat.name}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => openEditModal(cat)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(cat.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {categories.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-10 text-muted-foreground text-sm">
+                    Nenhuma categoria.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                categories.map(cat => (
+                  <TableRow key={cat.id} className="hover:bg-muted/10">
+                    <TableCell><Tags className="h-4 w-4 text-muted-foreground" /></TableCell>
+                    <TableCell className="font-bold text-xs">{cat.name}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditModal(cat)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(cat.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="font-poppins">
+        <DialogContent className="w-[90%] max-w-md font-poppins rounded-2xl p-6">
           <DialogHeader>
-            <DialogTitle>{editingCategory ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
+            <DialogTitle className="text-lg font-bold">{editingCategory ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="catName">Nome</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="catName" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome da Categoria</Label>
               <Input 
                 id="catName" 
                 value={catName} 
                 onChange={(e) => setCatName(e.target.value)} 
                 placeholder="Ex: Novos Batons"
                 required 
+                className="h-12 rounded-xl"
               />
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-              <Button type="submit">Salvar</Button>
+            <DialogFooter className="gap-2 sm:gap-0 pt-2">
+              <Button type="button" variant="ghost" className="rounded-xl h-11" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+              <Button type="submit" className="rounded-xl h-11 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20">Salvar Categoria</Button>
             </DialogFooter>
           </form>
         </DialogContent>

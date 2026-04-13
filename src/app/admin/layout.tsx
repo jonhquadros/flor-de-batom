@@ -37,6 +37,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname, router]);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
   if (pathname === '/admin/login') return <>{children}</>;
   if (!authorized) return null;
 
@@ -97,12 +101,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 lg:ml-72">
         {/* Mobile Header */}
-        <header className="lg:hidden h-16 bg-carbon text-white flex items-center justify-between px-6 sticky top-0 z-50 shadow-md">
+        <header className="lg:hidden h-16 bg-carbon text-white flex items-center justify-between px-4 sticky top-0 z-50 shadow-md">
           <div className="flex items-center gap-2">
             <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/20">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
             </div>
-            <h2 className="text-base font-bold">Painel Flor</h2>
+            <h2 className="text-sm font-bold truncate max-w-[150px]">Gestão Flor de Batom</h2>
           </div>
           <Button variant="ghost" size="icon" className="hover:bg-white/10" onClick={() => setIsMobileMenuOpen(true)}>
             <Menu className="h-6 w-6" />
@@ -112,46 +116,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile Sidebar Overlay */}
         {isMobileMenuOpen && (
           <div className="fixed inset-0 z-[100] bg-black/90 lg:hidden backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsMobileMenuOpen(false)}>
-            <div className="absolute top-0 right-0 w-[80%] max-w-sm h-full bg-carbon p-8 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-10">
+            <div className="absolute top-0 right-0 w-[85%] max-w-sm h-full bg-carbon p-6 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-2">
-                  <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-md">
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden shadow-md">
                     <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
                   </div>
-                  <h2 className="text-xl font-bold text-white">Menu</h2>
+                  <h2 className="text-lg font-bold text-white">Menu</h2>
                 </div>
                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => setIsMobileMenuOpen(false)}>
                   <X className="h-6 w-6" />
                 </Button>
               </div>
-              <nav className="space-y-4 flex-1">
+              <nav className="space-y-2 flex-1 overflow-y-auto">
                 {navItems.map(item => (
-                  <Link key={item.path} href={item.path} onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${pathname === item.path ? 'bg-primary text-white' : 'text-gray-400 border border-white/5'}`}>
-                      <item.icon className="h-6 w-6" />
-                      <span className="font-bold text-lg">{item.name}</span>
+                  <Link key={item.path} href={item.path}>
+                    <div className={`flex items-center gap-4 p-4 rounded-xl transition-all ${pathname === item.path ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 border border-white/5'}`}>
+                      <item.icon className="h-5 w-5" />
+                      <span className="font-bold text-base">{item.name}</span>
                     </div>
                   </Link>
                 ))}
                 <Separator className="bg-white/10 my-4" />
-                <Link href="/" target="_blank" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-4 p-4 rounded-2xl text-gray-400">
-                    <ExternalLink className="h-6 w-6" />
-                    <span className="font-bold text-lg">Visitar Loja</span>
+                <Link href="/" target="_blank">
+                  <div className="flex items-center gap-4 p-4 rounded-xl text-gray-400 hover:text-white transition-colors">
+                    <ExternalLink className="h-5 w-5" />
+                    <span className="font-bold text-base">Visitar Loja</span>
                   </div>
                 </Link>
               </nav>
-              <div className="pt-8 mt-auto">
-                 <Button variant="destructive" className="w-full justify-center gap-3 h-14 rounded-2xl font-bold" onClick={handleLogout}>
-                  <LogOut className="h-6 w-6" /> Sair Agora
+              <div className="pt-6 mt-auto">
+                 <Button variant="destructive" className="w-full justify-center gap-3 h-12 rounded-xl font-bold" onClick={handleLogout}>
+                  <LogOut className="h-5 w-5" /> Sair do Sistema
                 </Button>
               </div>
             </div>
           </div>
         )}
 
-        <main className="flex-1 p-4 md:p-8 lg:p-10">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 p-4 md:p-8 lg:p-10 overflow-x-hidden">
+          <div className="max-w-7xl mx-auto space-y-6">
             {children}
           </div>
         </main>

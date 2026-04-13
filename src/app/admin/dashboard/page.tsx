@@ -47,7 +47,7 @@ export default function AdminDashboard() {
   const formatMonthLabel = (monthStr: string) => {
     const [year, month] = monthStr.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    return date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
   };
 
   // Filtramos pedidos cancelados das métricas financeiras globais
@@ -95,69 +95,68 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8 font-poppins">
+    <div className="space-y-6 md:space-y-8 font-poppins">
       <div>
-        <h1 className="text-3xl font-bold text-foreground font-poppins">Dashboard</h1>
-        <p className="text-muted-foreground">Visão geral do seu negócio em tempo real.</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-xs md:text-sm text-muted-foreground">Visão geral do seu negócio.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {stats.map((stat, i) => (
           <Card key={i} className="border-none shadow-sm">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${stat.bg}`}>
-                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+            <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-2 md:gap-4 text-center sm:text-left">
+              <div className={`p-2 md:p-3 rounded-xl ${stat.bg} shrink-0`}>
+                <stat.icon className={`h-4 w-4 md:h-6 md:w-6 ${stat.color}`} />
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <h3 className="text-2xl font-bold font-poppins">{stat.value}</h3>
+              <div className="min-w-0 w-full">
+                <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">{stat.label}</p>
+                <h3 className="text-sm md:text-xl font-bold truncate">{stat.value}</h3>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+        <Card className="border-none shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 p-4 md:p-6">
             <div>
-              <CardTitle className="font-bold font-poppins">Produtos Mais Vendidos</CardTitle>
-              <p className="text-xs text-muted-foreground">Top 10 itens com maior volume de saída.</p>
+              <CardTitle className="text-lg md:text-xl font-bold">Mais Vendidos</CardTitle>
+              <p className="text-[10px] md:text-xs text-muted-foreground">Volume de saída por produto.</p>
             </div>
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 w-full sm:w-auto bg-muted/30 p-1 rounded-lg">
+              <CalendarIcon className="h-3 w-3 text-muted-foreground ml-2" />
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="w-[180px] h-8 text-xs">
-                  <SelectValue placeholder="Selecione o mês" />
+                <SelectTrigger className="w-full sm:w-[140px] h-8 text-[10px] border-none bg-transparent shadow-none">
+                  <SelectValue placeholder="Mês" />
                 </SelectTrigger>
                 <SelectContent>
                   {monthOptions.map(option => (
-                    <SelectItem key={option} value={option}>
-                      {formatMonthLabel(option)}
+                    <SelectItem key={option} value={option} className="text-xs">
+                      {new Date(parseInt(option.split('-')[0]), parseInt(option.split('-')[1]) - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </CardHeader>
-          <CardContent className="h-[350px] pb-10">
+          <CardContent className="h-[250px] md:h-[350px] pb-4 px-2">
             {chartData.length > 0 ? (
               <ChartContainer config={chartConfig}>
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <XAxis 
                     dataKey="name" 
-                    stroke="#888888" 
                     fontSize={10} 
                     tickLine={false} 
                     axisLine={false}
                     interval={0}
                     angle={-45}
                     textAnchor="end"
-                    height={60}
+                    height={70}
+                    hide={window.innerWidth < 640}
                   />
                   <YAxis 
-                    stroke="#888888" 
-                    fontSize={12} 
+                    fontSize={10} 
                     tickLine={false} 
                     axisLine={false} 
                     tickFormatter={(value) => `${value}`} 
@@ -167,35 +166,35 @@ export default function AdminDashboard() {
                 </BarChart>
               </ChartContainer>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm opacity-50 italic">
-                <ShoppingBag className="h-12 w-12 mb-2" />
-                Nenhuma venda registrada neste mês.
+              <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-xs opacity-50 italic">
+                <ShoppingBag className="h-8 w-8 mb-2" />
+                Sem vendas neste mês.
               </div>
             )}
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-sm overflow-hidden">
-          <CardHeader>
-            <CardTitle className="font-bold font-poppins">Pedidos Recentes</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-lg md:text-xl font-bold">Pedidos Recentes</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {orders.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground font-poppins">Nenhum pedido ainda.</div>
+              <div className="p-8 text-center text-muted-foreground text-sm">Nenhum pedido ainda.</div>
             ) : (
               <div className="divide-y">
                 {orders.slice(-5).reverse().map((order) => (
-                  <div key={order.id} className="p-4 flex justify-between items-center hover:bg-muted/30 transition-colors font-poppins">
-                    <div className="space-y-1">
-                      <p className="font-bold text-primary">
+                  <div key={order.id} className="p-4 flex justify-between items-center hover:bg-muted/30 transition-colors">
+                    <div className="space-y-0.5 min-w-0">
+                      <p className="font-bold text-primary text-xs md:text-sm">
                         {order.orderNumber ? `#${order.orderNumber}` : `#${order.id.substr(0, 6)}`}
                       </p>
-                      <p className="font-medium text-sm leading-none">{order.customerName}</p>
-                      <p className="text-[10px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</p>
+                      <p className="font-medium text-xs truncate">{order.customerName}</p>
+                      <p className="text-[9px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</p>
                     </div>
-                    <div className="text-right space-y-2">
-                      <p className="font-bold text-primary leading-none">R$ {order.total.toFixed(2)}</p>
-                      <div className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-full inline-block ${
+                    <div className="text-right space-y-1 shrink-0 ml-2">
+                      <p className="font-bold text-primary text-xs md:text-sm">R$ {order.total.toFixed(2)}</p>
+                      <div className={`text-[8px] md:text-[9px] uppercase font-bold px-2 py-0.5 rounded-full inline-block ${
                         order.status === 'Entregue' ? 'bg-green-100 text-green-700' : 
                         order.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 
                         order.status === 'Pendente' ? 'bg-orange-100 text-orange-700' : 
