@@ -1,16 +1,21 @@
 "use client"
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Package, ShoppingBag, DollarSign, TrendingUp } from 'lucide-react';
+import { Package, ShoppingBag, DollarSign, TrendingUp, Calendar as CalendarIcon } from 'lucide-react';
 import { getStoredOrders, getStoredProducts } from '@/lib/storage-utils';
 import { Order, Product } from '@/lib/types';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, Tooltip } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+  });
 
   const loadData = () => {
     setOrders(getStoredOrders());
@@ -19,34 +24,61 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadData();
-    // Ouvinte para mudanças no localStorage
     window.addEventListener('storage', loadData);
     return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  // Filtramos pedidos cancelados das métricas financeiras e gráficos de vendas
+  // Opções de meses disponíveis baseadas nos pedidos existentes + mês atual
+  const monthOptions = useMemo(() => {
+    const months = new Set<string>();
+    const now = new Date();
+    months.add(`${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`);
+    
+    orders.forEach(order => {
+      const date = new Date(order.createdAt);
+      if (!isNaN(date.getTime())) {
+        months.add(`${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`);
+      }
+    });
+
+    return Array.from(months).sort().reverse();
+  }, [orders]);
+
+  const formatMonthLabel = (monthStr: string) => {
+    const [year, month] = monthStr.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  };
+
+  // Filtramos pedidos cancelados das métricas financeiras globais
   const activeOrders = orders.filter(o => o.status !== 'Cancelado');
   
+  // Dados filtrados pelo mês selecionado para o gráfico
+  const filteredOrdersForChart = activeOrders.filter(order => {
+    const orderDate = new Date(order.createdAt);
+    const orderMonth = `${orderDate.getFullYear()}-${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
+    return orderMonth === selectedMonth;
+  });
+
   const totalRevenue = activeOrders.reduce((sum, order) => sum + order.total, 0);
   const totalOrdersCount = activeOrders.length;
   const totalProductsCount = products.length;
   
-  // Cálculo de Vendas por Produto (apenas pedidos ativos)
-  const salesByProduct = activeOrders.reduce((acc, order) => {
+  // Cálculo de Vendas por Produto (mês selecionado + apenas pedidos ativos)
+  const salesByProduct = filteredOrdersForChart.reduce((acc, order) => {
     order.items.forEach(item => {
       acc[item.name] = (acc[item.name] || 0) + item.quantity;
     });
     return acc;
   }, {} as Record<string, number>);
 
-  // Preparamos os dados para o gráfico (Top 10 produtos mais vendidos para não poluir o visual)
   const chartData = Object.entries(salesByProduct)
     .map(([name, count]) => ({
       name,
       count
     }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10); // Mostramos apenas os top 10
+    .slice(0, 10);
 
   const chartConfig = {
     count: {
@@ -87,35 +119,59 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="font-headline">Produtos Mais Vendidos</CardTitle>
-            <p className="text-xs text-muted-foreground">Top 10 itens com maior volume de saída.</p>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle className="font-headline">Produtos Mais Vendidos</CardTitle>
+              <p className="text-xs text-muted-foreground">Top 10 itens com maior volume de saída.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[180px] h-8 text-xs">
+                  <SelectValue placeholder="Selecione o mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map(option => (
+                    <SelectItem key={option} value={option}>
+                      {formatMonthLabel(option)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent className="h-[350px] pb-10">
-            <ChartContainer config={chartConfig}>
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#888888" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false}
-                  interval={0}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis 
-                  stroke="#888888" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tickFormatter={(value) => `${value}`} 
-                />
-                <Tooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="count" fill="var(--color-count)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
+            {chartData.length > 0 ? (
+              <ChartContainer config={chartConfig}>
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 40 }}>
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#888888" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false}
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    stroke="#888888" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickFormatter={(value) => `${value}`} 
+                  />
+                  <Tooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="count" fill="var(--color-count)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm opacity-50 italic">
+                <ShoppingBag className="h-12 w-12 mb-2" />
+                Nenhuma venda registrada neste mês.
+              </div>
+            )}
           </CardContent>
         </Card>
 
