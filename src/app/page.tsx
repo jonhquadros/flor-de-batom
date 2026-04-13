@@ -351,7 +351,7 @@ export default function Storefront() {
                     </div>
                     <div className="relative h-full w-full rounded-full overflow-hidden border-8 border-white/10 shadow-inner">
                       <Image 
-                        src="https://i.ibb.co/PZf3ZpX/image.png" 
+                        src="https://i.ibb.co/6J4J1LMd/florlogo.jpg" 
                         alt="Maquiagem Flor de Batom" 
                         fill 
                         className="object-cover transition-transform duration-1000 group-hover:scale-110"
