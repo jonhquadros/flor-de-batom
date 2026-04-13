@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useEffect, useState } from 'react';
@@ -13,7 +14,8 @@ import {
   X,
   ExternalLink,
   ChevronRight,
-  Tags
+  Tags,
+  Boxes
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -46,6 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Estoque', path: '/admin/inventory', icon: Boxes },
     { name: 'Produtos', path: '/admin/products', icon: Package },
     { name: 'Categorias', path: '/admin/categories', icon: Tags },
     { name: 'Pedidos', path: '/admin/orders', icon: ShoppingBag },
