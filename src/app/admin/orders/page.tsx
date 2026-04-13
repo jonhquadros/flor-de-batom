@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { Download, Search, CheckCircle2, Package, Truck, Clock, Eye, MessageCircle, Save, Trash2, Plus, Minus } from 'lucide-react';
+import { Download, Search, CheckCircle2, Package, Truck, Clock, Eye, MessageCircle, Save, Trash2, Plus, Minus, XCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Order, OrderStatus, CartItem } from '@/lib/types';
+import { Order, OrderStatus } from '@/lib/types';
 import { getStoredOrders, updateOrderStatus, updateOrder } from '@/lib/storage-utils';
 
 export default function AdminOrders() {
@@ -34,7 +34,10 @@ export default function AdminOrders() {
   const handleStatusChange = (id: string, status: OrderStatus) => {
     updateOrderStatus(id, status);
     loadOrders();
-    toast({ title: "Status Atualizado", description: `Pedido marcado como ${status}.` });
+    toast({ 
+      title: status === 'Cancelado' ? "Pedido Cancelado" : "Status Atualizado", 
+      description: status === 'Cancelado' ? "O pedido foi marcado como cancelado e ignorado nas métricas." : `Pedido marcado como ${status}.` 
+    });
   };
 
   const openDetails = (order: Order) => {
@@ -84,13 +87,15 @@ export default function AdminOrders() {
       ? `💵 Dinheiro${selectedOrder.change ? ` (troco para R$ ${selectedOrder.change})` : ' (sem troco)'}`
       : `📱 Pix — comprovante a enviar`;
 
+    const statusMsg = selectedOrder.status === 'Cancelado' ? '❌ *PEDIDO CANCELADO*' : `🌸 *PEDIDO ATUALIZADO #${selectedOrder.orderNumber}*`;
+
     const msg = encodeURIComponent(
-      `🌸 *PEDIDO ATUALIZADO #${selectedOrder.orderNumber} — Flor de Batom Makeup*\n\n` +
+      `${statusMsg} — Flor de Batom Makeup\n\n` +
       `👤 *Cliente:* ${selectedOrder.customerName}\n` +
       `📱 *Telefone:* ${selectedOrder.customerPhone}\n\n` +
       `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
       `🚚 *Entrega:* Grátis\n` +
-      `💰 *NOVO TOTAL: R$ ${selectedOrder.total.toFixed(2).replace('.', ',')}*\n` +
+      `💰 *TOTAL: R$ ${selectedOrder.total.toFixed(2).replace('.', ',')}*\n` +
       `💳 *Pagamento:* ${linhaPagamento}\n\n` +
       `_Versão atualizada pelo painel administrativo_`
     );
@@ -136,6 +141,7 @@ export default function AdminOrders() {
       case 'Em Separação': return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 gap-1"><Package className="h-3 w-3" /> {status}</Badge>;
       case 'Em Entrega': return <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 gap-1"><Truck className="h-3 w-3" /> {status}</Badge>;
       case 'Entregue': return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 gap-1"><CheckCircle2 className="h-3 w-3" /> {status}</Badge>;
+      case 'Cancelado': return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 gap-1"><XCircle className="h-3 w-3" /> {status}</Badge>;
     }
   };
 
@@ -170,6 +176,7 @@ export default function AdminOrders() {
               <SelectItem value="Em Separação">Em Separação</SelectItem>
               <SelectItem value="Em Entrega">Em Entrega</SelectItem>
               <SelectItem value="Entregue">Entregue</SelectItem>
+              <SelectItem value="Cancelado">Cancelado</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -220,6 +227,7 @@ export default function AdminOrders() {
                         <SelectItem value="Em Separação">Em Separação</SelectItem>
                         <SelectItem value="Em Entrega">Em Entrega</SelectItem>
                         <SelectItem value="Entregue">Entregue</SelectItem>
+                        <SelectItem value="Cancelado">Cancelado</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -237,6 +245,7 @@ export default function AdminOrders() {
             <DialogTitle className="text-2xl font-headline flex items-center gap-2">
               Detalhes do Pedido {selectedOrder?.orderNumber ? `#${selectedOrder.orderNumber}` : ''}
               {selectedOrder?.status === 'Pendente' && <Badge className="ml-2">Editável</Badge>}
+              {selectedOrder?.status === 'Cancelado' && <Badge variant="destructive" className="ml-2">Cancelado</Badge>}
             </DialogTitle>
             <DialogDescription>
               Visualize o resumo ou edite itens (apenas se pendente).
@@ -294,7 +303,7 @@ export default function AdminOrders() {
               </div>
 
               <div className="flex justify-between items-center bg-primary/5 p-4 rounded-xl border border-primary/10">
-                <span className="font-bold text-primary uppercase text-xs tracking-widest">Total Atual</span>
+                <span className="font-bold text-primary uppercase text-xs tracking-widest">Total do Pedido</span>
                 <span className="text-2xl font-headline font-bold text-primary">R$ {selectedOrder.total.toFixed(2)}</span>
               </div>
 

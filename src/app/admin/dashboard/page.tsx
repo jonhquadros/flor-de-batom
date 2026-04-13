@@ -23,8 +23,11 @@ export default function AdminDashboard() {
     return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-  const totalOrders = orders.length;
+  // Filtramos pedidos cancelados das métricas financeiras
+  const activeOrders = orders.filter(o => o.status !== 'Cancelado');
+  
+  const totalRevenue = activeOrders.reduce((sum, order) => sum + order.total, 0);
+  const totalOrdersCount = activeOrders.length;
   const totalProducts = products.length;
   
   const categoryCount = products.reduce((acc, p) => {
@@ -46,9 +49,9 @@ export default function AdminDashboard() {
 
   const stats = [
     { label: 'Receita Total', value: `R$ ${totalRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
-    { label: 'Pedidos Realizados', value: totalOrders, icon: ShoppingBag, color: 'text-primary', bg: 'bg-primary/10' },
+    { label: 'Vendas Ativas', value: totalOrdersCount, icon: ShoppingBag, color: 'text-primary', bg: 'bg-primary/10' },
     { label: 'Produtos Ativos', value: totalProducts, icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { label: 'Ticket Médio', value: `R$ ${(totalOrders > 0 ? totalRevenue / totalOrders : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
+    { label: 'Ticket Médio', value: `R$ ${(totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
   ];
 
   return (
@@ -112,7 +115,8 @@ export default function AdminDashboard() {
                     <div className="text-right">
                       <p className="font-bold text-primary">R$ {order.total.toFixed(2)}</p>
                       <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-                        order.status === 'Entregue' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                        order.status === 'Entregue' ? 'bg-green-100 text-green-700' : 
+                        order.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                       }`}>
                         {order.status}
                       </span>

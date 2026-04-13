@@ -13,7 +13,7 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
-export type OrderStatus = 'Pendente' | 'Em Separação' | 'Em Entrega' | 'Entregue';
+export type OrderStatus = 'Pendente' | 'Em Separação' | 'Em Entrega' | 'Entregue' | 'Cancelado';
 
 export interface Order {
   id: string;
