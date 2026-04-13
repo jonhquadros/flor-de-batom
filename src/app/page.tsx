@@ -443,7 +443,7 @@ export default function Storefront() {
           </div>
 
           {/* Sessão Atendimento Exclusivo */}
-          <section className="bg-white py-20 mt-16 relative overflow-hidden" id="contato">
+          <section className="bg-transparent py-20 mt-16 relative overflow-hidden" id="contato">
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             <div className="container mx-auto px-4 text-center max-w-3xl">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/5 mb-6 text-primary">
@@ -457,7 +457,7 @@ export default function Storefront() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-4">
                 <Button 
                   variant="outline"
-                  className="h-20 border-primary/20 hover:border-primary hover:bg-primary/5 text-primary font-bold gap-4 rounded-3xl transition-all group"
+                  className="h-20 border-primary/20 hover:border-primary hover:bg-primary/5 text-primary font-bold gap-4 rounded-3xl transition-all group bg-white/50 backdrop-blur-sm"
                   onClick={() => window.open('https://wa.me/5591987199039', '_blank')}
                 >
                   <div className="bg-[#25D366] text-white p-2 rounded-xl group-hover:scale-110 transition-transform">
@@ -471,7 +471,7 @@ export default function Storefront() {
                 
                 <Button 
                   variant="outline"
-                  className="h-20 border-primary/20 hover:border-primary hover:bg-primary/5 text-primary font-bold gap-4 rounded-3xl transition-all group"
+                  className="h-20 border-primary/20 hover:border-primary hover:bg-primary/5 text-primary font-bold gap-4 rounded-3xl transition-all group bg-white/50 backdrop-blur-sm"
                   onClick={() => window.open('https://www.instagram.com/flordebatom.makeup', '_blank')}
                 >
                   <div className="bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] text-white p-2 rounded-xl group-hover:scale-110 transition-transform">
@@ -487,7 +487,7 @@ export default function Storefront() {
           </section>
         </main>
 
-        <footer className="bg-white border-t py-12">
+        <footer className="bg-transparent py-12">
           <div className="container mx-auto px-4 text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/10">
