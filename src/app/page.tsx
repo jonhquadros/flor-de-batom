@@ -304,10 +304,10 @@ export default function Storefront() {
         </header>
 
         <main className="flex-1 pb-20">
-          {/* Banner Hero Redesenhado - Mobile First */}
+          {/* Banner Hero - Layout Limpo e Moderno */}
           <div className="px-4 pt-4 md:pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="container mx-auto">
-              <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[420px] flex flex-col justify-center items-center shadow-xl shadow-primary/10 transition-all">
+              <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[400px] flex flex-col justify-center items-center shadow-xl shadow-primary/10 transition-all">
                 <div className="relative flex flex-col md:flex-row w-full p-6 md:p-12 items-center justify-between gap-6 md:gap-12 z-10 text-center md:text-left">
                   <div className="space-y-3 md:space-y-6 max-w-2xl">
                     <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/25 mb-1 mx-auto md:mx-0">
@@ -337,8 +337,8 @@ export default function Storefront() {
                     </div>
                   </div>
                   
-                  {/* Logo Circular Compacto */}
-                  <div className="relative h-28 w-28 md:h-64 md:w-64 shrink-0 mt-4 md:mt-0">
+                  {/* Logo Circular */}
+                  <div className="relative h-28 w-28 md:h-60 md:w-60 shrink-0 mt-4 md:mt-0">
                     <div className="absolute inset-0 bg-white/15 backdrop-blur-2xl rounded-full scale-110 border border-white/30 shadow-xl" />
                     <div className="relative h-full w-full rounded-full overflow-hidden border-4 md:border-8 border-white/20 shadow-lg">
                       <Image 
@@ -349,12 +349,6 @@ export default function Storefront() {
                       />
                     </div>
                   </div>
-                </div>
-
-                {/* Indicador de Ação (Scroll Hint) */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce opacity-80">
-                  <span className="text-[8px] md:text-[10px] text-white/90 font-bold uppercase tracking-widest">↓ Veja os produtos abaixo</span>
-                  <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-white" />
                 </div>
               </div>
             </div>
@@ -514,7 +508,7 @@ export default function Storefront() {
         </SheetContent>
       </Sheet>
 
-      {/* Product Details Modal (Refined with Color selection) */}
+      {/* Product Details Modal */}
       <Dialog open={!!selectedProduct} onOpenChange={(open) => { if(!open) { setSelectedProduct(null); setSelectedColor(''); } }}>
         <DialogContent className="sm:max-w-[850px] p-0 overflow-hidden border-none shadow-2xl z-[120] max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-[2.5rem]">
           {selectedProduct && (
@@ -534,7 +528,7 @@ export default function Storefront() {
                   </DialogHeader>
 
                   <div className="space-y-6">
-                    {/* UI de Seleção de Cor conforme imagem */}
+                    {/* UI de Seleção de Cor */}
                     {selectedProduct.colors && selectedProduct.colors.length > 0 && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
