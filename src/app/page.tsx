@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -13,7 +14,9 @@ import {
   X,
   Star,
   Info,
-  Copy
+  Copy,
+  Menu,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +39,7 @@ export default function Storefront() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'relevance' | 'price-asc' | 'price-desc' | 'az'>('relevance');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
 
   // Checkout Form State
@@ -155,286 +159,340 @@ export default function Storefront() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-40 w-full bg-white border-b shadow-sm h-14 md:h-16">
-        <div className="container mx-auto px-4 h-full flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-base md:text-lg font-bold">FB</div>
-            <h1 className="text-base md:text-xl font-headline font-bold text-primary truncate max-w-[150px] sm:max-w-none">Flor de Batom Makeup</h1>
-          </div>
-          
-          <div className="flex items-center gap-1 md:gap-2">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-primary hover:bg-primary/5 h-10 w-10">
-                  <ShoppingBag className="h-5 w-5 md:h-6 md:h-6" />
-                  {cart.length > 0 && (
-                    <Badge className="absolute top-1 right-1 px-1 py-0.5 min-w-[16px] h-[16px] flex items-center justify-center bg-primary text-white text-[9px] rounded-full border-2 border-white">
-                      {cart.reduce((a, b) => a + b.quantity, 0)}
-                    </Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 z-[100]">
-                <SheetHeader className="p-4 md:p-6 border-b flex flex-row items-center justify-between">
-                  <SheetTitle className="font-headline text-xl md:text-2xl text-primary">Minha Sacola</SheetTitle>
-                </SheetHeader>
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6">
-                  {cart.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center py-10">
-                      <ShoppingBag className="h-12 w-12 mb-4 opacity-10 text-primary" />
-                      <p className="text-base font-headline">Sua sacola está vazia 🌸</p>
-                      <SheetFooter className="mt-4">
-                        <Button variant="outline" className="rounded-full" onClick={() => {}}>Continuar Comprando</Button>
-                      </SheetFooter>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="bg-green-50 p-3 rounded-lg flex items-start gap-3 border border-green-100">
-                        <Info className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
-                        <p className="text-xs md:text-sm font-medium text-green-700 leading-tight">🚚 Entrega Grátis em todos os pedidos!</p>
-                      </div>
-                      <div className="space-y-4">
-                        {cart.map(item => (
-                          <div key={item.id} className="flex gap-3 md:gap-4 items-center">
-                            <div className="relative h-14 w-14 md:h-16 md:w-16 flex-shrink-0 rounded-md overflow-hidden bg-muted border">
-                              <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-xs md:text-sm truncate leading-tight">{item.name}</h4>
-                              <p className="text-xs md:text-sm text-primary font-bold">R$ {item.price.toFixed(2)}</p>
-                              <div className="flex items-center gap-3 mt-2">
-                                <Button variant="outline" size="icon" className="h-7 w-7 rounded-full shadow-sm" onClick={() => updateQuantity(item.id, -1)}><Minus className="h-3 w-3" /></Button>
-                                <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
-                                <Button variant="outline" size="icon" className="h-7 w-7 rounded-full shadow-sm" onClick={() => updateQuantity(item.id, 1)}><Plus className="h-3 w-3" /></Button>
-                              </div>
-                            </div>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => updateQuantity(item.id, -item.quantity)}><Trash2 className="h-4 w-4" /></Button>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-                {cart.length > 0 && (
-                  <SheetFooter className="p-4 md:p-6 border-t bg-white flex flex-col gap-3">
-                    <div className="flex justify-between items-center w-full">
-                      <span className="text-muted-foreground font-medium text-sm">Subtotal</span>
-                      <span className="text-xl md:text-2xl font-headline font-bold text-primary">R$ {cartTotal.toFixed(2)}</span>
-                    </div>
-                    <Button className="w-full bg-primary hover:bg-primary/90 py-5 md:py-6 text-base md:text-lg rounded-full" onClick={() => setIsCheckoutOpen(true)}>
-                      Finalizar Pedido
-                    </Button>
-                  </SheetFooter>
-                )}
-              </SheetContent>
-            </Sheet>
-          </div>
+    <div className="flex min-h-screen bg-[#FDFCFB] text-foreground">
+      {/* Sidebar Desktop */}
+      <aside className="hidden lg:flex w-64 flex-col bg-white border-r sticky top-0 h-screen overflow-y-auto z-40 p-6 space-y-8">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-lg font-bold">FB</div>
+          <h1 className="text-xl font-headline font-bold text-primary leading-tight">Flor de Batom</h1>
         </div>
-      </header>
-
-      {/* Hero Banner */}
-      <section className="hero-pattern py-6 md:py-10 flex flex-col items-center justify-center text-white text-center px-4">
-        <h2 className="text-xl md:text-3xl font-headline font-bold mb-1">Flor de Batom Makeup</h2>
-        <p className="text-[10px] md:text-sm italic opacity-90 font-light tracking-wide uppercase">Maquiagem que transforma — produtos para sua beleza</p>
-      </section>
-
-      {/* Categories Bar */}
-      <div className="sticky top-14 md:top-16 z-30 bg-white border-b overflow-x-auto no-scrollbar py-2.5 md:py-3">
-        <div className="container mx-auto px-4 flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            className={`rounded-full px-4 md:px-5 h-8 md:h-9 text-[11px] md:text-xs font-medium shrink-0 transition-all ${selectedCategory === 'Todos' ? 'pill-active shadow-sm' : 'pill-inactive'}`}
+        
+        <nav className="space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">Categorias</p>
+          <button 
+            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
             onClick={() => setSelectedCategory('Todos')}
           >
-            Todos
-          </Button>
+            Todos os Produtos
+          </button>
           {categories.map(cat => (
-            <Button 
+            <button 
               key={cat.id} 
-              variant="ghost" 
-              className={`rounded-full px-4 md:px-5 h-8 md:h-9 text-[11px] md:text-xs font-medium shrink-0 transition-all ${selectedCategory === cat.name ? 'pill-active shadow-sm' : 'pill-inactive'}`}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${selectedCategory === cat.name ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
               onClick={() => setSelectedCategory(cat.name)}
             >
               {cat.name}
-            </Button>
+            </button>
           ))}
-        </div>
-      </div>
+        </nav>
+      </aside>
 
-      {/* Toolbar */}
-      <div className="container mx-auto px-4 py-4 md:py-6" id="catalogo">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="relative w-full md:max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="O que você procura?" 
-              className="pl-10 h-10 md:h-11 border-border/60 rounded-full focus-visible:ring-primary/20 bg-muted/20"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center justify-between w-full md:w-auto gap-4 px-1">
-            <span className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-widest">{filteredProducts.length} itens</span>
-            <select 
-              className="text-[11px] md:text-xs font-bold bg-transparent border-none focus:ring-0 cursor-pointer text-primary appearance-none pr-4"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as any)}
-            >
-              <option value="relevance">RELEVÂNCIA</option>
-              <option value="price-asc">MENOR PREÇO</option>
-              <option value="price-desc">MAIOR PREÇO</option>
-              <option value="az">A – Z</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6 mt-6 md:mt-10">
-          {filteredProducts.map((product, idx) => (
-            <Card 
-              key={product.id} 
-              className="group overflow-hidden border-none shadow-none bg-white flex flex-col h-full product-card-hover fade-in-up"
-              style={{ animationDelay: `${idx * 0.03}s` }}
-            >
-              <div 
-                className="relative aspect-square overflow-hidden cursor-pointer rounded-xl bg-muted"
-                onClick={() => setSelectedProduct(product)}
-              >
-                <Image 
-                  src={product.imageUrl} 
-                  alt={product.name} 
-                  fill 
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <Badge className="absolute top-2 left-2 bg-primary/90 text-white text-[9px] font-bold border-none uppercase tracking-tighter px-1.5 py-0.5">
-                  {product.category}
-                </Badge>
-                {product.isFeatured && (
-                  <div className="absolute top-2 right-2 bg-yellow-400 text-black p-1 rounded-full shadow-sm">
-                    <Star className="h-2.5 w-2.5 fill-current" />
-                  </div>
-                )}
-                {product.stock === 0 && (
-                  <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-[1px]">
-                    <Badge variant="outline" className="bg-white text-carbon border-carbon font-bold uppercase text-[9px]">Esgotado</Badge>
-                  </div>
-                )}
-              </div>
-              <CardContent className="p-2 md:p-3 flex flex-col flex-1">
-                <div className="flex-1">
-                  <h3 className="font-medium text-[12px] md:text-sm line-clamp-2 leading-tight mb-1 group-hover:text-primary transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
-                    {product.name}
-                  </h3>
-                  <p className="text-sm md:text-base font-bold text-primary font-body">R$ {product.price.toFixed(2)}</p>
-                </div>
-                <Button 
-                  className="w-full mt-2 bg-primary hover:bg-primary/90 gap-1.5 h-8 md:h-9 text-[10px] md:text-xs rounded-lg transition-all"
-                  onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                  disabled={product.stock === 0}
-                >
-                  <Plus className="h-3 w-3" /> {product.stock === 0 ? 'Indisponível' : 'Adicionar'}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredProducts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground text-center">
-            <Info className="h-10 w-10 mb-4 opacity-10 text-primary" />
-            <p className="text-base font-headline">Nenhum produto encontrado.</p>
-            <Button variant="link" className="text-primary mt-2" onClick={() => { setSearchTerm(''); setSelectedCategory('Todos'); }}>Limpar Filtros</Button>
-          </div>
-        )}
-      </div>
-
-      {/* Contact Section */}
-      <section className="bg-muted/40 py-12 md:py-20 mt-12" id="contato">
-        <div className="container mx-auto px-4 text-center max-w-2xl">
-          <h2 className="text-2xl md:text-4xl font-headline font-bold text-primary mb-3">Fale Conosco</h2>
-          <p className="text-xs md:text-base text-muted-foreground mb-10 leading-relaxed px-4">Dúvidas sobre produtos ou pedidos especiais? Estamos prontos para te atender pessoalmente.</p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
-            <Button 
-              className="bg-[#25D366] hover:bg-[#1fb355] h-14 md:h-16 text-white font-bold gap-3 rounded-2xl shadow-lg shadow-[#25D366]/20 transition-transform active:scale-95"
-              onClick={() => window.open('https://wa.me/5591987199039', '_blank')}
-            >
-              <MessageCircle className="h-6 w-6" /> WhatsApp Loja
-            </Button>
-            <Button 
-              className="bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] h-14 md:h-16 text-white font-bold gap-3 rounded-2xl shadow-lg shadow-orange-500/20 transition-transform active:scale-95"
-              onClick={() => window.open('https://www.instagram.com/flordebatom.makeup', '_blank')}
-            >
-              <Instagram className="h-6 w-6" /> Instagram
-            </Button>
-          </div>
-          <p className="text-[10px] md:text-xs text-muted-foreground mt-8 uppercase tracking-[0.2em] font-bold">Atendimento: Segunda a Sábado, 9h às 18h</p>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-carbon text-white py-12 md:py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-10 text-center md:text-left">
-            <div>
-              <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-headline text-sm font-bold">FB</div>
-                <h2 className="text-xl font-headline font-bold text-white">Flor de Batom Makeup</h2>
-              </div>
-              <p className="text-gray-400 text-xs md:text-sm max-w-xs leading-relaxed">O melhor do mundo da beleza com curadoria exclusiva. Maquiagem premium que transforma.</p>
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header Compacto */}
+        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b h-16">
+          <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 lg:hidden">
+              <Button variant="ghost" size="icon" className="text-primary" onClick={() => setIsMobileMenuOpen(true)}>
+                <Menu className="h-6 w-6" />
+              </Button>
             </div>
-            <div className="flex flex-col items-center md:items-end gap-6">
-              <div className="flex gap-6 text-sm font-medium">
-                <a href="#" className="hover:text-primary transition-colors">Início</a>
-                <a href="#catalogo" className="hover:text-primary transition-colors">Catálogo</a>
-                <a href="#contato" className="hover:text-primary transition-colors">Contato</a>
-              </div>
-              <div className="flex gap-4">
-                 <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => window.open('https://www.instagram.com/flordebatom.makeup', '_blank')}><Instagram className="h-5 w-5" /></Button>
-                 <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white" onClick={() => window.open('https://wa.me/5591987199039', '_blank')}><MessageCircle className="h-5 w-5" /></Button>
-              </div>
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest">© 2026 Flor de Batom Makeup — CNPJ 00.000.000/0001-00</p>
+            
+            <div className="relative flex-1 max-w-xl">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Pesquisar maquiagem..." 
+                className="pl-11 h-11 bg-muted/40 border-none rounded-2xl focus-visible:ring-primary/20"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          </div>
-        </div>
-      </footer>
 
-      {/* Product Details Modal */}
-      <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
-        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden border-none shadow-2xl z-[100] max-h-[95vh] md:max-h-[90vh] overflow-y-auto">
-          {selectedProduct && (
-            <div className="flex flex-col md:flex-row h-full">
-              <div className="relative aspect-[1/1] md:aspect-square md:w-1/2 bg-muted border-b md:border-b-0 md:border-r">
-                <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} fill className="object-cover" />
-                <Badge className="absolute top-4 left-4 bg-primary text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1">
-                  {selectedProduct.category}
-                </Badge>
-              </div>
-              <div className="p-6 md:p-10 md:w-1/2 flex flex-col justify-between">
-                <div>
-                  <h3 className="text-2xl md:text-4xl font-headline font-bold text-primary mb-2 leading-tight">{selectedProduct.name}</h3>
-                  <p className="text-xl md:text-2xl font-bold text-primary mb-6">R$ {selectedProduct.price.toFixed(2)}</p>
-                  <div className="h-px w-full bg-border mb-6" />
-                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-8">
-                    {selectedProduct.description}
-                  </p>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    {selectedProduct.stock > 0 ? (
-                      <div className="flex items-center gap-2 text-[10px] md:text-xs text-green-600 font-bold bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" /> Em estoque ({selectedProduct.stock} unidades)
+            <div className="flex items-center gap-1">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative text-primary h-11 w-11 hover:bg-primary/5 rounded-2xl">
+                    <ShoppingBag className="h-6 w-6" />
+                    {cart.length > 0 && (
+                      <span className="absolute top-2 right-2 min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                        {cart.reduce((a, b) => a + b.quantity, 0)}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:max-w-md p-0 flex flex-col z-[100] border-none shadow-2xl">
+                  <SheetHeader className="p-6 border-b">
+                    <SheetTitle className="font-headline text-2xl text-primary">Sua Sacola</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {cart.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
+                        <ShoppingBag className="h-16 w-16 mb-4" />
+                        <p className="font-medium">Sua sacola está vazia.</p>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-[10px] md:text-xs text-destructive font-bold bg-destructive/5 px-3 py-1.5 rounded-full border border-destructive/10">
-                        <X className="h-3 w-3" /> Esgotado no momento
+                      <div className="space-y-5">
+                        <div className="bg-green-50 p-4 rounded-2xl text-xs font-bold text-green-700 flex gap-2 items-center">
+                          <Info className="h-4 w-4" /> Entrega Grátis em todo o site! 🚚
+                        </div>
+                        {cart.map(item => (
+                          <div key={item.id} className="flex gap-4 items-center">
+                            <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border">
+                              <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-sm truncate">{item.name}</h4>
+                              <p className="text-primary font-bold text-base">R$ {item.price.toFixed(2)}</p>
+                              <div className="flex items-center gap-4 mt-2">
+                                <div className="flex items-center border rounded-full px-2 py-1 bg-muted/30">
+                                  <button onClick={() => updateQuantity(item.id, -1)} className="p-1 hover:text-primary transition-colors"><Minus className="h-3 w-3" /></button>
+                                  <span className="w-8 text-center text-xs font-bold">{item.quantity}</span>
+                                  <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:text-primary transition-colors"><Plus className="h-3 w-3" /></button>
+                                </div>
+                                <button onClick={() => updateQuantity(item.id, -item.quantity)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-4 w-4" /></button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
+                  {cart.length > 0 && (
+                    <SheetFooter className="p-6 border-t bg-white">
+                      <div className="w-full space-y-4">
+                        <div className="flex justify-between items-end">
+                          <span className="text-muted-foreground font-medium">Subtotal</span>
+                          <span className="text-3xl font-headline font-bold text-primary">R$ {cartTotal.toFixed(2)}</span>
+                        </div>
+                        <Button className="w-full bg-primary hover:bg-primary/90 h-16 rounded-3xl text-lg font-bold shadow-xl shadow-primary/20" onClick={() => setIsCheckoutOpen(true)}>
+                          Finalizar Pedido
+                        </Button>
+                      </div>
+                    </SheetFooter>
+                  )}
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 pb-20">
+          {/* Hero Banner Estilizado */}
+          <div className="px-4 pt-6">
+            <div className="container mx-auto">
+              <div className="relative bg-primary rounded-[2.5rem] overflow-hidden min-h-[160px] md:min-h-[240px] flex items-center hero-pattern shadow-2xl shadow-primary/10">
+                <div className="flex flex-col md:flex-row w-full p-8 md:p-12 items-center justify-between gap-6">
+                  <div className="text-center md:text-left space-y-2 max-w-lg">
+                    <h2 className="text-2xl md:text-5xl font-headline font-bold text-white leading-tight">Maquiagem que Transforma</h2>
+                    <p className="text-white/80 text-xs md:text-lg italic font-light">Sua beleza merece o melhor cuidado premium.</p>
+                  </div>
+                  <div className="relative h-32 w-32 md:h-56 md:w-56 shrink-0">
+                    <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl rounded-full scale-110" />
+                    <Image 
+                      src="https://picsum.photos/seed/hero/400/400" 
+                      alt="Beleza" 
+                      fill 
+                      className="object-cover rounded-full border-4 border-white/20"
+                      data-ai-hint="beauty makeup"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Categorias Horizontal Mobile */}
+          <div className="lg:hidden mt-8 px-4 overflow-x-auto no-scrollbar pb-2">
+            <div className="flex gap-2 min-w-max">
+              <Button 
+                variant="ghost" 
+                className={`rounded-full px-6 h-10 font-bold transition-all ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-lg' : 'bg-white border text-muted-foreground'}`}
+                onClick={() => setSelectedCategory('Todos')}
+              >
+                Todos
+              </Button>
+              {categories.map(cat => (
+                <Button 
+                  key={cat.id} 
+                  variant="ghost" 
+                  className={`rounded-full px-6 h-10 font-bold transition-all ${selectedCategory === cat.name ? 'bg-primary text-white shadow-lg' : 'bg-white border text-muted-foreground'}`}
+                  onClick={() => setSelectedCategory(cat.name)}
+                >
+                  {cat.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Grid de Produtos */}
+          <div className="container mx-auto px-4 mt-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl md:text-2xl font-headline font-bold text-primary flex items-center gap-2">
+                {selectedCategory} <span className="text-[10px] md:text-sm font-body text-muted-foreground font-medium">({filteredProducts.length} itens)</span>
+              </h3>
+              <select 
+                className="bg-transparent text-xs font-bold text-primary focus:ring-0 cursor-pointer appearance-none border-none pr-4"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as any)}
+              >
+                <option value="relevance">RELEVÂNCIA</option>
+                <option value="price-asc">MENOR PREÇO</option>
+                <option value="price-desc">MAIOR PREÇO</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6">
+              {filteredProducts.map((product, idx) => (
+                <Card 
+                  key={product.id} 
+                  className="group relative border-none bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 fade-in-up flex flex-col h-full"
+                  style={{ animationDelay: `${idx * 0.05}s` }}
+                >
+                  <div 
+                    className="relative aspect-square cursor-pointer overflow-hidden bg-muted"
+                    onClick={() => setSelectedProduct(product)}
+                  >
+                    <Image 
+                      src={product.imageUrl} 
+                      alt={product.name} 
+                      fill 
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    {product.isFeatured && (
+                      <div className="absolute top-3 right-3 bg-yellow-400 text-black p-1.5 rounded-full shadow-lg">
+                        <Star className="h-3 w-3 fill-current" />
+                      </div>
+                    )}
+                    {product.stock === 0 && (
+                      <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
+                        <span className="text-[10px] font-bold uppercase tracking-widest bg-carbon text-white px-3 py-1.5 rounded-full">Esgotado</span>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-3 md:p-5 flex flex-col flex-1">
+                    <div className="flex-1 space-y-1">
+                      <p className="text-[10px] font-bold text-primary/60 uppercase tracking-tighter">{product.category}</p>
+                      <h4 className="font-medium text-xs md:text-sm leading-tight line-clamp-2 min-h-[2.5em] group-hover:text-primary transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                        {product.name}
+                      </h4>
+                      <p className="text-base md:text-xl font-headline font-bold text-primary">R$ {product.price.toFixed(2)}</p>
+                    </div>
+                    
+                    <button 
+                      className="absolute bottom-3 right-3 h-10 w-10 md:h-12 md:w-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-90 disabled:opacity-20 disabled:scale-100"
+                      onClick={() => addToCart(product)}
+                      disabled={product.stock === 0}
+                    >
+                      <Plus className="h-5 w-5 md:h-6 md:h-6" />
+                    </button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {filteredProducts.length === 0 && (
+              <div className="py-20 text-center space-y-4">
+                <div className="mx-auto w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+                  <Info className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground font-medium">Nenhum produto nesta categoria no momento.</p>
+                <Button variant="link" onClick={() => { setSearchTerm(''); setSelectedCategory('Todos'); }}>Limpar filtros</Button>
+              </div>
+            )}
+          </div>
+
+          {/* Sessão Fale Conosco - Mantida como Original */}
+          <section className="bg-muted/40 py-12 md:py-20 mt-16" id="contato">
+            <div className="container mx-auto px-4 text-center max-w-2xl">
+              <h2 className="text-2xl md:text-4xl font-headline font-bold text-primary mb-3">Fale Conosco</h2>
+              <p className="text-xs md:text-base text-muted-foreground mb-10 leading-relaxed px-4">Dúvidas sobre produtos ou pedidos especiais? Estamos prontos para te atender pessoalmente.</p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
+                <Button 
+                  className="bg-[#25D366] hover:bg-[#1fb355] h-14 md:h-16 text-white font-bold gap-3 rounded-2xl shadow-lg shadow-[#25D366]/20 transition-transform active:scale-95"
+                  onClick={() => window.open('https://wa.me/5591987199039', '_blank')}
+                >
+                  <MessageCircle className="h-6 w-6" /> WhatsApp Loja
+                </Button>
+                <Button 
+                  className="bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] h-14 md:h-16 text-white font-bold gap-3 rounded-2xl shadow-lg shadow-orange-500/20 transition-transform active:scale-95"
+                  onClick={() => window.open('https://www.instagram.com/flordebatom.makeup', '_blank')}
+                >
+                  <Instagram className="h-6 w-6" /> Instagram
+                </Button>
+              </div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-8 uppercase tracking-[0.2em] font-bold">Atendimento: Segunda a Sábado, 9h às 18h</p>
+            </div>
+          </section>
+        </main>
+
+        <footer className="bg-carbon text-white py-12">
+          <div className="container mx-auto px-4 text-center space-y-6">
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-headline text-sm font-bold">FB</div>
+              <h2 className="text-xl font-headline font-bold text-white">Flor de Batom Makeup</h2>
+            </div>
+            <p className="text-gray-500 text-[10px] uppercase tracking-widest font-bold">© 2026 Flor de Batom Makeup — CNPJ 00.000.000/0001-00</p>
+          </div>
+        </footer>
+      </div>
+
+      {/* Mobile Sidebar Menu */}
+      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+        <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[100]">
+          <div className="h-full flex flex-col bg-white">
+            <div className="p-8 border-b flex items-center gap-3 bg-primary/5">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-lg font-bold">FB</div>
+              <h2 className="text-2xl font-headline font-bold text-primary">Categorias</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-1">
+              <button 
+                className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold transition-all flex items-center justify-between ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
+                onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}
+              >
+                Todos {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}
+              </button>
+              {categories.map(cat => (
+                <button 
+                  key={cat.id} 
+                  className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold transition-all flex items-center justify-between ${selectedCategory === cat.name ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
+                  onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}
+                >
+                  {cat.name} {selectedCategory === cat.name && <ChevronRight className="h-5 w-5" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Product Details Modal */}
+      <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
+        <DialogContent className="sm:max-w-[750px] p-0 overflow-hidden border-none shadow-2xl z-[100] max-h-[90vh] md:max-h-[85vh] overflow-y-auto rounded-3xl">
+          {selectedProduct && (
+            <div className="flex flex-col md:flex-row h-full">
+              <div className="relative aspect-square md:w-1/2 bg-muted">
+                <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} fill className="object-cover" />
+                <Badge className="absolute top-4 left-4 bg-primary text-white font-bold uppercase text-[10px] tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                  {selectedProduct.category}
+                </Badge>
+              </div>
+              <div className="p-8 md:p-12 md:w-1/2 flex flex-col justify-between bg-white">
+                <div className="space-y-4">
+                  <h3 className="text-3xl md:text-5xl font-headline font-bold text-primary leading-tight">{selectedProduct.name}</h3>
+                  <div className="flex items-center gap-4">
+                    <p className="text-2xl md:text-3xl font-headline font-bold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                    {selectedProduct.stock > 0 && (
+                      <span className="text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100 uppercase tracking-widest">Em estoque</span>
+                    )}
+                  </div>
+                  <div className="h-px bg-muted w-full my-6" />
+                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+                    {selectedProduct.description}
+                  </p>
+                </div>
+                <div className="mt-10 space-y-4">
                   <Button 
-                    className="w-full bg-primary hover:bg-primary/90 h-14 text-lg font-bold rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" 
+                    className="w-full bg-primary hover:bg-primary/90 h-16 text-lg font-bold rounded-3xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" 
                     onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
                     disabled={selectedProduct.stock === 0}
                   >
@@ -449,52 +507,52 @@ export default function Storefront() {
 
       {/* Checkout Modal */}
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <DialogContent className="sm:max-w-lg z-[100] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-3xl">
-          <DialogHeader className="p-6 md:p-10 border-b bg-muted/20">
+        <DialogContent className="sm:max-w-lg z-[100] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
+          <DialogHeader className="p-8 md:p-12 border-b bg-muted/20">
             <DialogTitle className="text-3xl font-headline text-primary text-center">Finalizar Pedido</DialogTitle>
-            <DialogDescription className="text-muted-foreground text-center text-xs md:text-sm mt-2">
-              🌸 Quase lá! Informe seus dados para combinarmos a entrega via WhatsApp.
+            <DialogDescription className="text-muted-foreground text-center text-xs md:text-sm mt-2 font-medium">
+              Informe seus dados para combinarmos a entrega via WhatsApp. 🌸
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8">
-            <div className="space-y-5">
+          <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-10">
+            <div className="space-y-6">
               <div className="grid gap-2">
                 <Label htmlFor="name" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Seu Nome Completo *</Label>
-                <Input id="name" placeholder="Ex: Maria Silva" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="h-14 rounded-2xl border-muted-foreground/10 focus-visible:ring-primary/20 bg-muted/5" />
+                <Input id="name" placeholder="Ex: Maria Silva" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="h-14 rounded-2xl border-muted-foreground/10 focus-visible:ring-primary/20 bg-muted/5 font-medium" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Telefone para Contato *</Label>
-                <Input id="phone" placeholder="(91) 99999-9999" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="h-14 rounded-2xl border-muted-foreground/10 focus-visible:ring-primary/20 bg-muted/5" />
+                <Input id="phone" placeholder="(91) 99999-9999" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="h-14 rounded-2xl border-muted-foreground/10 focus-visible:ring-primary/20 bg-muted/5 font-medium" />
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Forma de Pagamento *</Label>
-              <RadioGroup value={paymentMethod} onValueChange={(v: 'Pix' | 'Dinheiro') => setPaymentMethod(v)} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <RadioGroup value={paymentMethod} onValueChange={(v: 'Pix' | 'Dinheiro') => setPaymentMethod(v)} className="grid grid-cols-1 gap-4">
                 <Label 
                   htmlFor="pix"
-                  className={`flex items-center space-x-4 border-2 p-4 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5' : 'border-border bg-white'}`}
+                  className={`flex items-center space-x-4 border-2 p-5 rounded-3xl cursor-pointer transition-all ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5 shadow-inner' : 'border-border bg-white hover:border-primary/30'}`}
                 >
                   <RadioGroupItem value="Pix" id="pix" />
-                  <div className="flex flex-col">
+                  <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">📱</span>
-                      <span className="font-bold text-sm">Pix</span>
+                      <span className="text-xl">📱</span>
+                      <span className="font-bold text-base">Pix</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground leading-tight">Transferência instantânea</span>
+                    <span className="text-[11px] text-muted-foreground font-medium">Transferência instantânea</span>
                   </div>
                 </Label>
                 <Label 
                   htmlFor="cash"
-                  className={`flex items-center space-x-4 border-2 p-4 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-border bg-white'}`}
+                  className={`flex items-center space-x-4 border-2 p-5 rounded-3xl cursor-pointer transition-all ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5 shadow-inner' : 'border-border bg-white hover:border-primary/30'}`}
                 >
                   <RadioGroupItem value="Dinheiro" id="cash" />
-                  <div className="flex flex-col">
+                  <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">💵</span>
-                      <span className="font-bold text-sm">Dinheiro</span>
+                      <span className="text-xl">💵</span>
+                      <span className="font-bold text-base">Dinheiro</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground leading-tight">Pagar na entrega</span>
+                    <span className="text-[11px] text-muted-foreground font-medium">Pagar na entrega</span>
                   </div>
                 </Label>
               </RadioGroup>
@@ -502,43 +560,40 @@ export default function Storefront() {
 
             {paymentMethod === 'Dinheiro' && (
               <div className="grid gap-2 animate-in fade-in slide-in-from-top-2">
-                <Label htmlFor="change" className="text-[10px] font-bold text-muted-foreground ml-1">Precisa de troco? Informe para quanto:</Label>
-                <Input id="change" type="number" placeholder="Ex: 50" value={changeAmount} onChange={(e) => setChangeAmount(e.target.value)} className="h-12 rounded-xl" />
+                <Label htmlFor="change" className="text-[10px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Troco para quanto?</Label>
+                <Input id="change" type="number" placeholder="Ex: 100" value={changeAmount} onChange={(e) => setChangeAmount(e.target.value)} className="h-14 rounded-2xl bg-muted/5 font-bold" />
               </div>
             )}
             
             {paymentMethod === 'Pix' && (
-              <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 shadow-inner">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Info className="h-4 w-4 text-primary" />
-                  </div>
-                  <p className="font-bold text-primary uppercase tracking-widest text-[10px]">Chave Pix (Celular)</p>
+              <div className="bg-primary/5 p-8 rounded-[2rem] border border-primary/10 space-y-6 animate-in fade-in slide-in-from-top-2 shadow-inner">
+                <div className="text-center">
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4">Chave Pix Celular</p>
+                  <button 
+                    onClick={copyPixKey}
+                    className="bg-white px-8 py-5 rounded-[1.5rem] border border-primary/20 shadow-md flex flex-col items-center gap-2 hover:bg-muted/5 transition-all group w-full"
+                  >
+                    <span className="font-mono text-xl md:text-2xl font-bold tracking-wider text-primary">(91) 98719-9039</span>
+                    <div className="flex items-center gap-2 text-muted-foreground group-hover:text-primary transition-colors">
+                      <Copy className="h-3 w-3" />
+                      <span className="text-[10px] uppercase font-bold tracking-tighter">Copiar Chave</span>
+                    </div>
+                  </button>
                 </div>
-                <button 
-                  onClick={copyPixKey}
-                  className="bg-white p-5 rounded-2xl border border-primary/20 shadow-sm flex flex-col items-center gap-2 hover:bg-muted/5 transition-colors group relative overflow-hidden"
-                >
-                  <span className="font-mono text-lg md:text-xl font-bold tracking-wider text-primary leading-none">(91) 98719-9039</span>
-                  <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
-                    <Copy className="h-3 w-3" />
-                    <span className="text-[9px] uppercase font-bold tracking-tighter group-hover:text-primary transition-colors">Toque para copiar</span>
-                  </div>
-                </button>
-                <p className="text-muted-foreground text-[11px] leading-relaxed text-center px-2 italic">
-                  ✨ Realize o Pix e anexe o comprovante na conversa que abriremos no seu WhatsApp.
+                <p className="text-muted-foreground text-[10px] leading-relaxed text-center italic font-medium px-4">
+                  ✨ Realize o Pix e envie o comprovante na conversa que abriremos no seu WhatsApp.
                 </p>
               </div>
             )}
             
-            <div className="bg-primary p-5 rounded-3xl flex items-center justify-between text-white shadow-xl shadow-primary/20">
-              <span className="text-xs font-bold uppercase tracking-widest opacity-80">Total do Pedido</span>
+            <div className="bg-primary p-6 rounded-[2rem] flex items-center justify-between text-white shadow-2xl shadow-primary/30">
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Final</span>
               <span className="text-3xl font-headline font-bold">R$ {cartTotal.toFixed(2)}</span>
             </div>
           </div>
-          <DialogFooter className="p-6 md:p-10 bg-muted/20 border-t">
-            <Button className="w-full bg-[#25D366] hover:bg-[#1fb355] gap-3 h-16 text-lg font-bold rounded-2xl shadow-xl shadow-[#25D366]/20 transition-all active:scale-[0.98]" onClick={handleCheckout}>
-              <MessageCircle className="h-6 w-6" /> Confirmar no WhatsApp
+          <DialogFooter className="p-8 md:p-12 bg-muted/20 border-t">
+            <Button className="w-full bg-[#25D366] hover:bg-[#1fb355] gap-3 h-18 py-6 text-xl font-bold rounded-3xl shadow-2xl shadow-[#25D366]/20 transition-all active:scale-[0.98]" onClick={handleCheckout}>
+              <MessageCircle className="h-7 w-7" /> Confirmar no WhatsApp
             </Button>
           </DialogFooter>
         </DialogContent>
