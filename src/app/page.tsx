@@ -209,7 +209,7 @@ export default function Storefront() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header Compacto */}
-        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b h-16">
+        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b h-16 md:h-20">
           <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 lg:hidden">
               <Button variant="ghost" size="icon" className="text-primary" onClick={() => setIsMobileMenuOpen(true)}>
@@ -230,10 +230,10 @@ export default function Storefront() {
             <div className="flex items-center gap-1">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-primary h-11 w-11 hover:bg-primary/5 rounded-2xl">
-                    <ShoppingCart className="h-6 w-6" />
+                  <Button variant="ghost" size="icon" className="relative text-primary h-12 w-12 md:h-14 md:w-14 hover:bg-primary/5 rounded-2xl transition-all">
+                    <ShoppingCart className="h-7 w-7 md:h-9 md:w-9" />
                     {cart.length > 0 && (
-                      <span className="absolute top-2 right-2 min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                      <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] md:min-w-[24px] md:h-[24px] bg-primary text-white text-[10px] md:text-xs font-bold flex items-center justify-center rounded-full border-2 border-white shadow-md">
                         {cart.reduce((a, b) => a + b.quantity, 0)}
                       </span>
                     )}
@@ -246,7 +246,7 @@ export default function Storefront() {
                   <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {cart.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
-                        <ShoppingCart className="h-16 w-16 mb-4" />
+                        <ShoppingCart className="h-20 w-20 mb-4" />
                         <p className="font-medium">Sua sacola está vazia.</p>
                       </div>
                     ) : (
