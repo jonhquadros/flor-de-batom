@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetSheetFooter, SheetFooter } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -351,7 +351,7 @@ export default function Storefront() {
                     </div>
                     <div className="relative h-full w-full rounded-full overflow-hidden border-8 border-white/10 shadow-inner">
                       <Image 
-                        src="https://picsum.photos/seed/beauty-premium/600/600" 
+                        src="https://i.ibb.co/PZf3ZpX/image.png" 
                         alt="Maquiagem Flor de Batom" 
                         fill 
                         className="object-cover transition-transform duration-1000 group-hover:scale-110"
