@@ -379,7 +379,7 @@ export default function Storefront() {
           <div className="container mx-auto px-4 mt-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl md:text-2xl font-display font-bold text-primary flex items-center gap-2">
-                {selectedCategory} <span className="text-[10px] md:text-sm font-poppins text-muted-foreground font-medium">({filteredProducts.length} itens)</span>
+                {selectedCategory.toUpperCase()} <span className="text-[10px] md:text-sm font-poppins text-muted-foreground font-medium">({filteredProducts.length} itens)</span>
               </h3>
               <select 
                 className="bg-transparent text-[10px] md:text-xs font-bold text-primary focus:ring-0 cursor-pointer appearance-none border-none pr-4 tracking-widest"
@@ -442,24 +442,45 @@ export default function Storefront() {
             </div>
           </div>
 
-          {/* Sessão Fale Conosco */}
-          <section className="bg-muted/40 py-12 md:py-20 mt-16" id="contato">
-            <div className="container mx-auto px-4 text-center max-w-2xl">
-              <h2 className="text-2xl md:text-4xl font-display font-bold text-primary mb-3">Fale Conosco</h2>
-              <p className="text-xs md:text-base text-muted-foreground mb-10 leading-relaxed px-4">Dúvidas sobre produtos ou pedidos especiais? Estamos prontos para te atender pessoalmente.</p>
+          {/* Sessão Atendimento Exclusivo */}
+          <section className="bg-white py-20 mt-16 relative overflow-hidden" id="contato">
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+            <div className="container mx-auto px-4 text-center max-w-3xl">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/5 mb-6 text-primary">
+                <MessageCircle className="h-6 w-6" />
+              </div>
+              <h2 className="text-3xl md:text-5xl font-display font-bold text-primary mb-6">Atendimento Exclusivo</h2>
+              <p className="text-sm md:text-lg text-muted-foreground mb-12 leading-relaxed max-w-xl mx-auto">
+                Dúvidas sobre tons, texturas ou seu pedido? Nossa equipe de especialistas está pronta para te atender com todo o carinho que você merece.
+              </p>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-4">
                 <Button 
-                  className="bg-[#25D366] hover:bg-[#1fb355] h-14 md:h-16 text-white font-bold gap-3 rounded-2xl shadow-lg shadow-[#25D366]/20 transition-transform active:scale-95"
+                  variant="outline"
+                  className="h-20 border-primary/20 hover:border-primary hover:bg-primary/5 text-primary font-bold gap-4 rounded-3xl transition-all group"
                   onClick={() => window.open('https://wa.me/5591987199039', '_blank')}
                 >
-                  <MessageCircle className="h-6 w-6" /> WhatsApp Loja
+                  <div className="bg-[#25D366] text-white p-2 rounded-xl group-hover:scale-110 transition-transform">
+                    <MessageCircle className="h-6 w-6" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] uppercase tracking-widest opacity-60">Fale no</p>
+                    <p className="text-lg">WhatsApp</p>
+                  </div>
                 </Button>
+                
                 <Button 
-                  className="bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] h-14 md:h-16 text-white font-bold gap-3 rounded-2xl shadow-lg shadow-orange-500/20 transition-transform active:scale-95"
+                  variant="outline"
+                  className="h-20 border-primary/20 hover:border-primary hover:bg-primary/5 text-primary font-bold gap-4 rounded-3xl transition-all group"
                   onClick={() => window.open('https://www.instagram.com/flordebatom.makeup', '_blank')}
                 >
-                  <Instagram className="h-6 w-6" /> Instagram
+                  <div className="bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] text-white p-2 rounded-xl group-hover:scale-110 transition-transform">
+                    <Instagram className="h-6 w-6" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] uppercase tracking-widest opacity-60">Siga nosso</p>
+                    <p className="text-lg">Instagram</p>
+                  </div>
                 </Button>
               </div>
             </div>
