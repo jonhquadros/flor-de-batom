@@ -487,15 +487,15 @@ export default function Storefront() {
           </section>
         </main>
 
-        <footer className="bg-carbon text-white py-12">
+        <footer className="bg-white border-t py-12">
           <div className="container mx-auto px-4 text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/20">
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/10">
                 <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
               </div>
-              <h2 className="text-xl font-headline font-bold text-white">Flor de Batom Makeup</h2>
+              <h2 className="text-xl font-headline font-bold text-primary">Flor de Batom Makeup</h2>
             </div>
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest font-bold">© 2026 Flor de Batom Makeup</p>
+            <p className="text-muted-foreground text-[10px] uppercase tracking-widest font-bold">© 2026 Flor de Batom Makeup</p>
           </div>
         </footer>
       </div>
