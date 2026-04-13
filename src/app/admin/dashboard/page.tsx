@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -28,7 +29,6 @@ export default function AdminDashboard() {
     return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  // Opções de meses disponíveis baseadas nos pedidos existentes + mês atual
   const monthOptions = useMemo(() => {
     const months = new Set<string>();
     const now = new Date();
@@ -44,16 +44,8 @@ export default function AdminDashboard() {
     return Array.from(months).sort().reverse();
   }, [orders]);
 
-  const formatMonthLabel = (monthStr: string) => {
-    const [year, month] = monthStr.split('-');
-    const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-  };
-
-  // Filtramos pedidos cancelados das métricas financeiras globais
   const activeOrders = orders.filter(o => o.status !== 'Cancelado');
   
-  // Dados filtrados pelo mês selecionado para o gráfico
   const filteredOrdersForChart = activeOrders.filter(order => {
     const orderDate = new Date(order.createdAt);
     const orderMonth = `${orderDate.getFullYear()}-${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
@@ -64,7 +56,6 @@ export default function AdminDashboard() {
   const totalOrdersCount = activeOrders.length;
   const totalProductsCount = products.length;
   
-  // Cálculo de Vendas por Produto (mês selecionado + apenas pedidos ativos)
   const salesByProduct = filteredOrdersForChart.reduce((acc, order) => {
     order.items.forEach(item => {
       acc[item.name] = (acc[item.name] || 0) + item.quantity;
@@ -89,8 +80,8 @@ export default function AdminDashboard() {
 
   const stats = [
     { label: 'Receita Total', value: `R$ ${totalRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
-    { label: 'Vendas Ativas', value: totalOrdersCount, icon: ShoppingBag, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Produtos Ativos', value: totalProductsCount, icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
+    { label: 'Vendas Ativas', value: totalOrdersCount.toString(), icon: ShoppingBag, color: 'text-primary', bg: 'bg-primary/10' },
+    { label: 'Produtos Ativos', value: totalProductsCount.toString(), icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
     { label: 'Ticket Médio', value: `R$ ${(totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
   ];
 
@@ -104,13 +95,13 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {stats.map((stat, i) => (
           <Card key={i} className="border-none shadow-sm">
-            <CardContent className="p-4 md:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-2 md:gap-4 text-center sm:text-left">
+            <CardContent className="p-4 md:p-6 flex flex-col items-center gap-2 md:gap-4 text-center">
               <div className={`p-2 md:p-3 rounded-xl ${stat.bg} shrink-0`}>
                 <stat.icon className={`h-4 w-4 md:h-6 md:w-6 ${stat.color}`} />
               </div>
-              <div className="min-w-0 w-full">
-                <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">{stat.label}</p>
-                <h3 className="text-sm md:text-xl font-bold truncate">{stat.value}</h3>
+              <div className="min-w-0 w-full space-y-1">
+                <p className="text-[10px] md:text-xs font-poppins font-normal text-muted-foreground uppercase tracking-wider truncate">{stat.label}</p>
+                <h3 className="text-sm md:text-xl font-poppins font-bold truncate">{stat.value}</h3>
               </div>
             </CardContent>
           </Card>
@@ -140,20 +131,19 @@ export default function AdminDashboard() {
               </Select>
             </div>
           </CardHeader>
-          <CardContent className="h-[250px] md:h-[350px] pb-4 px-2">
+          <CardContent className="h-[300px] md:h-[400px] pb-4 px-2">
             {chartData.length > 0 ? (
               <ChartContainer config={chartConfig}>
-                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 50 }}>
                   <XAxis 
                     dataKey="name" 
-                    fontSize={10} 
+                    fontSize={9} 
                     tickLine={false} 
                     axisLine={false}
                     interval={0}
                     angle={-45}
                     textAnchor="end"
-                    height={70}
-                    hide={window.innerWidth < 640}
+                    height={80}
                   />
                   <YAxis 
                     fontSize={10} 
