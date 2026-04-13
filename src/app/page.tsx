@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -467,20 +468,32 @@ export default function Storefront() {
             <div className="space-y-4">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Forma de Pagamento *</Label>
               <RadioGroup value={paymentMethod} onValueChange={(v: 'Pix' | 'Dinheiro') => setPaymentMethod(v)} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className={`flex items-center space-x-3 border-2 p-5 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/20 bg-white'}`} onClick={() => setPaymentMethod('Pix')}>
+                <Label 
+                  htmlFor="pix"
+                  className={`flex items-center space-x-4 border-2 p-4 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5' : 'border-border bg-white'}`}
+                >
                   <RadioGroupItem value="Pix" id="pix" />
                   <div className="flex flex-col">
-                    <span className="font-bold text-sm">📱 Pix</span>
-                    <span className="text-[10px] text-muted-foreground">Instantâneo</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">📱</span>
+                      <span className="font-bold text-sm">Pix</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground leading-tight">Transferência instantânea</span>
                   </div>
-                </div>
-                <div className={`flex items-center space-x-3 border-2 p-5 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/20 bg-white'}`} onClick={() => setPaymentMethod('Dinheiro')}>
+                </Label>
+                <Label 
+                  htmlFor="cash"
+                  className={`flex items-center space-x-4 border-2 p-4 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-border bg-white'}`}
+                >
                   <RadioGroupItem value="Dinheiro" id="cash" />
                   <div className="flex flex-col">
-                    <span className="font-bold text-sm">💵 Dinheiro</span>
-                    <span className="text-[10px] text-muted-foreground">Na entrega</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">💵</span>
+                      <span className="font-bold text-sm">Dinheiro</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground leading-tight">Pagar na entrega</span>
                   </div>
-                </div>
+                </Label>
               </RadioGroup>
             </div>
 
