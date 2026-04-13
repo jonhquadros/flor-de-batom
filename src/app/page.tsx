@@ -202,7 +202,7 @@ export default function Storefront() {
             className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
             onClick={() => setSelectedCategory('Todos')}
           >
-            Todos os Produtos
+            TODOS OS PRODUTOS
           </button>
           {categories.map(cat => (
             <button 
@@ -210,7 +210,7 @@ export default function Storefront() {
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === cat.name ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
               onClick={() => setSelectedCategory(cat.name)}
             >
-              {cat.name}
+              {cat.name.toUpperCase()}
             </button>
           ))}
         </nav>
@@ -218,7 +218,7 @@ export default function Storefront() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header Compacto */}
-        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b h-20 md:h-24 transition-all">
+        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b h-24 md:h-32 transition-all">
           <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 lg:hidden">
               <Button variant="ghost" size="icon" className="text-primary" onClick={() => setIsMobileMenuOpen(true)}>
@@ -239,10 +239,10 @@ export default function Storefront() {
             <div className="flex items-center gap-1">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-primary h-14 w-14 md:h-20 md:w-20 hover:bg-primary/5 rounded-2xl transition-all">
-                    <ShoppingCart className="h-9 w-9 md:h-12 md:w-12" />
+                  <Button variant="ghost" size="icon" className="relative text-primary h-16 w-16 md:h-24 md:w-24 hover:bg-primary/5 rounded-2xl transition-all shadow-sm border border-primary/5">
+                    <ShoppingCart className="h-10 w-10 md:h-14 md:w-14" />
                     {cart.length > 0 && (
-                      <span className="absolute top-0 right-0 min-w-[22px] h-[22px] md:min-w-[28px] md:h-[28px] bg-primary text-white text-[10px] md:text-xs font-bold flex items-center justify-center rounded-full border-2 border-white shadow-md animate-in zoom-in duration-300">
+                      <span className="absolute top-0 right-0 min-w-[24px] h-[24px] md:min-w-[32px] md:h-[32px] bg-primary text-white text-xs font-bold flex items-center justify-center rounded-full border-2 border-white shadow-md animate-in zoom-in duration-300">
                         {cart.reduce((a, b) => a + b.quantity, 0)}
                       </span>
                     )}
@@ -369,7 +369,7 @@ export default function Storefront() {
                   className={`rounded-full px-6 h-10 font-bold uppercase tracking-wider transition-all ${selectedCategory === cat.name ? 'bg-primary text-white shadow-lg' : 'bg-white border text-muted-foreground'}`}
                   onClick={() => setSelectedCategory(cat.name)}
                 >
-                  {cat.name}
+                  {cat.name.toUpperCase()}
                 </Button>
               ))}
             </div>
@@ -515,7 +515,7 @@ export default function Storefront() {
                 className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
                 onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}
               >
-                Todos {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}
+                TODOS {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}
               </button>
               {categories.map(cat => (
                 <button 
@@ -523,7 +523,7 @@ export default function Storefront() {
                   className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between ${selectedCategory === cat.name ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
                   onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}
                 >
-                  {cat.name} {selectedCategory === cat.name && <ChevronRight className="h-5 w-5" />}
+                  {cat.name.toUpperCase()} {selectedCategory === cat.name && <ChevronRight className="h-5 w-5" />}
                 </button>
               ))}
             </div>
