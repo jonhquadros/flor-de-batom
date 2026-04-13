@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Product, Category } from '@/lib/types';
-import { getStoredProducts, saveProducts, getStoredCategories, seedInitialData } from '@/lib/storage-utils';
+import { getStoredProducts, saveProducts, getStoredCategories } from '@/lib/storage-utils';
 import { generateProductDescription } from '@/ai/flows/generate-product-description';
 
 export default function AdminProducts() {
@@ -129,6 +129,12 @@ export default function AdminProducts() {
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
+  // Helper to safely handle numeric input values to avoid NaN errors in React
+  const getNumericValue = (val: any) => {
+    if (val === undefined || val === null || isNaN(val)) return '';
+    return val;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -204,7 +210,7 @@ export default function AdminProducts() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do Produto</Label>
-                <Input id="name" value={formData.name} onChange={(e) => setFormData(p => ({...p, name: e.target.value}))} required />
+                <Input id="name" value={formData.name || ''} onChange={(e) => setFormData(p => ({...p, name: e.target.value}))} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Categoria</Label>
@@ -217,11 +223,24 @@ export default function AdminProducts() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price">Preço (R$)</Label>
-                <Input id="price" type="number" step="0.01" value={formData.price} onChange={(e) => setFormData(p => ({...p, price: parseFloat(e.target.value)}))} required />
+                <Input 
+                  id="price" 
+                  type="number" 
+                  step="0.01" 
+                  value={getNumericValue(formData.price)} 
+                  onChange={(e) => setFormData(p => ({...p, price: parseFloat(e.target.value)}))} 
+                  required 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="stock">Estoque</Label>
-                <Input id="stock" type="number" value={formData.stock} onChange={(e) => setFormData(p => ({...p, stock: parseInt(e.target.value)}))} required />
+                <Input 
+                  id="stock" 
+                  type="number" 
+                  value={getNumericValue(formData.stock)} 
+                  onChange={(e) => setFormData(p => ({...p, stock: parseInt(e.target.value)}))} 
+                  required 
+                />
               </div>
             </div>
 
@@ -240,17 +259,17 @@ export default function AdminProducts() {
                   Gerar com IA
                 </Button>
               </div>
-              <Textarea id="desc" rows={5} value={formData.description} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required />
+              <Textarea id="desc" rows={5} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="img">URL da Imagem</Label>
-              <Input id="img" value={formData.imageUrl} onChange={(e) => setFormData(p => ({...p, imageUrl: e.target.value}))} required />
+              <Input id="img" value={formData.imageUrl || ''} onChange={(e) => setFormData(p => ({...p, imageUrl: e.target.value}))} required />
               <p className="text-[10px] text-muted-foreground flex items-center gap-1"><ImagePlus className="h-3 w-3" /> Sugerido: Usar URLs estáveis de imagens de produtos.</p>
             </div>
 
             <div className="flex items-center gap-2">
-              <Switch id="feat" checked={formData.isFeatured} onCheckedChange={(v) => setFormData(p => ({...p, isFeatured: v}))} />
+              <Switch id="feat" checked={!!formData.isFeatured} onCheckedChange={(v) => setFormData(p => ({...p, isFeatured: v}))} />
               <Label htmlFor="feat">Produto em Destaque na Vitrine</Label>
             </div>
 
