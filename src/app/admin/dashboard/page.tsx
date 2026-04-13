@@ -2,26 +2,31 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Package, ShoppingBag, DollarSign, TrendingUp, Users } from 'lucide-react';
+import { Package, ShoppingBag, DollarSign, TrendingUp } from 'lucide-react';
 import { getStoredOrders, getStoredProducts } from '@/lib/storage-utils';
 import { Order, Product } from '@/lib/types';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, Tooltip } from 'recharts';
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
 
-  useEffect(() => {
+  const loadData = () => {
     setOrders(getStoredOrders());
     setProducts(getStoredProducts());
+  };
+
+  useEffect(() => {
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const totalOrders = orders.length;
   const totalProducts = products.length;
   
-  // Fake chart data based on categories
   const categoryCount = products.reduce((acc, p) => {
     acc[p.category] = (acc[p.category] || 0) + 1;
     return acc;
@@ -43,14 +48,14 @@ export default function AdminDashboard() {
     { label: 'Receita Total', value: `R$ ${totalRevenue.toFixed(2)}`, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
     { label: 'Pedidos Realizados', value: totalOrders, icon: ShoppingBag, color: 'text-primary', bg: 'bg-primary/10' },
     { label: 'Produtos Ativos', value: totalProducts, icon: Package, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { label: 'Valor Médio Pedido', value: `R$ ${(totalOrders > 0 ? totalRevenue / totalOrders : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
+    { label: 'Ticket Médio', value: `R$ ${(totalOrders > 0 ? totalRevenue / totalOrders : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
   ];
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-headline font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground">Visão geral do seu negócio.</p>
+        <p className="text-muted-foreground">Visão geral do seu negócio em tempo real.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

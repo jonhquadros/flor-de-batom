@@ -17,24 +17,30 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
   const { toast } = useToast();
 
-  useEffect(() => {
+  const loadOrders = () => {
     setOrders(getStoredOrders());
+  };
+
+  useEffect(() => {
+    loadOrders();
+    // Escutar mudanças no storage (caso o pedido seja feito em outra aba)
+    window.addEventListener('storage', loadOrders);
+    return () => window.removeEventListener('storage', loadOrders);
   }, []);
 
   const handleStatusChange = (id: string, status: OrderStatus) => {
     updateOrderStatus(id, status);
-    setOrders(getStoredOrders());
-    toast({ title: "Status Atualizado", description: `Pedido ${id.substr(0,4)} marcado como ${status}.` });
+    loadOrders();
+    toast({ title: "Status Atualizado", description: `Pedido marcado como ${status}.` });
   };
 
   const exportToCSV = () => {
     if (orders.length === 0) return;
-    const headers = ['ID', 'Cliente', 'Telefone', 'Endereço', 'Total', 'Pagamento', 'Status', 'Data'];
+    const headers = ['ID', 'Cliente', 'Telefone', 'Total', 'Pagamento', 'Status', 'Data'];
     const rows = orders.map(o => [
       o.id,
       o.customerName,
       o.customerPhone,
-      o.address,
       o.total.toFixed(2),
       o.paymentMethod,
       o.status,

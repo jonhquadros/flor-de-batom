@@ -1,9 +1,9 @@
 import { Product, Order, CartItem, INITIAL_CATEGORIES, Category } from './types';
 
-const PRODUCTS_KEY = 'flordebatom_produtos_v1';
-const ORDERS_KEY = 'flordebatom_pedidos_v1';
-const CART_KEY = 'flordebatom_carrinho_v1';
-const CATEGORIES_KEY = 'flordebatom_categorias_v1';
+const PRODUCTS_KEY = 'flordebatom_produtos_v2';
+const ORDERS_KEY = 'flordebatom_pedidos_v2';
+const CART_KEY = 'flordebatom_carrinho_v2';
+const CATEGORIES_KEY = 'flordebatom_categorias_v2';
 
 export const getStoredProducts = (): Product[] => {
   if (typeof window === 'undefined') return [];
@@ -11,7 +11,6 @@ export const getStoredProducts = (): Product[] => {
     const stored = localStorage.getItem(PRODUCTS_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (e) {
-    console.error("Erro ao carregar produtos:", e);
     return [];
   }
 };
@@ -19,6 +18,7 @@ export const getStoredProducts = (): Product[] => {
 export const saveProducts = (products: Product[]) => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+  window.dispatchEvent(new Event('storage'));
 };
 
 export const getStoredCategories = (): Category[] => {
@@ -27,7 +27,6 @@ export const getStoredCategories = (): Category[] => {
     const stored = localStorage.getItem(CATEGORIES_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (e) {
-    console.error("Erro ao carregar categorias:", e);
     return [];
   }
 };
@@ -35,6 +34,7 @@ export const getStoredCategories = (): Category[] => {
 export const saveCategories = (categories: Category[]) => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+  window.dispatchEvent(new Event('storage'));
 };
 
 export const getStoredOrders = (): Order[] => {
@@ -43,7 +43,6 @@ export const getStoredOrders = (): Order[] => {
     const stored = localStorage.getItem(ORDERS_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (e) {
-    console.error("Erro ao carregar pedidos:", e);
     return [];
   }
 };
@@ -53,6 +52,7 @@ export const saveOrder = (order: Order) => {
   const orders = getStoredOrders();
   const updatedOrders = [...orders, order];
   localStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
+  window.dispatchEvent(new Event('storage'));
 };
 
 export const updateOrderStatus = (orderId: string, status: Order['status']) => {
@@ -60,6 +60,7 @@ export const updateOrderStatus = (orderId: string, status: Order['status']) => {
   const orders = getStoredOrders();
   const updated = orders.map(o => o.id === orderId ? { ...o, status } : o);
   localStorage.setItem(ORDERS_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event('storage'));
 };
 
 export const getStoredCart = (): CartItem[] => {
