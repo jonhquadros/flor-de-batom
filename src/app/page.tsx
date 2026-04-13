@@ -109,7 +109,7 @@ export default function Storefront() {
 
     setCart(newCart);
     saveCart(newCart);
-    toast({ title: "Adicionado!", description: `${product.name} ${color ? `(${color})` : ''} foi adicionado à sacola.` });
+    toast({ title: "Adicionado!", description: `${product.name} ${color ? `(${color})` : ''} foi adicionado ao carrinho.` });
   };
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
@@ -250,13 +250,13 @@ export default function Storefront() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md p-0 flex flex-col z-[100] border-none shadow-2xl">
                   <SheetHeader className="p-6 border-b text-left">
-                    <SheetTitle className="font-headline text-2xl text-primary">Sua Sacola</SheetTitle>
+                    <SheetTitle className="font-headline text-2xl text-primary">Carrinho</SheetTitle>
                   </SheetHeader>
                   <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {cart.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
                         <ShoppingCart className="h-20 w-20 mb-4" />
-                        <p className="font-medium">Sua sacola está vazia.</p>
+                        <p className="font-medium">Seu carrinho está vazio.</p>
                       </div>
                     ) : (
                       <div className="space-y-5">
