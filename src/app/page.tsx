@@ -269,7 +269,7 @@ export default function Storefront() {
                               <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-display font-bold text-sm truncate text-primary">{item.name}</h4>
+                              <h4 className="font-poppins font-normal text-sm truncate text-primary">{item.name}</h4>
                               {item.selectedColor && (
                                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Cor: {item.selectedColor}</p>
                               )}
@@ -423,7 +423,7 @@ export default function Storefront() {
                   <CardContent className="p-3 md:p-5 flex flex-col flex-1">
                     <div className="flex-1 space-y-1">
                       <p className="text-[9px] md:text-[10px] font-bold text-primary/60 uppercase tracking-widest">{product.category}</p>
-                      <h4 className="font-display font-bold text-sm md:text-base leading-tight line-clamp-2 min-h-[2.5em] text-primary group-hover:text-primary/80 transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                      <h4 className="font-poppins font-normal text-sm md:text-base leading-tight line-clamp-2 min-h-[2.5em] text-primary group-hover:text-primary/80 transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
                         {product.name}
                       </h4>
                       <p className="text-base md:text-xl font-poppins font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
