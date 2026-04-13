@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -97,7 +98,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8 font-poppins">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-foreground font-poppins">Dashboard</h1>
         <p className="text-muted-foreground">Visão geral do seu negócio em tempo real.</p>
       </div>
 
@@ -110,7 +111,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <h3 className="text-2xl font-bold">{stat.value}</h3>
+                <h3 className="text-2xl font-bold font-poppins">{stat.value}</h3>
               </div>
             </CardContent>
           </Card>
@@ -121,7 +122,7 @@ export default function AdminDashboard() {
         <Card className="border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
-              <CardTitle className="font-bold">Produtos Mais Vendidos</CardTitle>
+              <CardTitle className="font-bold font-poppins">Produtos Mais Vendidos</CardTitle>
               <p className="text-xs text-muted-foreground">Top 10 itens com maior volume de saída.</p>
             </div>
             <div className="flex items-center gap-2">
@@ -177,15 +178,15 @@ export default function AdminDashboard() {
 
         <Card className="border-none shadow-sm overflow-hidden">
           <CardHeader>
-            <CardTitle className="font-bold">Pedidos Recentes</CardTitle>
+            <CardTitle className="font-bold font-poppins">Pedidos Recentes</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {orders.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">Nenhum pedido ainda.</div>
+              <div className="p-8 text-center text-muted-foreground font-poppins">Nenhum pedido ainda.</div>
             ) : (
               <div className="divide-y">
                 {orders.slice(-5).reverse().map((order) => (
-                  <div key={order.id} className="p-4 flex justify-between items-center hover:bg-muted/30 transition-colors">
+                  <div key={order.id} className="p-4 flex justify-between items-center hover:bg-muted/30 transition-colors font-poppins">
                     <div className="space-y-1">
                       <p className="font-bold text-primary">
                         {order.orderNumber ? `#${order.orderNumber}` : `#${order.id.substr(0, 6)}`}
