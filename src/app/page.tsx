@@ -16,7 +16,8 @@ import {
   Info,
   Copy,
   Menu,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Product, CartItem, Order, Category } from '@/lib/types';
 import { getStoredProducts, getStoredCart, saveCart, saveOrder, seedInitialData, getStoredCategories, getStoredOrders } from '@/lib/storage-utils';
@@ -37,6 +39,7 @@ export default function Storefront() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string>('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'relevance' | 'price-asc' | 'price-desc' | 'az'>('relevance');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -70,26 +73,43 @@ export default function Storefront() {
     return result;
   }, [products, searchTerm, selectedCategory, sortOrder]);
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, color?: string) => {
     if (product.stock === 0) {
       toast({ variant: "destructive", title: "Esgotado", description: "Infelizmente este item está sem estoque." });
       return;
     }
-    const existing = cart.find(item => item.id === product.id);
+
+    if (product.colors && product.colors.length > 0 && !color) {
+      toast({ variant: "destructive", title: "Escolha uma cor", description: "Por favor, selecione uma opção antes de adicionar." });
+      return;
+    }
+
+    const cartId = color ? `${product.id}-${color}` : product.id;
+    const existing = cart.find(item => {
+        const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
+        return itemKey === cartId;
+    });
+
     let newCart;
     if (existing) {
-      newCart = cart.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      newCart = cart.map(item => {
+          const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
+          return itemKey === cartId ? { ...item, quantity: item.quantity + 1 } : item;
+      });
     } else {
-      newCart = [...cart, { ...product, quantity: 1 }];
+      newCart = [...cart, { ...product, quantity: 1, selectedColor: color }];
     }
+
     setCart(newCart);
     saveCart(newCart);
-    toast({ title: "Adicionado!", description: `${product.name} foi adicionado à sacola.` });
+    toast({ title: "Adicionado!", description: `${product.name} ${color ? `(${color})` : ''} foi adicionado à sacola.` });
   };
 
-  const updateQuantity = (id: string, delta: number) => {
+  const updateQuantity = (id: string, delta: number, color?: string) => {
+    const cartId = color ? `${id}-${color}` : id;
     const newCart = cart.map(item => {
-      if (item.id === id) {
+      const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
+      if (itemKey === cartId) {
         const newQty = Math.max(0, item.quantity + delta);
         return { ...item, quantity: newQty };
       }
@@ -127,7 +147,7 @@ export default function Storefront() {
 
     const NUMERO_LOJA = "5591987199039";
     const linhasProdutos = cart.map(i =>
-      `• ${i.name} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
+      `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
     ).join('\n');
 
     const linhaPagamento = paymentMethod === 'Dinheiro'
@@ -235,20 +255,23 @@ export default function Storefront() {
                           <Info className="h-4 w-4" /> Entrega Grátis em todo o site! 🚚
                         </div>
                         {cart.map(item => (
-                          <div key={item.id} className="flex gap-4 items-center">
+                          <div key={`${item.id}-${item.selectedColor || 'no-color'}`} className="flex gap-4 items-center">
                             <div className="relative h-20 w-20 shrink-0 rounded-2xl overflow-hidden border">
                               <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <h4 className="font-bold text-sm truncate">{item.name}</h4>
+                              {item.selectedColor && (
+                                <p className="text-[10px] uppercase font-bold text-muted-foreground">Cor: {item.selectedColor}</p>
+                              )}
                               <p className="text-primary font-bold text-base">R$ {item.price.toFixed(2)}</p>
                               <div className="flex items-center gap-4 mt-2">
                                 <div className="flex items-center border rounded-full px-2 py-1 bg-muted/30">
-                                  <button onClick={() => updateQuantity(item.id, -1)} className="p-1 hover:text-primary transition-colors"><Minus className="h-3 w-3" /></button>
+                                  <button onClick={() => updateQuantity(item.id, -1, item.selectedColor)} className="p-1 hover:text-primary transition-colors"><Minus className="h-3 w-3" /></button>
                                   <span className="w-8 text-center text-xs font-bold">{item.quantity}</span>
-                                  <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:text-primary transition-colors"><Plus className="h-3 w-3" /></button>
+                                  <button onClick={() => updateQuantity(item.id, 1, item.selectedColor)} className="p-1 hover:text-primary transition-colors"><Plus className="h-3 w-3" /></button>
                                 </div>
-                                <button onClick={() => updateQuantity(item.id, -item.quantity)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-4 w-4" /></button>
+                                <button onClick={() => updateQuantity(item.id, -item.quantity, item.selectedColor)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-4 w-4" /></button>
                               </div>
                             </div>
                           </div>
@@ -276,7 +299,7 @@ export default function Storefront() {
         </header>
 
         <main className="flex-1 pb-20">
-          {/* Hero Banner Estilizado */}
+          {/* Hero Banner */}
           <div className="px-4 pt-6">
             <div className="container mx-auto">
               <div className="relative bg-primary rounded-[2.5rem] overflow-hidden min-h-[160px] md:min-h-[240px] flex items-center hero-pattern shadow-2xl shadow-primary/10">
@@ -292,7 +315,6 @@ export default function Storefront() {
                       alt="Beleza" 
                       fill 
                       className="object-cover rounded-full border-4 border-white/20"
-                      data-ai-hint="beauty makeup"
                     />
                   </div>
                 </div>
@@ -379,7 +401,7 @@ export default function Storefront() {
                     
                     <button 
                       className="absolute bottom-3 right-3 h-10 w-10 md:h-12 md:w-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-90 disabled:opacity-20 disabled:scale-100"
-                      onClick={() => addToCart(product)}
+                      onClick={() => setSelectedProduct(product)}
                       disabled={product.stock === 0}
                     >
                       <Plus className="h-5 w-5 md:h-6 md:h-6" />
@@ -388,19 +410,9 @@ export default function Storefront() {
                 </Card>
               ))}
             </div>
-
-            {filteredProducts.length === 0 && (
-              <div className="py-20 text-center space-y-4">
-                <div className="mx-auto w-20 h-20 bg-muted rounded-full flex items-center justify-center">
-                  <Info className="h-10 w-10 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground font-medium">Nenhum produto nesta categoria no momento.</p>
-                <Button variant="link" onClick={() => { setSearchTerm(''); setSelectedCategory('Todos'); }}>Limpar filtros</Button>
-              </div>
-            )}
           </div>
 
-          {/* Sessão Fale Conosco - Mantida como Original */}
+          {/* Sessão Fale Conosco */}
           <section className="bg-muted/40 py-12 md:py-20 mt-16" id="contato">
             <div className="container mx-auto px-4 text-center max-w-2xl">
               <h2 className="text-2xl md:text-4xl font-headline font-bold text-primary mb-3">Fale Conosco</h2>
@@ -420,7 +432,6 @@ export default function Storefront() {
                   <Instagram className="h-6 w-6" /> Instagram
                 </Button>
               </div>
-              <p className="text-[10px] md:text-xs text-muted-foreground mt-8 uppercase tracking-[0.2em] font-bold">Atendimento: Segunda a Sábado, 9h às 18h</p>
             </div>
           </section>
         </main>
@@ -431,7 +442,7 @@ export default function Storefront() {
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-headline text-sm font-bold">FB</div>
               <h2 className="text-xl font-headline font-bold text-white">Flor de Batom Makeup</h2>
             </div>
-            <p className="text-gray-500 text-[10px] uppercase tracking-widest font-bold">© 2026 Flor de Batom Makeup — CNPJ 00.000.000/0001-00</p>
+            <p className="text-gray-500 text-[10px] uppercase tracking-widest font-bold">© 2026 Flor de Batom Makeup</p>
           </div>
         </footer>
       </div>
@@ -465,42 +476,73 @@ export default function Storefront() {
         </SheetContent>
       </Sheet>
 
-      {/* Product Details Modal */}
-      <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
-        <DialogContent className="sm:max-w-[750px] p-0 overflow-hidden border-none shadow-2xl z-[100] max-h-[90vh] md:max-h-[85vh] overflow-y-auto rounded-3xl">
+      {/* Product Details Modal (Refined with Color selection) */}
+      <Dialog open={!!selectedProduct} onOpenChange={(open) => { if(!open) { setSelectedProduct(null); setSelectedColor(''); } }}>
+        <DialogContent className="sm:max-w-[850px] p-0 overflow-hidden border-none shadow-2xl z-[110] max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-[2.5rem]">
           {selectedProduct && (
             <div className="flex flex-col md:flex-row h-full">
               <div className="relative aspect-square md:w-1/2 bg-muted">
                 <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} fill className="object-cover" />
-                <Badge className="absolute top-4 left-4 bg-primary text-white font-bold uppercase text-[10px] tracking-widest px-4 py-1.5 rounded-full shadow-lg">
+                <Badge className="absolute top-6 left-6 bg-white/90 backdrop-blur text-primary font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-full shadow-lg border-none">
                   {selectedProduct.category}
                 </Badge>
               </div>
               <div className="p-8 md:p-12 md:w-1/2 flex flex-col justify-between bg-white">
-                <div className="space-y-4">
-                  <DialogHeader className="space-y-4 text-left">
-                    <DialogTitle className="text-3xl md:text-5xl font-headline font-bold text-primary leading-tight">{selectedProduct.name}</DialogTitle>
+                <div className="space-y-8">
+                  <DialogHeader className="text-left space-y-2">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-60">{selectedProduct.category}</p>
+                    <DialogTitle className="text-3xl md:text-4xl font-headline font-bold text-primary leading-tight">{selectedProduct.name}</DialogTitle>
                     <DialogDescription className="sr-only">Visualizar detalhes de {selectedProduct.name}</DialogDescription>
                   </DialogHeader>
-                  <div className="flex items-center gap-4">
-                    <p className="text-2xl md:text-3xl font-headline font-bold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
-                    {selectedProduct.stock > 0 && (
-                      <span className="text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100 uppercase tracking-widest">Em estoque</span>
+
+                  <div className="space-y-6">
+                    {/* UI de Seleção de Cor conforme imagem */}
+                    {selectedProduct.colors && selectedProduct.colors.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs font-bold text-foreground">Cor</Label>
+                          <span className="text-[10px] text-primary italic font-medium">Escolha uma opção</span>
+                        </div>
+                        <Select value={selectedColor} onValueChange={setSelectedColor}>
+                          <SelectTrigger className="h-14 rounded-2xl border-muted bg-muted/10 text-sm font-medium focus:ring-primary/20">
+                            <SelectValue placeholder="Escolha uma opção" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl border-none shadow-2xl z-[120]">
+                            {selectedProduct.colors.map(color => (
+                              <SelectItem key={color} value={color} className="rounded-xl py-3 cursor-pointer">
+                                {color}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     )}
+
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">A partir de</p>
+                      <p className="text-3xl md:text-4xl font-headline font-bold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                    </div>
+
+                    <p className="text-muted-foreground text-sm leading-relaxed border-t pt-6">
+                      {selectedProduct.description}
+                    </p>
                   </div>
-                  <div className="h-px bg-muted w-full my-6" />
-                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-                    {selectedProduct.description}
-                  </p>
                 </div>
+
                 <div className="mt-10 space-y-4">
                   <Button 
                     className="w-full bg-primary hover:bg-primary/90 h-16 text-lg font-bold rounded-3xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" 
-                    onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
+                    onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); setSelectedColor(''); }}
                     disabled={selectedProduct.stock === 0}
                   >
-                    Adicionar à Sacola
+                    Adicionar
                   </Button>
+                  <button 
+                    className="w-full text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-2"
+                    onClick={() => window.open(`https://wa.me/5591987199039?text=Olá! Gostaria de tirar uma dúvida sobre o produto: ${selectedProduct.name}`, '_blank')}
+                  >
+                    <MessageCircle className="h-3 w-3" /> Dúvidas sobre o produto? WhatsApp
+                  </button>
                 </div>
               </div>
             </div>
@@ -510,7 +552,7 @@ export default function Storefront() {
 
       {/* Checkout Modal */}
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <DialogContent className="sm:max-w-lg z-[100] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
+        <DialogContent className="sm:max-w-lg z-[110] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
           <DialogHeader className="p-8 md:p-12 border-b bg-muted/20 text-center">
             <DialogTitle className="text-3xl font-headline text-primary">Finalizar Pedido</DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs md:text-sm mt-2 font-medium">
@@ -583,9 +625,6 @@ export default function Storefront() {
                     </div>
                   </button>
                 </div>
-                <p className="text-muted-foreground text-[10px] leading-relaxed text-center italic font-medium px-4">
-                  ✨ Realize o Pix e envie o comprovante na conversa que abriremos no seu WhatsApp.
-                </p>
               </div>
             )}
             

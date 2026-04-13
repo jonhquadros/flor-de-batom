@@ -1,8 +1,9 @@
+
 "use client"
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Wand2, Loader2, ImagePlus } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Wand2, Loader2, ImagePlus, Palette } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -33,8 +34,11 @@ export default function AdminProducts() {
     category: '',
     imageUrl: '',
     isFeatured: false,
-    stock: 0
+    stock: 0,
+    colors: []
   });
+
+  const [colorsString, setColorsString] = useState('');
 
   const loadData = () => {
     setProducts(getStoredProducts());
@@ -56,14 +60,17 @@ export default function AdminProducts() {
       category: categories.length > 0 ? categories[0].name : '', 
       imageUrl: `https://picsum.photos/seed/${Math.random()}/400/400`, 
       isFeatured: false, 
-      stock: 0 
+      stock: 0,
+      colors: []
     });
+    setColorsString('');
     setIsModalOpen(true);
   };
 
   const openEditModal = (product: Product) => {
     setEditingProduct(product);
     setFormData({ ...product });
+    setColorsString(product.colors?.join(', ') || '');
     setIsModalOpen(true);
   };
 
@@ -80,6 +87,8 @@ export default function AdminProducts() {
     e.preventDefault();
     let updated: Product[];
     
+    const colorsArray = colorsString.split(',').map(s => s.trim()).filter(s => s !== '');
+
     const productData = {
       name: formData.name || '',
       description: formData.description || '',
@@ -88,6 +97,7 @@ export default function AdminProducts() {
       imageUrl: formData.imageUrl || '',
       isFeatured: !!formData.isFeatured,
       stock: Number(formData.stock) || 0,
+      colors: colorsArray
     };
 
     if (editingProduct) {
@@ -129,7 +139,6 @@ export default function AdminProducts() {
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // Helper to safely handle numeric input values to avoid NaN errors in React
   const getNumericValue = (val: any) => {
     if (val === undefined || val === null || isNaN(val)) return '';
     return val;
@@ -242,6 +251,21 @@ export default function AdminProducts() {
                   required 
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="colors">Opções de Cores (separe por vírgula)</Label>
+              <div className="relative">
+                <Palette className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  id="colors" 
+                  placeholder="Ex: Bege 01, Bege 02, Bege 03" 
+                  className="pl-10"
+                  value={colorsString} 
+                  onChange={(e) => setColorsString(e.target.value)} 
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground italic">Deixe em branco se o produto não tiver variações de cor.</p>
             </div>
 
             <div className="space-y-2">
