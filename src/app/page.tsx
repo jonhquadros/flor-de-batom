@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -26,7 +25,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Product, CartItem, Order, Category } from '@/lib/types';
-import { getStoredProducts, getStoredCart, saveCart, saveOrder, seedInitialData, getStoredCategories } from '@/lib/storage-utils';
+import { getStoredProducts, getStoredCart, saveCart, saveOrder, seedInitialData, getStoredCategories, getStoredOrders } from '@/lib/storage-utils';
 
 export default function Storefront() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -104,8 +103,12 @@ export default function Storefront() {
       return;
     }
 
+    const currentOrders = getStoredOrders();
+    const nextOrderNumber = (currentOrders.length + 1).toString().padStart(5, '0');
+
     const order: Order = {
       id: Math.random().toString(36).substr(2, 9).toUpperCase(),
+      orderNumber: nextOrderNumber,
       customerName,
       customerPhone,
       items: cart,
@@ -128,7 +131,7 @@ export default function Storefront() {
       : `📱 Pix — comprovante a enviar`;
 
     const msg = encodeURIComponent(
-      `🌸 *NOVO PEDIDO — Flor de Batom Makeup*\n\n` +
+      `🌸 *PEDIDO #${nextOrderNumber} — Flor de Batom Makeup*\n\n` +
       `👤 *Cliente:* ${customerName}\n` +
       `📱 *Telefone:* ${customerPhone}\n\n` +
       `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
@@ -143,7 +146,7 @@ export default function Storefront() {
     setCart([]);
     saveCart([]);
     setIsCheckoutOpen(false);
-    toast({ title: "Pedido Enviado!", description: "Siga para o WhatsApp para confirmar." });
+    toast({ title: "Pedido Enviado!", description: `Pedido #${nextOrderNumber} realizado com sucesso.` });
   };
 
   const copyPixKey = () => {

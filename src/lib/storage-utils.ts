@@ -9,7 +9,11 @@ export const getStoredProducts = (): Product[] => {
   if (typeof window === 'undefined') return [];
   try {
     const stored = localStorage.getItem(PRODUCTS_KEY);
-    return stored ? JSON.parse(stored) : [];
+    if (!stored) {
+      seedInitialData();
+      return JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
+    }
+    return JSON.parse(stored);
   } catch (e) {
     return [];
   }
@@ -25,7 +29,11 @@ export const getStoredCategories = (): Category[] => {
   if (typeof window === 'undefined') return [];
   try {
     const stored = localStorage.getItem(CATEGORIES_KEY);
-    return stored ? JSON.parse(stored) : [];
+    if (!stored) {
+      seedInitialData();
+      return JSON.parse(localStorage.getItem(CATEGORIES_KEY) || '[]');
+    }
+    return JSON.parse(stored);
   } catch (e) {
     return [];
   }
@@ -81,17 +89,17 @@ export const saveCart = (cart: CartItem[]) => {
 export const seedInitialData = (force: boolean = false) => {
   if (typeof window === 'undefined') return;
   
-  const existingCategories = getStoredCategories();
-  if (existingCategories.length === 0 || force) {
+  const existingCategories = localStorage.getItem(CATEGORIES_KEY);
+  if (!existingCategories || force) {
     const initialCats: Category[] = INITIAL_CATEGORIES.map(name => ({
       id: Math.random().toString(36).substr(2, 9),
       name
     }));
-    saveCategories(initialCats);
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(initialCats));
   }
 
-  const existingProducts = getStoredProducts();
-  if (existingProducts.length === 0 || force) {
+  const existingProducts = localStorage.getItem(PRODUCTS_KEY);
+  if (!existingProducts || force) {
     const initialProducts: Product[] = [
       { id:"p001", name:"Batom Matte Vinho Intenso",    category:"Batom",            description:"Batom de longa duração com textura matte sedosa. Tom vinho intenso para lábios marcantes.",          price:29.90, stock:15, imageUrl:"https://picsum.photos/seed/lip1/400/400",     isFeatured:true  },
       { id:"p002", name:"Batom Nude Rosado",             category:"Batom",            description:"Tom nude cremoso. Perfeito para o dia a dia com hidratação natural e brilho discreto.",           price:26.90, stock:12, imageUrl:"https://picsum.photos/seed/lip2/400/400",      isFeatured:false },
@@ -114,6 +122,7 @@ export const seedInitialData = (force: boolean = false) => {
       { id:"p019", name:"Gloss Transparente Hidratante", category:"Gloss",            description:"Ativos hidratantes com brilho natural nos lábios, sem grudar.",                             price:18.90, stock:30, imageUrl:"https://picsum.photos/seed/gloss2/400/400",   isFeatured:false },
       { id:"p020", name:"Corretivo Alta Cobertura",      category:"Corretivo",        description:"Cobertura total, cobre olheiras e imperfeições, acabamento matte natural.",             price:27.90, stock:21, imageUrl:"https://picsum.photos/seed/concealer1/400/400",       isFeatured:true  },
     ];
-    saveProducts(initialProducts);
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(initialProducts));
   }
+  window.dispatchEvent(new Event('storage'));
 };

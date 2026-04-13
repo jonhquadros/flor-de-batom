@@ -17,6 +17,7 @@ export type OrderStatus = 'Pendente' | 'Em Separação' | 'Em Entrega' | 'Entreg
 
 export interface Order {
   id: string;
+  orderNumber: string; // Adicionado para numeração sequencial 00001
   customerName: string;
   customerPhone: string;
   items: CartItem[];

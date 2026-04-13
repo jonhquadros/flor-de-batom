@@ -103,8 +103,11 @@ export default function AdminDashboard() {
                 {orders.slice(-5).reverse().map((order) => (
                   <div key={order.id} className="p-4 flex justify-between items-center hover:bg-muted/30 transition-colors">
                     <div>
-                      <p className="font-medium">{order.customerName}</p>
-                      <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</p>
+                      <p className="font-bold text-primary">
+                        {order.orderNumber ? `#${order.orderNumber}` : `#${order.id.substr(0, 6)}`}
+                      </p>
+                      <p className="font-medium text-sm">{order.customerName}</p>
+                      <p className="text-[10px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-primary">R$ {order.total.toFixed(2)}</p>

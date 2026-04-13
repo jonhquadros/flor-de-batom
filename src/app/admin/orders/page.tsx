@@ -23,7 +23,6 @@ export default function AdminOrders() {
 
   useEffect(() => {
     loadOrders();
-    // Escutar mudanças no storage (caso o pedido seja feito em outra aba)
     window.addEventListener('storage', loadOrders);
     return () => window.removeEventListener('storage', loadOrders);
   }, []);
@@ -36,9 +35,10 @@ export default function AdminOrders() {
 
   const exportToCSV = () => {
     if (orders.length === 0) return;
-    const headers = ['ID', 'Cliente', 'Telefone', 'Total', 'Pagamento', 'Status', 'Data'];
+    const headers = ['ID', 'Num Pedido', 'Cliente', 'Telefone', 'Total', 'Pagamento', 'Status', 'Data'];
     const rows = orders.map(o => [
       o.id,
+      o.orderNumber || '---',
       o.customerName,
       o.customerPhone,
       o.total.toFixed(2),
@@ -57,7 +57,10 @@ export default function AdminOrders() {
   };
 
   const filteredOrders = orders.filter(o => {
-    const matchesSearch = o.customerName.toLowerCase().includes(searchTerm.toLowerCase()) || o.id.includes(searchTerm);
+    const matchesSearch = 
+      o.customerName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      o.orderNumber?.includes(searchTerm) ||
+      o.id.includes(searchTerm);
     const matchesStatus = statusFilter === 'Todos' || o.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -87,7 +90,7 @@ export default function AdminOrders() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Filtrar por nome ou ID..." 
+            placeholder="Filtrar por nome ou nº pedido..." 
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -125,7 +128,9 @@ export default function AdminOrders() {
             ) : (
               filteredOrders.slice().reverse().map(order => (
                 <TableRow key={order.id}>
-                  <TableCell className="font-mono text-xs">#{order.id.substr(0, 6)}</TableCell>
+                  <TableCell className="font-bold text-sm">
+                    {order.orderNumber ? `#${order.orderNumber}` : `#${order.id.substr(0, 6)}`}
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-medium">{order.customerName}</span>

@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Product, Category } from '@/lib/types';
-import { getStoredProducts, saveProducts, getStoredCategories } from '@/lib/storage-utils';
+import { getStoredProducts, saveProducts, getStoredCategories, seedInitialData } from '@/lib/storage-utils';
 import { generateProductDescription } from '@/ai/flows/generate-product-description';
 
 export default function AdminProducts() {
@@ -36,9 +36,15 @@ export default function AdminProducts() {
     stock: 0
   });
 
-  useEffect(() => {
+  const loadData = () => {
     setProducts(getStoredProducts());
     setCategories(getStoredCategories());
+  };
+
+  useEffect(() => {
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const openAddModal = () => {
@@ -159,24 +165,32 @@ export default function AdminProducts() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.map(product => (
-              <TableRow key={product.id}>
-                <TableCell>
-                  <div className="relative h-10 w-10 rounded overflow-hidden bg-muted">
-                    <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
-                  </div>
-                </TableCell>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>{product.category}</TableCell>
-                <TableCell>R$ {product.price.toFixed(2)}</TableCell>
-                <TableCell>{product.stock}</TableCell>
-                <TableCell>{product.isFeatured ? 'Sim' : 'Não'}</TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button variant="ghost" size="icon" onClick={() => openEditModal(product)}><Edit className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(product.id)}><Trash2 className="h-4 w-4" /></Button>
+            {filteredProducts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                  Nenhum produto encontrado.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredProducts.map(product => (
+                <TableRow key={product.id}>
+                  <TableCell>
+                    <div className="relative h-10 w-10 rounded overflow-hidden bg-muted">
+                      <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell>{product.category}</TableCell>
+                  <TableCell>R$ {product.price.toFixed(2)}</TableCell>
+                  <TableCell>{product.stock}</TableCell>
+                  <TableCell>{product.isFeatured ? 'Sim' : 'Não'}</TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button variant="ghost" size="icon" onClick={() => openEditModal(product)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(product.id)}><Trash2 className="h-4 w-4" /></Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
