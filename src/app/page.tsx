@@ -17,13 +17,15 @@ import {
   Copy,
   Menu,
   ChevronRight,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
+  Flower2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetSheetFooter, SheetFooter } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -299,23 +301,63 @@ export default function Storefront() {
         </header>
 
         <main className="flex-1 pb-20">
-          {/* Hero Banner */}
+          {/* Hero Banner Modernizado */}
           <div className="px-4 pt-6">
             <div className="container mx-auto">
-              <div className="relative bg-primary rounded-[2.5rem] overflow-hidden min-h-[160px] md:min-h-[240px] flex items-center hero-pattern shadow-2xl shadow-primary/10">
-                <div className="flex flex-col md:flex-row w-full p-8 md:p-12 items-center justify-between gap-6">
-                  <div className="text-center md:text-left space-y-2 max-w-lg">
-                    <h2 className="text-2xl md:text-5xl font-headline font-bold text-white leading-tight">Maquiagem que Transforma</h2>
-                    <p className="text-white/80 text-xs md:text-lg italic font-light">Sua beleza merece o melhor cuidado premium.</p>
+              <div className="relative bg-primary rounded-[2.5rem] overflow-hidden min-h-[220px] md:min-h-[320px] flex items-center shadow-2xl shadow-primary/20">
+                {/* Elementos Decorativos Florais de Fundo */}
+                <div className="absolute top-[-30px] left-[-30px] opacity-15 rotate-12 text-white pointer-events-none">
+                  <svg width="250" height="250" viewBox="0 0 100 100" fill="currentColor">
+                    <path d="M50 0 C60 20 80 20 100 50 C80 80 60 80 50 100 C40 80 20 80 0 50 C20 20 40 20 50 0" />
+                  </svg>
+                </div>
+                <div className="absolute bottom-[-50px] right-40 opacity-10 -rotate-45 text-white pointer-events-none hidden md:block">
+                  <svg width="350" height="350" viewBox="0 0 100 100" fill="currentColor">
+                    <path d="M50 0 C60 20 80 20 100 50 C80 80 60 80 50 100 C40 80 20 80 0 50 C20 20 40 20 50 0" />
+                  </svg>
+                </div>
+                
+                {/* Overlay de Gradiente para profundidade */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-transparent" />
+
+                <div className="relative flex flex-col md:flex-row w-full p-8 md:p-16 items-center justify-between gap-8 z-10">
+                  <div className="text-center md:text-left space-y-4 max-w-xl">
+                    <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-2">
+                      <Sparkles className="h-4 w-4 text-yellow-300 animate-pulse" />
+                      <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-widest">Coleção Exclusiva Flor de Batom</span>
+                    </div>
+                    <h2 className="text-3xl md:text-6xl font-headline font-bold text-white leading-[1.1] drop-shadow-lg">
+                      Sua Beleza em <br className="hidden md:block" />
+                      <span className="text-accent">Destaque</span>
+                    </h2>
+                    <p className="text-white/90 text-xs md:text-xl italic font-light max-w-md">
+                      Descubra maquiagens premium que realçam sua essência com sofisticação e elegância.
+                    </p>
+                    <div className="pt-4 flex flex-wrap justify-center md:justify-start gap-4">
+                      <Button className="bg-white text-primary hover:bg-white/90 rounded-full px-8 h-12 font-bold shadow-xl transition-transform active:scale-95">
+                        Ver Novidades
+                      </Button>
+                      <div className="hidden md:flex items-center gap-3 text-white/80">
+                        <Flower2 className="h-6 w-6" />
+                        <span className="text-sm font-medium">Produtos Artesanais</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="relative h-32 w-32 md:h-56 md:w-56 shrink-0">
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-3xl rounded-full scale-110" />
-                    <Image 
-                      src="https://picsum.photos/seed/hero/400/400" 
-                      alt="Beleza" 
-                      fill 
-                      className="object-cover rounded-full border-4 border-white/20"
-                    />
+                  
+                  <div className="relative h-44 w-44 md:h-72 md:w-72 shrink-0 group">
+                    <div className="absolute inset-0 bg-white/20 backdrop-blur-3xl rounded-full scale-110 border border-white/30 shadow-2xl group-hover:scale-125 transition-transform duration-700" />
+                    <div className="absolute -top-6 -left-6 bg-white p-4 rounded-2xl shadow-2xl z-20 rotate-[-12deg] hidden md:block border border-primary/10">
+                      <Flower2 className="h-7 w-7 text-primary" />
+                    </div>
+                    <div className="relative h-full w-full rounded-full overflow-hidden border-8 border-white/10 shadow-inner">
+                      <Image 
+                        src="https://picsum.photos/seed/beauty-premium/600/600" 
+                        alt="Maquiagem Flor de Batom" 
+                        fill 
+                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                        data-ai-hint="beauty makeup"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
