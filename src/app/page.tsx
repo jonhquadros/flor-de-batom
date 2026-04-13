@@ -193,7 +193,7 @@ export default function Storefront() {
           <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border-2 border-primary/20">
             <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
           </div>
-          <h1 className="text-xl font-headline font-bold text-primary leading-tight">Flor de Batom</h1>
+          <h1 className="text-xl font-poppins font-bold text-primary leading-tight">Flor de Batom</h1>
         </div>
         
         <nav className="space-y-1">
@@ -250,7 +250,7 @@ export default function Storefront() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md p-0 flex flex-col z-[100] border-none shadow-2xl">
                   <SheetHeader className="p-6 border-b text-left">
-                    <SheetTitle className="font-headline text-2xl text-primary">Carrinho</SheetTitle>
+                    <SheetTitle className="font-poppins text-2xl text-primary font-bold">Carrinho</SheetTitle>
                   </SheetHeader>
                   <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {cart.length === 0 ? (
@@ -273,7 +273,7 @@ export default function Storefront() {
                               {item.selectedColor && (
                                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Cor: {item.selectedColor}</p>
                               )}
-                              <p className="text-primary font-display font-bold text-xl mt-1">R$ {item.price.toFixed(2)}</p>
+                              <p className="text-primary font-poppins font-semibold text-xl mt-1">R$ {item.price.toFixed(2)}</p>
                               <div className="flex items-center gap-4 mt-2">
                                 <div className="flex items-center border rounded-full px-2 py-1 bg-muted/30">
                                   <button onClick={() => updateQuantity(item.id, -1, item.selectedColor)} className="p-1 hover:text-primary transition-colors"><Minus className="h-3 w-3" /></button>
@@ -293,7 +293,7 @@ export default function Storefront() {
                       <div className="w-full space-y-4">
                         <div className="flex justify-between items-end">
                           <span className="text-muted-foreground font-medium">Subtotal</span>
-                          <span className="text-3xl font-display font-bold text-primary">R$ {cartTotal.toFixed(2)}</span>
+                          <span className="text-3xl font-poppins font-semibold text-primary">R$ {cartTotal.toFixed(2)}</span>
                         </div>
                         <Button className="w-full bg-primary hover:bg-primary/90 h-16 rounded-3xl text-lg font-bold shadow-xl shadow-primary/20" onClick={() => setIsCheckoutOpen(true)}>
                           Finalizar Pedido
@@ -318,7 +318,7 @@ export default function Storefront() {
                       <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.15em]">Coleção Exclusiva</span>
                     </div>
                     
-                    <h2 className="text-2xl md:text-5xl font-display font-bold text-white leading-[1.2] drop-shadow-lg">
+                    <h2 className="text-2xl md:text-5xl font-poppins font-bold text-white leading-[1.2] drop-shadow-lg">
                       Realce sua beleza todos os dias 💓
                     </h2>
                     
@@ -378,7 +378,7 @@ export default function Storefront() {
           {/* Grid de Produtos */}
           <div className="container mx-auto px-4 mt-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl md:text-2xl font-display font-bold text-primary flex items-center gap-2">
+              <h3 className="text-xl md:text-2xl font-poppins font-bold text-primary flex items-center gap-2">
                 {selectedCategory.toUpperCase()} <span className="text-[10px] md:text-sm font-poppins text-muted-foreground font-medium">({filteredProducts.length} itens)</span>
               </h3>
               <select 
@@ -449,7 +449,7 @@ export default function Storefront() {
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/5 mb-6 text-primary">
                 <MessageCircle className="h-6 w-6" />
               </div>
-              <h2 className="text-3xl md:text-5xl font-display font-bold text-primary mb-6">Atendimento Exclusivo</h2>
+              <h2 className="text-3xl md:text-5xl font-poppins font-bold text-primary mb-6">Atendimento Exclusivo</h2>
               <p className="text-sm md:text-lg text-muted-foreground mb-12 leading-relaxed max-w-xl mx-auto">
                 Dúvidas sobre tons, texturas ou seu pedido? Nossa equipe de especialistas está pronta para te atender com todo o carinho que você merece.
               </p>
@@ -493,7 +493,7 @@ export default function Storefront() {
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/10">
                 <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
               </div>
-              <h2 className="text-xl font-headline font-bold text-primary">Flor de Batom Makeup</h2>
+              <h2 className="text-xl font-poppins font-bold text-primary">Flor de Batom Makeup</h2>
             </div>
             <p className="text-muted-foreground text-[10px] uppercase tracking-widest font-bold">© 2026 Flor de Batom Makeup</p>
           </div>
@@ -508,7 +508,7 @@ export default function Storefront() {
               <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md">
                 <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
               </div>
-              <SheetTitle className="text-2xl font-headline font-bold text-primary">Categorias</SheetTitle>
+              <SheetTitle className="text-2xl font-poppins font-bold text-primary">Categorias</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               <button 
@@ -546,7 +546,7 @@ export default function Storefront() {
                 <div className="space-y-8">
                   <DialogHeader className="text-left space-y-2">
                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-60">{selectedProduct.category}</p>
-                    <DialogTitle className="text-3xl md:text-4xl font-display font-bold text-primary leading-tight">{selectedProduct.name}</DialogTitle>
+                    <DialogTitle className="text-3xl md:text-4xl font-poppins font-bold text-primary leading-tight">{selectedProduct.name}</DialogTitle>
                     <DialogDescription className="sr-only">Visualizar detalhes de {selectedProduct.name}</DialogDescription>
                   </DialogHeader>
 
@@ -574,7 +574,7 @@ export default function Storefront() {
                     )}
 
                     <div className="space-y-1">
-                      <p className="text-3xl md:text-4xl font-display font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                      <p className="text-3xl md:text-4xl font-poppins font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
                     </div>
 
                     <p className="text-muted-foreground text-sm font-poppins font-normal leading-relaxed border-t pt-6">
@@ -608,7 +608,7 @@ export default function Storefront() {
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
         <DialogContent className="sm:max-w-lg z-[120] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
           <DialogHeader className="p-8 md:p-12 border-b bg-muted/20 text-center">
-            <DialogTitle className="text-3xl font-headline text-primary">Finalizar Pedido</DialogTitle>
+            <DialogTitle className="text-3xl font-poppins font-bold text-primary">Finalizar Pedido</DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs md:text-sm mt-2 font-medium">
               Informe seus dados para combinarmos a entrega via WhatsApp. 🌸
             </DialogDescription>
@@ -684,7 +684,7 @@ export default function Storefront() {
             
             <div className="bg-primary p-6 rounded-[2rem] flex items-center justify-between text-white shadow-2xl shadow-primary/30">
               <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Final</span>
-              <span className="text-3xl font-display font-bold">R$ {cartTotal.toFixed(2)}</span>
+              <span className="text-3xl font-poppins font-semibold">R$ {cartTotal.toFixed(2)}</span>
             </div>
           </div>
           <DialogFooter className="p-8 md:p-12 bg-muted/20 border-t">
