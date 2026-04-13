@@ -324,7 +324,7 @@ export default function Storefront() {
                   <div className="text-center md:text-left space-y-4 max-w-xl">
                     <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-2">
                       <Sparkles className="h-4 w-4 text-yellow-300 animate-pulse" />
-                      <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-widest">Coleção Exclusiva Flor de Batom</span>
+                      <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-widest">Coleção Exclusiva</span>
                     </div>
                     <h2 className="text-3xl md:text-6xl font-headline font-bold text-white leading-[1.1] drop-shadow-lg">
                       Sua Beleza em <br className="hidden md:block" />
