@@ -304,37 +304,57 @@ export default function Storefront() {
         </header>
 
         <main className="flex-1 pb-20">
-          {/* Banner Hero Otimizado para Mobile */}
-          <div className="px-4 pt-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+          {/* Banner Hero Redesenhado - Mobile First */}
+          <div className="px-4 pt-4 md:pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="container mx-auto">
-              <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2.5rem] overflow-hidden min-h-[320px] md:min-h-[480px] flex items-center shadow-2xl shadow-primary/20">
-                <div className="relative flex flex-col md:flex-row w-full p-6 md:p-16 items-center justify-between gap-8 md:gap-12 z-10">
-                  <div className="text-center md:text-left space-y-4 md:space-y-6 max-w-2xl">
-                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 mb-2">
-                      <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em]">Coleção Exclusiva</span>
+              <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[280px] md:min-h-[420px] flex flex-col justify-center items-center shadow-xl shadow-primary/10 transition-all">
+                <div className="relative flex flex-col md:flex-row w-full p-6 md:p-12 items-center justify-between gap-6 md:gap-12 z-10 text-center md:text-left">
+                  <div className="space-y-3 md:space-y-6 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/25 mb-1 mx-auto md:mx-0">
+                      <span className="text-[9px] md:text-xs font-bold text-white uppercase tracking-[0.15em]">Coleção Exclusiva</span>
                     </div>
                     
-                    <h2 className="text-3xl md:text-7xl font-headline font-bold text-white leading-[1.1] drop-shadow-xl">
-                      Beleza, autoestima <br className="hidden md:block" />
-                      e delicadeza 💓
+                    <h2 className="text-2xl md:text-6xl font-headline font-bold text-white leading-[1.2] drop-shadow-lg">
+                      Realce sua beleza <br className="hidden md:block" />
+                      todos os dias 💓
                     </h2>
                     
-                    <p className="text-white/90 text-sm md:text-xl font-body max-w-md leading-relaxed mx-auto md:mx-0">
-                      Maquiagens selecionadas com carinho para realçar sua essência ✨
+                    <p className="text-white/85 text-xs md:text-lg font-body max-w-sm md:max-w-md leading-relaxed mx-auto md:mx-0">
+                      Maquiagens selecionadas para valorizar sua autoestima com delicadeza ✨
                     </p>
+
+                    {/* Benefícios Compactos */}
+                    <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-2 pt-2">
+                      <div className="flex items-center gap-1.5 text-white/90 text-[10px] md:text-sm font-medium">
+                        <Truck className="h-3 w-3 md:h-4 md:w-4" /> Frete grátis em Capanema/PA
+                      </div>
+                      <div className="flex items-center gap-1.5 text-white/90 text-[10px] md:text-sm font-medium">
+                        <ShoppingBag className="h-3 w-3 md:h-4 md:w-4" /> Loja 100% online
+                      </div>
+                      <div className="flex items-center gap-1.5 text-white/90 text-[10px] md:text-sm font-medium">
+                        <Heart className="h-3 w-3 md:h-4 md:w-4" /> Produtos selecionados
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="relative h-40 w-40 md:h-80 md:w-80 shrink-0 group">
-                    <div className="absolute inset-0 bg-white/20 backdrop-blur-3xl rounded-full scale-110 border border-white/40 shadow-2xl group-hover:scale-125 transition-transform duration-1000" />
-                    <div className="relative h-full w-full rounded-full overflow-hidden border-[6px] md:border-[10px] border-white/20 shadow-inner">
+                  {/* Logo Circular Compacto */}
+                  <div className="relative h-28 w-28 md:h-64 md:w-64 shrink-0 mt-4 md:mt-0">
+                    <div className="absolute inset-0 bg-white/15 backdrop-blur-2xl rounded-full scale-110 border border-white/30 shadow-xl" />
+                    <div className="relative h-full w-full rounded-full overflow-hidden border-4 md:border-8 border-white/20 shadow-lg">
                       <Image 
                         src="https://i.ibb.co/6J4J1LMd/florlogo.jpg" 
                         alt="Logo Flor de Batom" 
                         fill 
-                        className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                        className="object-cover"
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Indicador de Ação (Scroll Hint) */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce opacity-80">
+                  <span className="text-[8px] md:text-[10px] text-white/90 font-bold uppercase tracking-widest">↓ Veja os produtos abaixo</span>
+                  <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-white" />
                 </div>
               </div>
             </div>
