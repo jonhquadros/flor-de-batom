@@ -106,7 +106,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/20">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
             </div>
-            <h2 className="text-sm font-bold truncate max-w-[150px]">Gestão Flor de Batom</h2>
+            <h2 className="text-lg font-bold truncate max-w-[200px]">Gestão Flor de Batom</h2>
           </div>
           <Button variant="ghost" size="icon" className="hover:bg-white/10" onClick={() => setIsMobileMenuOpen(true)}>
             <Menu className="h-6 w-6" />
