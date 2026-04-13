@@ -308,13 +308,6 @@ export default function Storefront() {
           <div className="px-4 pt-6 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="container mx-auto">
               <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2.5rem] overflow-hidden min-h-[320px] md:min-h-[480px] flex items-center shadow-2xl shadow-primary/20">
-                {/* Elementos Decorativos */}
-                <div className="absolute top-[-40px] left-[-40px] opacity-10 rotate-12 text-white pointer-events-none">
-                  <svg width="300" height="300" viewBox="0 0 100 100" fill="currentColor">
-                    <path d="M50 0 C60 20 80 20 100 50 C80 80 60 80 50 100 C40 80 20 80 0 50 C20 20 40 20 50 0" />
-                  </svg>
-                </div>
-                
                 <div className="relative flex flex-col md:flex-row w-full p-6 md:p-16 items-center justify-between gap-8 md:gap-12 z-10">
                   <div className="text-center md:text-left space-y-4 md:space-y-6 max-w-2xl">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 mb-2">
@@ -329,20 +322,10 @@ export default function Storefront() {
                     <p className="text-white/90 text-sm md:text-xl font-body max-w-md leading-relaxed mx-auto md:mx-0">
                       Maquiagens selecionadas com carinho para realçar sua essência ✨
                     </p>
-
-                    <div className="pt-4">
-                      <Button className="bg-white text-primary hover:bg-[#F8C8DC] hover:scale-105 rounded-full px-10 md:px-12 h-14 md:h-16 font-bold text-base md:text-lg shadow-2xl transition-all active:scale-95 group">
-                        Explorar Catálogo
-                        <ChevronRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                      </Button>
-                    </div>
                   </div>
                   
                   <div className="relative h-40 w-40 md:h-80 md:w-80 shrink-0 group">
                     <div className="absolute inset-0 bg-white/20 backdrop-blur-3xl rounded-full scale-110 border border-white/40 shadow-2xl group-hover:scale-125 transition-transform duration-1000" />
-                    <div className="absolute -top-3 -right-3 bg-white p-3 rounded-2xl shadow-2xl z-20 rotate-[12deg] border border-primary/5">
-                      <Flower2 className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-                    </div>
                     <div className="relative h-full w-full rounded-full overflow-hidden border-[6px] md:border-[10px] border-white/20 shadow-inner">
                       <Image 
                         src="https://i.ibb.co/6J4J1LMd/florlogo.jpg" 
