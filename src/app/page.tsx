@@ -335,12 +335,8 @@ export default function Storefront() {
                     </p>
                     <div className="pt-4 flex flex-wrap justify-center md:justify-start gap-4">
                       <Button className="bg-white text-primary hover:bg-white/90 rounded-full px-8 h-12 font-bold shadow-xl transition-transform active:scale-95">
-                        Ver Novidades
+                        Explorar Catálogo
                       </Button>
-                      <div className="hidden md:flex items-center gap-3 text-white/80">
-                        <Flower2 className="h-6 w-6" />
-                        <span className="text-sm font-medium">Produtos Artesanais</span>
-                      </div>
                     </div>
                   </div>
                   
@@ -355,7 +351,6 @@ export default function Storefront() {
                         alt="Maquiagem Flor de Batom" 
                         fill 
                         className="object-cover transition-transform duration-1000 group-hover:scale-110"
-                        data-ai-hint="beauty makeup"
                       />
                     </div>
                   </div>
