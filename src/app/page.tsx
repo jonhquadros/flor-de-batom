@@ -449,7 +449,7 @@ export default function Storefront() {
 
       {/* Mobile Sidebar Menu */}
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[100]">
+        <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[110]">
           <div className="h-full flex flex-col bg-white">
             <SheetHeader className="p-8 border-b flex flex-row items-center gap-3 bg-primary/5 text-left">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-lg font-bold">FB</div>
@@ -478,7 +478,7 @@ export default function Storefront() {
 
       {/* Product Details Modal (Refined with Color selection) */}
       <Dialog open={!!selectedProduct} onOpenChange={(open) => { if(!open) { setSelectedProduct(null); setSelectedColor(''); } }}>
-        <DialogContent className="sm:max-w-[850px] p-0 overflow-hidden border-none shadow-2xl z-[110] max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-[2.5rem]">
+        <DialogContent className="sm:max-w-[850px] p-0 overflow-hidden border-none shadow-2xl z-[120] max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-[2.5rem]">
           {selectedProduct && (
             <div className="flex flex-col md:flex-row h-full">
               <div className="relative aspect-square md:w-1/2 bg-muted">
@@ -507,7 +507,7 @@ export default function Storefront() {
                           <SelectTrigger className="h-14 rounded-2xl border-muted bg-muted/10 text-sm font-medium focus:ring-primary/20">
                             <SelectValue placeholder="Escolha uma opção" />
                           </SelectTrigger>
-                          <SelectContent className="rounded-2xl border-none shadow-2xl z-[120]">
+                          <SelectContent className="rounded-2xl border-none shadow-2xl z-[130]">
                             {selectedProduct.colors.map(color => (
                               <SelectItem key={color} value={color} className="rounded-xl py-3 cursor-pointer">
                                 {color}
@@ -519,7 +519,6 @@ export default function Storefront() {
                     )}
 
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">A partir de</p>
                       <p className="text-3xl md:text-4xl font-headline font-bold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
                     </div>
 
@@ -552,7 +551,7 @@ export default function Storefront() {
 
       {/* Checkout Modal */}
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <DialogContent className="sm:max-w-lg z-[110] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
+        <DialogContent className="sm:max-w-lg z-[120] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
           <DialogHeader className="p-8 md:p-12 border-b bg-muted/20 text-center">
             <DialogTitle className="text-3xl font-headline text-primary">Finalizar Pedido</DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs md:text-sm mt-2 font-medium">
