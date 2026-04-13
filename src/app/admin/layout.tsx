@@ -1,8 +1,10 @@
+
 "use client"
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   LayoutDashboard, 
   Package, 
@@ -22,6 +24,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authorized, setAuthorized] = useState(false);
+
+  const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
 
   useEffect(() => {
     const isLogin = pathname === '/admin/login';
@@ -55,7 +59,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="hidden lg:flex w-72 flex-col bg-carbon text-white shadow-xl fixed inset-y-0 left-0 z-50">
         <div className="p-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-xs font-bold shadow-lg">FB</div>
+            <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-lg border border-white/20">
+              <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
+            </div>
             <h2 className="text-lg font-headline font-bold">Gestão Flor</h2>
           </div>
         </div>
@@ -94,7 +100,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile Header */}
         <header className="lg:hidden h-16 bg-carbon text-white flex items-center justify-between px-6 sticky top-0 z-50 shadow-md">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold">FB</div>
+            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/20">
+              <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
+            </div>
             <h2 className="text-base font-headline font-bold">Painel Flor</h2>
           </div>
           <Button variant="ghost" size="icon" className="hover:bg-white/10" onClick={() => setIsMobileMenuOpen(true)}>
@@ -108,7 +116,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="absolute top-0 right-0 w-[80%] max-w-sm h-full bg-carbon p-8 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-10">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white">FB</div>
+                  <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-md">
+                    <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
+                  </div>
                   <h2 className="text-xl font-headline font-bold text-white">Menu</h2>
                 </div>
                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => setIsMobileMenuOpen(false)}>

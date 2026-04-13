@@ -56,6 +56,8 @@ export default function Storefront() {
   const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro'>('Pix');
   const [changeAmount, setChangeAmount] = useState('');
 
+  const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
+
   useEffect(() => {
     seedInitialData();
     setProducts(getStoredProducts());
@@ -188,7 +190,9 @@ export default function Storefront() {
       {/* Sidebar Desktop */}
       <aside className="hidden lg:flex w-64 flex-col bg-white border-r sticky top-0 h-screen overflow-y-auto z-40 p-6 space-y-8">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-lg font-bold">FB</div>
+          <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border-2 border-primary/20">
+            <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
+          </div>
           <h1 className="text-xl font-headline font-bold text-primary leading-tight">Flor de Batom</h1>
         </div>
         
@@ -338,7 +342,7 @@ export default function Storefront() {
                     <div className="absolute inset-0 bg-white/15 backdrop-blur-2xl rounded-full scale-110 border border-white/30 shadow-xl" />
                     <div className="relative h-full w-full rounded-full overflow-hidden border-2 md:border-4 border-white/20 shadow-lg">
                       <Image 
-                        src="https://i.ibb.co/6J4J1LMd/florlogo.jpg" 
+                        src={LOGO_URL} 
                         alt="Logo Flor de Batom" 
                         fill 
                         className="object-cover"
@@ -467,7 +471,9 @@ export default function Storefront() {
         <footer className="bg-carbon text-white py-12">
           <div className="container mx-auto px-4 text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-headline text-sm font-bold">FB</div>
+              <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/20">
+                <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
+              </div>
               <h2 className="text-xl font-headline font-bold text-white">Flor de Batom Makeup</h2>
             </div>
             <p className="text-gray-500 text-[10px] uppercase tracking-widest font-bold">© 2026 Flor de Batom Makeup</p>
@@ -480,7 +486,9 @@ export default function Storefront() {
         <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[110]">
           <div className="h-full flex flex-col bg-white">
             <SheetHeader className="p-8 border-b flex flex-row items-center gap-3 bg-primary/5 text-left">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-lg font-bold">FB</div>
+              <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md">
+                <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
+              </div>
               <SheetTitle className="text-2xl font-headline font-bold text-primary">Categorias</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
