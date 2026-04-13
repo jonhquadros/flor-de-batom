@@ -304,10 +304,10 @@ export default function Storefront() {
         </header>
 
         <main className="flex-1 pb-20">
-          {/* Banner Hero Redesenhado */}
+          {/* Banner Hero Otimizado para Mobile */}
           <div className="px-4 pt-6 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="container mx-auto">
-              <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2.5rem] overflow-hidden min-h-[400px] md:min-h-[480px] flex items-center shadow-2xl shadow-primary/20">
+              <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2.5rem] overflow-hidden min-h-[320px] md:min-h-[480px] flex items-center shadow-2xl shadow-primary/20">
                 {/* Elementos Decorativos */}
                 <div className="absolute top-[-40px] left-[-40px] opacity-10 rotate-12 text-white pointer-events-none">
                   <svg width="300" height="300" viewBox="0 0 100 100" fill="currentColor">
@@ -315,51 +315,35 @@ export default function Storefront() {
                   </svg>
                 </div>
                 
-                <div className="relative flex flex-col md:flex-row w-full p-8 md:p-16 items-center justify-between gap-12 z-10">
-                  <div className="text-center md:text-left space-y-6 max-w-2xl">
+                <div className="relative flex flex-col md:flex-row w-full p-6 md:p-16 items-center justify-between gap-8 md:gap-12 z-10">
+                  <div className="text-center md:text-left space-y-4 md:space-y-6 max-w-2xl">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 mb-2">
-                      <Sparkles className="h-4 w-4 text-yellow-300 animate-pulse" />
-                      <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em]">✨ Coleção Exclusiva</span>
+                      <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.2em]">Coleção Exclusiva</span>
                     </div>
                     
-                    <h2 className="text-4xl md:text-7xl font-headline font-bold text-white leading-[1.1] drop-shadow-xl">
+                    <h2 className="text-3xl md:text-7xl font-headline font-bold text-white leading-[1.1] drop-shadow-xl">
                       Beleza, autoestima <br className="hidden md:block" />
-                      e delicadeza <span className="text-[#F8C8DC]">💓</span>
+                      e delicadeza 💓
                     </h2>
                     
-                    <p className="text-white/90 text-sm md:text-xl font-body max-w-md leading-relaxed">
+                    <p className="text-white/90 text-sm md:text-xl font-body max-w-md leading-relaxed mx-auto md:mx-0">
                       Maquiagens selecionadas com carinho para realçar sua essência ✨
                     </p>
 
-                    <div className="flex flex-col gap-3 pt-2">
-                      <div className="flex items-center gap-3 text-white/90 text-xs md:text-sm font-medium">
-                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center"><Truck className="h-3 w-3" /></div>
-                        🚚 Entregas grátis em Capanema/PA
-                      </div>
-                      <div className="flex items-center gap-3 text-white/90 text-xs md:text-sm font-medium">
-                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center"><ShoppingBag className="h-3 w-3" /></div>
-                        🛍️ Loja 100% online
-                      </div>
-                      <div className="flex items-center gap-3 text-white/90 text-xs md:text-sm font-medium">
-                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center"><Heart className="h-3 w-3" /></div>
-                        💄 Produtos selecionados e de qualidade
-                      </div>
-                    </div>
-
-                    <div className="pt-6">
-                      <Button className="bg-white text-primary hover:bg-[#F8C8DC] hover:scale-105 rounded-full px-12 h-16 font-bold text-lg shadow-2xl transition-all active:scale-95 group">
+                    <div className="pt-4">
+                      <Button className="bg-white text-primary hover:bg-[#F8C8DC] hover:scale-105 rounded-full px-10 md:px-12 h-14 md:h-16 font-bold text-base md:text-lg shadow-2xl transition-all active:scale-95 group">
                         Explorar Catálogo
                         <ChevronRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                       </Button>
                     </div>
                   </div>
                   
-                  <div className="relative h-56 w-56 md:h-80 md:w-80 shrink-0 group">
+                  <div className="relative h-40 w-40 md:h-80 md:w-80 shrink-0 group">
                     <div className="absolute inset-0 bg-white/20 backdrop-blur-3xl rounded-full scale-110 border border-white/40 shadow-2xl group-hover:scale-125 transition-transform duration-1000" />
-                    <div className="absolute -top-4 -right-4 bg-white p-4 rounded-2xl shadow-2xl z-20 rotate-[12deg] border border-primary/5">
-                      <Flower2 className="h-8 w-8 text-primary" />
+                    <div className="absolute -top-3 -right-3 bg-white p-3 rounded-2xl shadow-2xl z-20 rotate-[12deg] border border-primary/5">
+                      <Flower2 className="h-6 w-6 md:h-8 md:w-8 text-primary" />
                     </div>
-                    <div className="relative h-full w-full rounded-full overflow-hidden border-[10px] border-white/20 shadow-inner">
+                    <div className="relative h-full w-full rounded-full overflow-hidden border-[6px] md:border-[10px] border-white/20 shadow-inner">
                       <Image 
                         src="https://i.ibb.co/6J4J1LMd/florlogo.jpg" 
                         alt="Logo Flor de Batom" 
