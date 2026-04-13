@@ -220,7 +220,7 @@ export default function Storefront() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md p-0 flex flex-col z-[100] border-none shadow-2xl">
-                  <SheetHeader className="p-6 border-b">
+                  <SheetHeader className="p-6 border-b text-left">
                     <SheetTitle className="font-headline text-2xl text-primary">Sua Sacola</SheetTitle>
                   </SheetHeader>
                   <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -440,10 +440,10 @@ export default function Storefront() {
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
         <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[100]">
           <div className="h-full flex flex-col bg-white">
-            <div className="p-8 border-b flex items-center gap-3 bg-primary/5">
+            <SheetHeader className="p-8 border-b flex flex-row items-center gap-3 bg-primary/5 text-left">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-headline text-lg font-bold">FB</div>
-              <h2 className="text-2xl font-headline font-bold text-primary">Categorias</h2>
-            </div>
+              <SheetTitle className="text-2xl font-headline font-bold text-primary">Categorias</SheetTitle>
+            </SheetHeader>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               <button 
                 className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold transition-all flex items-center justify-between ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}
@@ -478,7 +478,10 @@ export default function Storefront() {
               </div>
               <div className="p-8 md:p-12 md:w-1/2 flex flex-col justify-between bg-white">
                 <div className="space-y-4">
-                  <h3 className="text-3xl md:text-5xl font-headline font-bold text-primary leading-tight">{selectedProduct.name}</h3>
+                  <DialogHeader className="space-y-4 text-left">
+                    <DialogTitle className="text-3xl md:text-5xl font-headline font-bold text-primary leading-tight">{selectedProduct.name}</DialogTitle>
+                    <DialogDescription className="sr-only">Visualizar detalhes de {selectedProduct.name}</DialogDescription>
+                  </DialogHeader>
                   <div className="flex items-center gap-4">
                     <p className="text-2xl md:text-3xl font-headline font-bold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
                     {selectedProduct.stock > 0 && (
@@ -508,9 +511,9 @@ export default function Storefront() {
       {/* Checkout Modal */}
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
         <DialogContent className="sm:max-w-lg z-[100] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
-          <DialogHeader className="p-8 md:p-12 border-b bg-muted/20">
-            <DialogTitle className="text-3xl font-headline text-primary text-center">Finalizar Pedido</DialogTitle>
-            <DialogDescription className="text-muted-foreground text-center text-xs md:text-sm mt-2 font-medium">
+          <DialogHeader className="p-8 md:p-12 border-b bg-muted/20 text-center">
+            <DialogTitle className="text-3xl font-headline text-primary">Finalizar Pedido</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-xs md:text-sm mt-2 font-medium">
               Informe seus dados para combinarmos a entrega via WhatsApp. 🌸
             </DialogDescription>
           </DialogHeader>
