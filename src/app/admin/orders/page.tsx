@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus } from '@/lib/types';
@@ -19,6 +20,11 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  
+  // Confirmação de Status
+  const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
+  const [statusToUpdate, setStatusToUpdate] = useState<{id: string, status: OrderStatus} | null>(null);
+  
   const { toast } = useToast();
 
   const loadOrders = () => {
@@ -62,25 +68,41 @@ export default function AdminOrders() {
     window.open(`https://wa.me/55${telefone}?text=${msg}`, '_blank');
   };
 
-  const handleStatusChange = (id: string, status: OrderStatus) => {
+  const initiateStatusChange = (id: string, status: OrderStatus) => {
+    setStatusToUpdate({ id, status });
+    setIsStatusConfirmOpen(true);
+  };
+
+  const handleStatusChangeExecution = (sendNotification: boolean) => {
+    if (!statusToUpdate) return;
+    
+    const { id, status } = statusToUpdate;
     updateOrderStatus(id, status);
     
-    // Buscar o pedido atualizado para disparar o WhatsApp
-    const order = orders.find(o => o.id === id);
-    if (order) {
-      const updatedOrder = { ...order, status };
-      sendWhatsAppStatusUpdate(updatedOrder);
+    if (sendNotification) {
+      const order = orders.find(o => o.id === id);
+      if (order) {
+        sendWhatsAppStatusUpdate({ ...order, status });
+      }
     }
 
     loadOrders();
+    setIsStatusConfirmOpen(false);
+    setStatusToUpdate(null);
+    
+    // Atualiza o pedido selecionado se for o mesmo que está sendo editado no modal
+    if (selectedOrder && selectedOrder.id === id) {
+      setSelectedOrder(prev => prev ? { ...prev, status } : null);
+    }
+
     toast({ 
-      title: status === 'Cancelado' ? "Pedido Cancelado" : "Status Atualizado", 
-      description: status === 'Cancelado' ? "O pedido foi marcado como cancelado." : `Pedido marcado como ${status}.` 
+      title: "Status Atualizado", 
+      description: status === 'Cancelado' ? "O pedido foi cancelado e o estoque atualizado." : `Pedido marcado como ${status}.` 
     });
   };
 
   const openDetails = (order: Order) => {
-    setSelectedOrder({ ...order }); // Clone to avoid direct mutations
+    setSelectedOrder({ ...order });
     setIsDetailsOpen(true);
   };
 
@@ -255,7 +277,7 @@ export default function AdminOrders() {
                           <Eye className="h-4 w-4" />
                         </Button>
                         <div className="hidden sm:block">
-                          <Select value={order.status} onValueChange={(v: OrderStatus) => handleStatusChange(order.id, v)}>
+                          <Select value={order.status} onValueChange={(v: OrderStatus) => initiateStatusChange(order.id, v)}>
                             <SelectTrigger className="h-8 w-[110px] text-[10px]"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="Pendente" className="text-[10px]">Pendente</SelectItem>
@@ -275,6 +297,27 @@ export default function AdminOrders() {
           </Table>
         </div>
       </div>
+
+      {/* Confirmação de Envio de WhatsApp */}
+      <AlertDialog open={isStatusConfirmOpen} onOpenChange={setIsStatusConfirmOpen}>
+        <AlertDialogContent className="font-poppins rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-bold">Alterar Status</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você deseja enviar uma mensagem automática via WhatsApp para o cliente notificando a alteração para <strong>{statusToUpdate?.status}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl h-11" onClick={() => { setStatusToUpdate(null); setIsStatusConfirmOpen(false); }}>Cancelar</AlertDialogCancel>
+            <Button variant="outline" className="rounded-xl h-11 border-primary/20 text-primary hover:bg-primary/5" onClick={() => handleStatusChangeExecution(false)}>
+              Não, apenas alterar
+            </Button>
+            <AlertDialogAction className="rounded-xl h-11 bg-primary hover:bg-primary/90 font-bold" onClick={() => handleStatusChangeExecution(true)}>
+              Sim, notificar cliente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto font-poppins rounded-2xl p-4 md:p-6">
@@ -304,7 +347,7 @@ export default function AdminOrders() {
                 <div>
                   <Label className="text-[9px] uppercase font-bold text-muted-foreground opacity-70">Status Atual</Label>
                   <div className="mt-1">
-                    <Select value={selectedOrder.status} onValueChange={(v: OrderStatus) => handleStatusChange(selectedOrder.id, v)}>
+                    <Select value={selectedOrder.status} onValueChange={(v: OrderStatus) => initiateStatusChange(selectedOrder.id, v)}>
                       <SelectTrigger className="h-8 w-full text-[10px] bg-white"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Pendente">Pendente</SelectItem>
