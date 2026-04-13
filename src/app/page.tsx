@@ -12,7 +12,8 @@ import {
   MessageCircle, 
   X,
   Star,
-  Info
+  Info,
+  Copy
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -142,6 +143,11 @@ export default function Storefront() {
     saveCart([]);
     setIsCheckoutOpen(false);
     toast({ title: "Pedido Enviado!", description: "Siga para o WhatsApp para confirmar." });
+  };
+
+  const copyPixKey = () => {
+    navigator.clipboard.writeText("(91) 98719-9039");
+    toast({ title: "Chave Pix Copiada", description: "O número do celular foi copiado para sua área de transferência." });
   };
 
   return (
@@ -439,40 +445,40 @@ export default function Storefront() {
 
       {/* Checkout Modal */}
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <DialogContent className="sm:max-w-lg z-[100] p-0 overflow-hidden max-h-[95vh] flex flex-col">
-          <DialogHeader className="p-6 md:p-8 border-b bg-muted/20">
-            <DialogTitle className="text-2xl md:text-3xl font-headline text-primary">Finalizar Pedido</DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs md:text-sm">
-              Confirmaremos seu pedido via WhatsApp logo após o envio.
+        <DialogContent className="sm:max-w-lg z-[100] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="p-6 md:p-10 border-b bg-muted/20">
+            <DialogTitle className="text-3xl font-headline text-primary text-center">Finalizar Pedido</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-center text-xs md:text-sm mt-2">
+              🌸 Quase lá! Informe seus dados para combinarmos a entrega via WhatsApp.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
-            <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8">
+            <div className="space-y-5">
               <div className="grid gap-2">
-                <Label htmlFor="name" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Seu Nome Completo *</Label>
-                <Input id="name" placeholder="Ex: Maria Silva" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="h-12 rounded-xl border-muted-foreground/20 focus-visible:ring-primary/20" />
+                <Label htmlFor="name" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Seu Nome Completo *</Label>
+                <Input id="name" placeholder="Ex: Maria Silva" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="h-14 rounded-2xl border-muted-foreground/10 focus-visible:ring-primary/20 bg-muted/5" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="phone" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Telefone para Contato *</Label>
-                <Input id="phone" placeholder="(91) 99999-9999" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="h-12 rounded-xl border-muted-foreground/20 focus-visible:ring-primary/20" />
+                <Label htmlFor="phone" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Telefone para Contato *</Label>
+                <Input id="phone" placeholder="(91) 99999-9999" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="h-14 rounded-2xl border-muted-foreground/10 focus-visible:ring-primary/20 bg-muted/5" />
               </div>
             </div>
 
             <div className="space-y-4">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Forma de Pagamento *</Label>
-              <RadioGroup value={paymentMethod} onValueChange={(v: 'Pix' | 'Dinheiro') => setPaymentMethod(v)} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className={`flex items-center space-x-3 border-2 p-4 rounded-xl cursor-pointer transition-all ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'}`} onClick={() => setPaymentMethod('Pix')}>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Forma de Pagamento *</Label>
+              <RadioGroup value={paymentMethod} onValueChange={(v: 'Pix' | 'Dinheiro') => setPaymentMethod(v)} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className={`flex items-center space-x-3 border-2 p-5 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/20 bg-white'}`} onClick={() => setPaymentMethod('Pix')}>
                   <RadioGroupItem value="Pix" id="pix" />
                   <div className="flex flex-col">
                     <span className="font-bold text-sm">📱 Pix</span>
-                    <span className="text-[10px] text-muted-foreground">Transferência instantânea</span>
+                    <span className="text-[10px] text-muted-foreground">Instantâneo</span>
                   </div>
                 </div>
-                <div className={`flex items-center space-x-3 border-2 p-4 rounded-xl cursor-pointer transition-all ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/30'}`} onClick={() => setPaymentMethod('Dinheiro')}>
+                <div className={`flex items-center space-x-3 border-2 p-5 rounded-2xl cursor-pointer transition-all ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/20 bg-white'}`} onClick={() => setPaymentMethod('Dinheiro')}>
                   <RadioGroupItem value="Dinheiro" id="cash" />
                   <div className="flex flex-col">
                     <span className="font-bold text-sm">💵 Dinheiro</span>
-                    <span className="text-[10px] text-muted-foreground">Pagar na entrega</span>
+                    <span className="text-[10px] text-muted-foreground">Na entrega</span>
                   </div>
                 </div>
               </RadioGroup>
@@ -480,30 +486,41 @@ export default function Storefront() {
 
             {paymentMethod === 'Dinheiro' && (
               <div className="grid gap-2 animate-in fade-in slide-in-from-top-2">
-                <Label htmlFor="change" className="text-[10px] font-bold text-muted-foreground">Precisa de troco? Informe para quanto:</Label>
+                <Label htmlFor="change" className="text-[10px] font-bold text-muted-foreground ml-1">Precisa de troco? Informe para quanto:</Label>
                 <Input id="change" type="number" placeholder="Ex: 50" value={changeAmount} onChange={(e) => setChangeAmount(e.target.value)} className="h-12 rounded-xl" />
               </div>
             )}
             
             {paymentMethod === 'Pix' && (
-              <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 flex gap-4 items-start animate-in fade-in slide-in-from-top-2">
-                <Info className="h-5 w-5 text-primary mt-1 shrink-0" />
-                <div className="text-[11px] md:text-xs space-y-2">
-                  <p className="font-bold text-primary uppercase tracking-widest">Chave Pix (CNPJ)</p>
-                  <div className="bg-white p-2 rounded border border-primary/20 font-mono text-center text-sm font-bold">
-                    00.000.000/0001-00
+              <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2 shadow-inner">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Info className="h-4 w-4 text-primary" />
                   </div>
-                  <p className="text-muted-foreground leading-relaxed">⚠️ Realize o pagamento e anexe o comprovante na conversa do WhatsApp para validação.</p>
+                  <p className="font-bold text-primary uppercase tracking-widest text-[10px]">Chave Pix (Celular)</p>
                 </div>
+                <button 
+                  onClick={copyPixKey}
+                  className="bg-white p-5 rounded-2xl border border-primary/20 shadow-sm flex flex-col items-center gap-2 hover:bg-muted/5 transition-colors group relative overflow-hidden"
+                >
+                  <span className="font-mono text-lg md:text-xl font-bold tracking-wider text-primary leading-none">(91) 98719-9039</span>
+                  <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
+                    <Copy className="h-3 w-3" />
+                    <span className="text-[9px] uppercase font-bold tracking-tighter group-hover:text-primary transition-colors">Toque para copiar</span>
+                  </div>
+                </button>
+                <p className="text-muted-foreground text-[11px] leading-relaxed text-center px-2 italic">
+                  ✨ Realize o Pix e anexe o comprovante na conversa que abriremos no seu WhatsApp.
+                </p>
               </div>
             )}
             
-            <div className="bg-primary p-4 rounded-2xl flex items-center justify-between text-white shadow-lg shadow-primary/20">
-              <span className="text-xs font-bold uppercase tracking-widest opacity-80">Total do Pedido:</span>
-              <span className="text-2xl font-headline font-bold">R$ {cartTotal.toFixed(2)}</span>
+            <div className="bg-primary p-5 rounded-3xl flex items-center justify-between text-white shadow-xl shadow-primary/20">
+              <span className="text-xs font-bold uppercase tracking-widest opacity-80">Total do Pedido</span>
+              <span className="text-3xl font-headline font-bold">R$ {cartTotal.toFixed(2)}</span>
             </div>
           </div>
-          <DialogFooter className="p-6 md:p-8 bg-muted/20 border-t">
+          <DialogFooter className="p-6 md:p-10 bg-muted/20 border-t">
             <Button className="w-full bg-[#25D366] hover:bg-[#1fb355] gap-3 h-16 text-lg font-bold rounded-2xl shadow-xl shadow-[#25D366]/20 transition-all active:scale-[0.98]" onClick={handleCheckout}>
               <MessageCircle className="h-6 w-6" /> Confirmar no WhatsApp
             </Button>
