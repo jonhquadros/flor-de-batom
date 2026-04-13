@@ -81,8 +81,13 @@ export default function Storefront() {
   }, [products, searchTerm, selectedCategory, sortOrder]);
 
   const addToCart = (product: Product, color?: string) => {
-    if (product.stock === 0) {
-      toast({ variant: "destructive", title: "Esgotado", description: "Infelizmente este item está sem estoque." });
+    // Verificação de estoque automática antes de permitir a adição
+    if (product.stock <= 0) {
+      toast({ 
+        variant: "destructive", 
+        title: "💔 Poxa! Item esgotado", 
+        description: "Esse item está esgotado no momento. Mas logo ele volta!" 
+      });
       return;
     }
 
@@ -414,9 +419,9 @@ export default function Storefront() {
                         <Star className="h-3 w-3 fill-current" />
                       </div>
                     )}
-                    {product.stock === 0 && (
+                    {product.stock <= 0 && (
                       <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="text-[10px] font-bold uppercase tracking-widest bg-carbon text-white px-3 py-1.5 rounded-full">Esgotado</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest bg-carbon text-white px-3 py-1.5 rounded-full shadow-lg">Esgotado</span>
                       </div>
                     )}
                   </div>
@@ -430,9 +435,9 @@ export default function Storefront() {
                     </div>
                     
                     <button 
-                      className="absolute bottom-3 right-3 h-10 w-10 md:h-12 md:w-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-90 disabled:opacity-20 disabled:scale-100"
+                      className={`absolute bottom-3 right-3 h-10 w-10 md:h-12 md:w-12 rounded-2xl flex items-center justify-center shadow-lg transition-all active:scale-90 ${product.stock <= 0 ? 'bg-[#E0E0E0] text-gray-400 shadow-none cursor-not-allowed' : 'bg-primary text-white shadow-primary/20 hover:bg-primary/90'}`}
                       onClick={() => setSelectedProduct(product)}
-                      disabled={product.stock === 0}
+                      disabled={product.stock <= 0}
                     >
                       <Plus className="h-5 w-5 md:h-6 md:w-6" />
                     </button>
@@ -541,6 +546,11 @@ export default function Storefront() {
                 <Badge className="absolute top-6 left-6 bg-white/90 backdrop-blur text-primary font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-full shadow-lg border-none">
                   {selectedProduct.category}
                 </Badge>
+                {selectedProduct.stock <= 0 && (
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex items-center justify-center">
+                    <span className="text-xs font-bold uppercase tracking-widest bg-carbon text-white px-6 py-3 rounded-full shadow-2xl">Indisponível</span>
+                  </div>
+                )}
               </div>
               <div className="p-8 md:p-12 md:w-1/2 flex flex-col justify-between bg-white">
                 <div className="space-y-8">
@@ -585,11 +595,11 @@ export default function Storefront() {
 
                 <div className="mt-10 space-y-4">
                   <Button 
-                    className="w-full bg-primary hover:bg-primary/90 h-16 text-lg font-poppins font-bold rounded-3xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" 
+                    className={`w-full h-16 text-lg font-poppins font-bold rounded-3xl shadow-xl transition-all active:scale-[0.98] ${selectedProduct.stock <= 0 ? 'bg-[#E0E0E0] text-gray-400 cursor-not-allowed shadow-none hover:bg-[#E0E0E0]' : 'bg-primary hover:bg-primary/90 text-white shadow-primary/20'}`} 
                     onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); setSelectedColor(''); }}
-                    disabled={selectedProduct.stock === 0}
+                    disabled={selectedProduct.stock <= 0}
                   >
-                    Adicionar ao Carrinho
+                    {selectedProduct.stock <= 0 ? 'Indisponível' : 'Adicionar ao Carrinho'}
                   </Button>
                   <button 
                     className="w-full text-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-2"
