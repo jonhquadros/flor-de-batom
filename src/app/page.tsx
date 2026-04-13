@@ -273,7 +273,7 @@ export default function Storefront() {
                               {item.selectedColor && (
                                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Cor: {item.selectedColor}</p>
                               )}
-                              <p className="text-primary font-bold text-base">R$ {item.price.toFixed(2)}</p>
+                              <p className="text-primary font-display font-bold text-xl mt-1">R$ {item.price.toFixed(2)}</p>
                               <div className="flex items-center gap-4 mt-2">
                                 <div className="flex items-center border rounded-full px-2 py-1 bg-muted/30">
                                   <button onClick={() => updateQuantity(item.id, -1, item.selectedColor)} className="p-1 hover:text-primary transition-colors"><Minus className="h-3 w-3" /></button>
@@ -293,7 +293,7 @@ export default function Storefront() {
                       <div className="w-full space-y-4">
                         <div className="flex justify-between items-end">
                           <span className="text-muted-foreground font-medium">Subtotal</span>
-                          <span className="text-3xl font-headline font-bold text-primary">R$ {cartTotal.toFixed(2)}</span>
+                          <span className="text-3xl font-display font-bold text-primary">R$ {cartTotal.toFixed(2)}</span>
                         </div>
                         <Button className="w-full bg-primary hover:bg-primary/90 h-16 rounded-3xl text-lg font-bold shadow-xl shadow-primary/20" onClick={() => setIsCheckoutOpen(true)}>
                           Finalizar Pedido
@@ -574,7 +574,7 @@ export default function Storefront() {
                     )}
 
                     <div className="space-y-1">
-                      <p className="text-3xl md:text-4xl font-poppins font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                      <p className="text-3xl md:text-4xl font-display font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
                     </div>
 
                     <p className="text-muted-foreground text-sm font-poppins font-normal leading-relaxed border-t pt-6">
@@ -684,7 +684,7 @@ export default function Storefront() {
             
             <div className="bg-primary p-6 rounded-[2rem] flex items-center justify-between text-white shadow-2xl shadow-primary/30">
               <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Final</span>
-              <span className="text-3xl font-headline font-bold">R$ {cartTotal.toFixed(2)}</span>
+              <span className="text-3xl font-display font-bold">R$ {cartTotal.toFixed(2)}</span>
             </div>
           </div>
           <DialogFooter className="p-8 md:p-12 bg-muted/20 border-t">
