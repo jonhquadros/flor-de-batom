@@ -209,7 +209,7 @@ export default function Storefront() {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header Compacto */}
-        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b h-16 md:h-20">
+        <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b h-20 md:h-24 transition-all">
           <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 lg:hidden">
               <Button variant="ghost" size="icon" className="text-primary" onClick={() => setIsMobileMenuOpen(true)}>
@@ -230,10 +230,10 @@ export default function Storefront() {
             <div className="flex items-center gap-1">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-primary h-12 w-12 md:h-14 md:w-14 hover:bg-primary/5 rounded-2xl transition-all">
-                    <ShoppingCart className="h-7 w-7 md:h-9 md:w-9" />
+                  <Button variant="ghost" size="icon" className="relative text-primary h-14 w-14 md:h-20 md:w-20 hover:bg-primary/5 rounded-2xl transition-all">
+                    <ShoppingCart className="h-9 w-9 md:h-12 md:w-12" />
                     {cart.length > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] md:min-w-[24px] md:h-[24px] bg-primary text-white text-[10px] md:text-xs font-bold flex items-center justify-center rounded-full border-2 border-white shadow-md">
+                      <span className="absolute top-0 right-0 min-w-[22px] h-[22px] md:min-w-[28px] md:h-[28px] bg-primary text-white text-[10px] md:text-xs font-bold flex items-center justify-center rounded-full border-2 border-white shadow-md animate-in zoom-in duration-300">
                         {cart.reduce((a, b) => a + b.quantity, 0)}
                       </span>
                     )}
