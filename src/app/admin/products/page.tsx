@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -145,10 +144,10 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-poppins">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold">Produtos</h1>
+          <h1 className="text-3xl font-bold">Produtos</h1>
           <p className="text-muted-foreground">Gerencie seu inventário de maquiagem.</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 gap-2" onClick={openAddModal}>
@@ -211,9 +210,9 @@ export default function AdminProducts() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto font-poppins">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-headline">{editingProduct ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{editingProduct ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

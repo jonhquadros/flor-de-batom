@@ -146,10 +146,10 @@ export default function AdminOrders() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-poppins">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold">Pedidos</h1>
+          <h1 className="text-3xl font-bold">Pedidos</h1>
           <p className="text-muted-foreground">Acompanhe e atualize as vendas.</p>
         </div>
         <Button variant="outline" className="gap-2" onClick={exportToCSV}>
@@ -240,9 +240,9 @@ export default function AdminOrders() {
 
       {/* Details/Edit Modal */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto font-poppins">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-headline flex items-center gap-2">
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
               Detalhes do Pedido {selectedOrder?.orderNumber ? `#${selectedOrder.orderNumber}` : ''}
               {selectedOrder?.status === 'Pendente' && <Badge className="ml-2">Editável</Badge>}
               {selectedOrder?.status === 'Cancelado' && <Badge variant="destructive" className="ml-2">Cancelado</Badge>}
@@ -304,7 +304,7 @@ export default function AdminOrders() {
 
               <div className="flex justify-between items-center bg-primary/5 p-4 rounded-xl border border-primary/10">
                 <span className="font-bold text-primary uppercase text-xs tracking-widest">Total do Pedido</span>
-                <span className="text-2xl font-headline font-bold text-primary">R$ {selectedOrder.total.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-primary">R$ {selectedOrder.total.toFixed(2)}</span>
               </div>
 
               <DialogFooter className="gap-2 sm:gap-0">

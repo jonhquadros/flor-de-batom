@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useEffect, useState } from 'react';
@@ -54,7 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="flex min-h-screen bg-muted/30 font-poppins">
       {/* Sidebar Carbon - Desktop */}
       <aside className="hidden lg:flex w-72 flex-col bg-carbon text-white shadow-xl fixed inset-y-0 left-0 z-50">
         <div className="p-8 h-20 flex items-center justify-between">
@@ -62,7 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-lg border border-white/20">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
             </div>
-            <h2 className="text-lg font-headline font-bold">Gestão Flor</h2>
+            <h2 className="text-lg font-bold">Gestão Flor</h2>
           </div>
         </div>
         <Separator className="bg-white/10 mx-6 w-auto" />
@@ -103,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/20">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
             </div>
-            <h2 className="text-base font-headline font-bold">Painel Flor</h2>
+            <h2 className="text-base font-bold">Painel Flor</h2>
           </div>
           <Button variant="ghost" size="icon" className="hover:bg-white/10" onClick={() => setIsMobileMenuOpen(true)}>
             <Menu className="h-6 w-6" />
@@ -119,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-md">
                     <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
                   </div>
-                  <h2 className="text-xl font-headline font-bold text-white">Menu</h2>
+                  <h2 className="text-xl font-bold text-white">Menu</h2>
                 </div>
                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => setIsMobileMenuOpen(false)}>
                   <X className="h-6 w-6" />

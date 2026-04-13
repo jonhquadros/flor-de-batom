@@ -27,13 +27,13 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 font-poppins">
       <Card className="w-full max-w-md shadow-2xl border-none">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
             <Lock className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-3xl font-headline font-bold text-primary">Área Restrita</CardTitle>
+          <CardTitle className="text-3xl font-bold text-primary">Área Restrita</CardTitle>
           <CardDescription>Painel administrativo Flor de Batom</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>

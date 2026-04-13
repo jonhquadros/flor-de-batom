@@ -65,10 +65,10 @@ export default function AdminCategories() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-poppins">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-headline font-bold">Categorias</h1>
+          <h1 className="text-3xl font-bold">Categorias</h1>
           <p className="text-muted-foreground">Gerencie os filtros da sua vitrine.</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 gap-2" onClick={openAddModal}>
@@ -113,7 +113,7 @@ export default function AdminCategories() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
+        <DialogContent className="font-poppins">
           <DialogHeader>
             <DialogTitle>{editingCategory ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
           </DialogHeader>

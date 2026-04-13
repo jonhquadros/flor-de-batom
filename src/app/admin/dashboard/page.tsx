@@ -95,9 +95,9 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-poppins">
       <div>
-        <h1 className="text-3xl font-headline font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground">Visão geral do seu negócio em tempo real.</p>
       </div>
 
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
         <Card className="border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
-              <CardTitle className="font-headline">Produtos Mais Vendidos</CardTitle>
+              <CardTitle className="font-bold">Produtos Mais Vendidos</CardTitle>
               <p className="text-xs text-muted-foreground">Top 10 itens com maior volume de saída.</p>
             </div>
             <div className="flex items-center gap-2">
@@ -177,7 +177,7 @@ export default function AdminDashboard() {
 
         <Card className="border-none shadow-sm overflow-hidden">
           <CardHeader>
-            <CardTitle className="font-headline">Pedidos Recentes</CardTitle>
+            <CardTitle className="font-bold">Pedidos Recentes</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {orders.length === 0 ? (
