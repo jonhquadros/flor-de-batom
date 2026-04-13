@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { 
   Search, 
-  ShoppingBag, 
+  ShoppingCart, 
   Plus, 
   Minus, 
   Trash2, 
@@ -231,7 +231,7 @@ export default function Storefront() {
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative text-primary h-11 w-11 hover:bg-primary/5 rounded-2xl">
-                    <ShoppingBag className="h-6 w-6" />
+                    <ShoppingCart className="h-6 w-6" />
                     {cart.length > 0 && (
                       <span className="absolute top-2 right-2 min-w-[18px] h-[18px] bg-primary text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
                         {cart.reduce((a, b) => a + b.quantity, 0)}
@@ -246,7 +246,7 @@ export default function Storefront() {
                   <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {cart.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
-                        <ShoppingBag className="h-16 w-16 mb-4" />
+                        <ShoppingCart className="h-16 w-16 mb-4" />
                         <p className="font-medium">Sua sacola está vazia.</p>
                       </div>
                     ) : (
