@@ -61,7 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-lg border border-white/20">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
             </div>
-            <h2 className="text-lg font-bold">Gestão Flor</h2>
+            <h2 className="text-lg font-bold">Gestão Flor de Batom</h2>
           </div>
         </div>
         <Separator className="bg-white/10 mx-6 w-auto" />
