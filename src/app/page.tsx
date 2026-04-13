@@ -307,11 +307,11 @@ export default function Storefront() {
           {/* Banner Hero - Layout Limpo e Moderno */}
           <div className="px-4 pt-4 md:pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="container mx-auto">
-              <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[220px] md:min-h-[300px] flex flex-col justify-center items-center shadow-xl shadow-primary/10 transition-all">
-                <div className="relative flex flex-col md:flex-row w-full p-4 md:p-10 items-center justify-between gap-4 md:gap-10 z-10 text-center md:text-left">
-                  <div className="space-y-2 md:space-y-4 max-w-2xl">
+              <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[200px] md:min-h-[260px] flex flex-col justify-center items-center shadow-xl shadow-primary/10 transition-all">
+                <div className="relative flex flex-col md:flex-row w-full p-6 md:p-10 items-center justify-between gap-6 md:gap-10 z-10 text-center md:text-left">
+                  <div className="space-y-3 md:space-y-4 max-w-2xl">
                     <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full border border-white/25 mb-1 mx-auto md:mx-0">
-                      <span className="text-[9px] md:text-xs font-bold text-white uppercase tracking-[0.15em]">Coleção Exclusiva</span>
+                      <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.15em]">Coleção Exclusiva</span>
                     </div>
                     
                     <h2 className="text-2xl md:text-5xl font-headline font-bold text-white leading-[1.2] drop-shadow-lg">
@@ -330,14 +330,11 @@ export default function Storefront() {
                       <div className="flex items-center gap-1.5 text-white/90 text-[10px] md:text-sm font-medium">
                         <ShoppingBag className="h-3 w-3 md:h-4 md:w-4" /> Loja 100% online
                       </div>
-                      <div className="flex items-center gap-1.5 text-white/90 text-[10px] md:text-sm font-medium">
-                        <Heart className="h-3 w-3 md:h-4 md:w-4" /> Produtos selecionados
-                      </div>
                     </div>
                   </div>
                   
                   {/* Logo Circular Compacto */}
-                  <div className="relative h-20 w-20 md:h-40 md:w-40 shrink-0">
+                  <div className="relative h-24 w-24 md:h-40 md:w-40 shrink-0">
                     <div className="absolute inset-0 bg-white/15 backdrop-blur-2xl rounded-full scale-110 border border-white/30 shadow-xl" />
                     <div className="relative h-full w-full rounded-full overflow-hidden border-2 md:border-4 border-white/20 shadow-lg">
                       <Image 
