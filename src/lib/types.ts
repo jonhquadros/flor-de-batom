@@ -1,11 +1,9 @@
-export type ProductCategory = 'Batom' | 'Delineador' | 'Base' | 'Sombra' | 'Blush' | 'Máscara de Cílios' | 'Primer' | 'Contorno' | 'Gloss' | 'Corretivo';
-
 export interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
-  category: ProductCategory;
+  category: string; // Mudado para string para suportar categorias dinâmicas
   imageUrl: string;
   isFeatured: boolean;
   stock: number;
@@ -29,7 +27,12 @@ export interface Order {
   createdAt: string;
 }
 
-export const CATEGORIES: ProductCategory[] = [
+export interface Category {
+  id: string;
+  name: string;
+}
+
+export const INITIAL_CATEGORIES: string[] = [
   'Batom', 
   'Delineador', 
   'Base', 

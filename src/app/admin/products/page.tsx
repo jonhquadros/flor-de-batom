@@ -12,12 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Product, CATEGORIES, ProductCategory } from '@/lib/types';
-import { getStoredProducts, saveProducts } from '@/lib/storage-utils';
+import { Product, Category } from '@/lib/types';
+import { getStoredProducts, saveProducts, getStoredCategories } from '@/lib/storage-utils';
 import { generateProductDescription } from '@/ai/flows/generate-product-description';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -29,7 +30,7 @@ export default function AdminProducts() {
     name: '',
     description: '',
     price: 0,
-    category: 'Batom',
+    category: '',
     imageUrl: '',
     isFeatured: false,
     stock: 0
@@ -37,6 +38,7 @@ export default function AdminProducts() {
 
   useEffect(() => {
     setProducts(getStoredProducts());
+    setCategories(getStoredCategories());
   }, []);
 
   const openAddModal = () => {
@@ -45,7 +47,7 @@ export default function AdminProducts() {
       name: '', 
       description: '', 
       price: 0, 
-      category: 'Batom', 
+      category: categories.length > 0 ? categories[0].name : '', 
       imageUrl: `https://picsum.photos/seed/${Math.random()}/400/400`, 
       isFeatured: false, 
       stock: 0 
@@ -76,7 +78,7 @@ export default function AdminProducts() {
       name: formData.name || '',
       description: formData.description || '',
       price: Number(formData.price) || 0,
-      category: (formData.category as ProductCategory) || 'Batom',
+      category: formData.category || '',
       imageUrl: formData.imageUrl || '',
       isFeatured: !!formData.isFeatured,
       stock: Number(formData.stock) || 0,
@@ -192,10 +194,10 @@ export default function AdminProducts() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category">Categoria</Label>
-                <Select value={formData.category} onValueChange={(v: ProductCategory) => setFormData(p => ({...p, category: v}))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={formData.category} onValueChange={(v) => setFormData(p => ({...p, category: v}))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {categories.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

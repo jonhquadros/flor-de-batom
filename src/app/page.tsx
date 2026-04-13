@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -13,8 +12,7 @@ import {
   MessageCircle, 
   X,
   Star,
-  Info,
-  ChevronRight
+  Info
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,14 +23,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { CATEGORIES, Product, CartItem, Order, ProductCategory } from '@/lib/types';
-import { getStoredProducts, getStoredCart, saveCart, saveOrder, seedInitialData } from '@/lib/storage-utils';
+import { Product, CartItem, Order, Category } from '@/lib/types';
+import { getStoredProducts, getStoredCart, saveCart, saveOrder, seedInitialData, getStoredCategories } from '@/lib/storage-utils';
 
 export default function Storefront() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'Todos'>('Todos');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'relevance' | 'price-asc' | 'price-desc' | 'az'>('relevance');
@@ -47,6 +46,7 @@ export default function Storefront() {
   useEffect(() => {
     seedInitialData();
     setProducts(getStoredProducts());
+    setCategories(getStoredCategories());
     setCart(getStoredCart());
   }, []);
 
@@ -240,14 +240,14 @@ export default function Storefront() {
           >
             Todos
           </Button>
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <Button 
-              key={cat} 
+              key={cat.id} 
               variant="ghost" 
-              className={`rounded-full px-4 md:px-5 h-8 md:h-9 text-[11px] md:text-xs font-medium shrink-0 transition-all ${selectedCategory === cat ? 'pill-active shadow-sm' : 'pill-inactive'}`}
-              onClick={() => setSelectedCategory(cat)}
+              className={`rounded-full px-4 md:px-5 h-8 md:h-9 text-[11px] md:text-xs font-medium shrink-0 transition-all ${selectedCategory === cat.name ? 'pill-active shadow-sm' : 'pill-inactive'}`}
+              onClick={() => setSelectedCategory(cat.name)}
             >
-              {cat}
+              {cat.name}
             </Button>
           ))}
         </div>
@@ -297,7 +297,6 @@ export default function Storefront() {
                   alt={product.name} 
                   fill 
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  data-ai-hint="beauty makeup product"
                 />
                 <Badge className="absolute top-2 left-2 bg-primary/90 text-white text-[9px] font-bold border-none uppercase tracking-tighter px-1.5 py-0.5">
                   {product.category}

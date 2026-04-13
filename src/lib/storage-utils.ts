@@ -1,8 +1,9 @@
-import { Product, Order, CartItem } from './types';
+import { Product, Order, CartItem, INITIAL_CATEGORIES, Category } from './types';
 
 const PRODUCTS_KEY = 'flordebatom_produtos_v1';
 const ORDERS_KEY = 'flordebatom_pedidos_v1';
 const CART_KEY = 'flordebatom_carrinho_v1';
+const CATEGORIES_KEY = 'flordebatom_categorias_v1';
 
 export const getStoredProducts = (): Product[] => {
   if (typeof window === 'undefined') return [];
@@ -18,6 +19,22 @@ export const getStoredProducts = (): Product[] => {
 export const saveProducts = (products: Product[]) => {
   if (typeof window === 'undefined') return;
   localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+};
+
+export const getStoredCategories = (): Category[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem(CATEGORIES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    console.error("Erro ao carregar categorias:", e);
+    return [];
+  }
+};
+
+export const saveCategories = (categories: Category[]) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
 };
 
 export const getStoredOrders = (): Order[] => {
@@ -63,8 +80,16 @@ export const saveCart = (cart: CartItem[]) => {
 export const seedInitialData = (force: boolean = false) => {
   if (typeof window === 'undefined') return;
   
+  const existingCategories = getStoredCategories();
+  if (existingCategories.length === 0 || force) {
+    const initialCats: Category[] = INITIAL_CATEGORIES.map(name => ({
+      id: Math.random().toString(36).substr(2, 9),
+      name
+    }));
+    saveCategories(initialCats);
+  }
+
   const existingProducts = getStoredProducts();
-  
   if (existingProducts.length === 0 || force) {
     const initialProducts: Product[] = [
       { id:"p001", name:"Batom Matte Vinho Intenso",    category:"Batom",            description:"Batom de longa duração com textura matte sedosa. Tom vinho intenso para lábios marcantes.",          price:29.90, stock:15, imageUrl:"https://picsum.photos/seed/lip1/400/400",     isFeatured:true  },
