@@ -3,54 +3,54 @@ import { Product, Order, Category, OrderStatus } from './types';
 import { 
   collection, 
   doc, 
-  setDoc, 
-  addDoc, 
-  updateDoc, 
   getDocs, 
-  query, 
-  where,
-  increment,
-  writeBatch,
   Firestore
 } from 'firebase/firestore';
-import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
-// Nota: A maioria das leituras agora é feita via hooks (useCollection) nas páginas.
-// Este arquivo agora foca em utilitários de escrita e seeding.
+/** Remove undefined properties from an object for Firestore */
+const sanitizeData = (data: any) => {
+  const sanitized = { ...data };
+  Object.keys(sanitized).forEach(key => {
+    if (sanitized[key] === undefined) {
+      delete sanitized[key];
+    }
+  });
+  return sanitized;
+};
 
 export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
   const ordersRef = collection(db, 'orders');
   const orderDocRef = doc(ordersRef, order.id);
   
-  // Criar o pedido e atualizar estoque em lote seria ideal, 
-  // mas usaremos a lógica simplificada de addDoc para manter compatibilidade com o fluxo atual.
-  setDocumentNonBlocking(orderDocRef, {
+  setDocumentNonBlocking(orderDocRef, sanitizeData({
     ...order,
     status: 'Pendente',
-    createdAt: new Date().toISOString()
-  }, { merge: true });
+    createdAt: order.createdAt || new Date().toISOString()
+  }), { merge: true });
 
-  // Adicionar itens do pedido como subcoleção para histórico (opcional, mas boa prática)
   const itemsRef = collection(orderDocRef, 'orderItems');
   order.items.forEach(item => {
     const itemRef = doc(itemsRef);
-    setDocumentNonBlocking(itemRef, {
+    setDocumentNonBlocking(itemRef, sanitizeData({
       ...item,
       orderId: order.id,
       productId: item.id,
       productName: item.name,
       productPrice: item.price,
       subtotal: item.price * item.quantity
-    }, { merge: true });
+    }), { merge: true });
   });
 };
 
-export const updateOrderStatusInFirestore = (db: Firestore, orderId: string, status: OrderStatus, orderItems: any[]) => {
+export const updateOrder = (db: Firestore, order: Order) => {
+  const orderRef = doc(db, 'orders', order.id);
+  updateDocumentNonBlocking(orderRef, sanitizeData(order));
+};
+
+export const updateOrderStatus = (db: Firestore, orderId: string, status: OrderStatus) => {
   const orderRef = doc(db, 'orders', orderId);
   updateDocumentNonBlocking(orderRef, { status });
-
-  // Lógica de retorno de estoque se for cancelado ou dedução se for pago
-  // Para MVP, estamos focando na sincronização dos dados.
 };
 
 export const seedInitialDataToFirestore = async (db: Firestore) => {
@@ -64,7 +64,7 @@ export const seedInitialDataToFirestore = async (db: Firestore) => {
     ];
 
     initialProducts.forEach(p => {
-      setDocumentNonBlocking(doc(db, 'products', p.id), p, { merge: true });
+      setDocumentNonBlocking(doc(db, 'products', p.id), sanitizeData(p), { merge: true });
     });
   }
 

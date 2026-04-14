@@ -88,7 +88,6 @@ export default function Storefront() {
     if (!user) {
       initiateAnonymousSignIn(auth);
     } else {
-      // Popular dados iniciais apenas após termos um usuário (mesmo anônimo)
       seedInitialDataToFirestore(db);
     }
   }, [user, isUserLoading, auth, db]);
@@ -209,7 +208,8 @@ export default function Storefront() {
 
     const orderNum = Math.floor(10000 + Math.random() * 90000).toString();
 
-    const order: Order = {
+    // Criar o objeto de pedido sem campos undefined para o Firestore
+    const orderData: any = {
       id: `ORD-${Date.now()}-${orderNum}`,
       orderNumber: orderNum,
       customerName,
@@ -217,13 +217,16 @@ export default function Storefront() {
       items: cart,
       total: cartTotal,
       paymentMethod,
-      change: paymentMethod === 'Dinheiro' ? parseFloat(changeAmount) || 0 : undefined,
       status: 'Pendente',
       createdAt: new Date().toISOString(),
     };
 
+    if (paymentMethod === 'Dinheiro') {
+      orderData.change = parseFloat(changeAmount) || 0;
+    }
+
     // Salvar no Firestore
-    await saveOrderToFirestore(db, order);
+    await saveOrderToFirestore(db, orderData as Order);
 
     const NUMERO_LOJA = "5591987199039";
     const linhasProdutos = cart.map(i =>
