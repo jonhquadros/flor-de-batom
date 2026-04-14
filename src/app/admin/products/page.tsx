@@ -14,7 +14,6 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Product, Category, ProductVariation } from '@/lib/types';
 import { getStoredProducts, saveProducts, getStoredCategories } from '@/lib/storage-utils';
-import { generateProductDescription } from '@/ai/flows/generate-product-description';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -39,8 +38,9 @@ export default function AdminProducts() {
 
   useEffect(() => {
     loadData();
-    window.addEventListener('storage', loadData);
-    return () => window.removeEventListener('storage', loadData);
+    const handleStorage = () => loadData();
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const loadData = () => {
@@ -140,24 +140,11 @@ export default function AdminProducts() {
   };
 
   const handleAIGenerate = async () => {
-    if (!formData.name || !formData.category) {
-      toast({ variant: "destructive", title: "Erro", description: "Preencha nome e categoria." });
-      return;
-    }
-
-    setIsGeneratingAI(true);
-    try {
-      const description = await generateProductDescription({ 
-        productName: formData.name, 
-        category: formData.category 
-      });
-      setFormData(prev => ({ ...prev, description }));
-      toast({ title: "Descrição Gerada" });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erro na IA" });
-    } finally {
-      setIsGeneratingAI(false);
-    }
+    toast({ 
+      variant: "destructive", 
+      title: "IA Indisponível", 
+      description: "A geração por IA requer um servidor ativo e não está disponível na versão estática exportada." 
+    });
   };
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
