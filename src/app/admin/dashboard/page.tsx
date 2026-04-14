@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useMemo } from 'react';
@@ -33,12 +32,16 @@ export default function AdminDashboard() {
     const now = new Date();
     months.add(`${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`);
     
-    orders.forEach(order => {
-      const date = new Date(order.createdAt);
-      if (!isNaN(date.getTime())) {
-        months.add(`${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`);
-      }
-    });
+    if (orders) {
+      orders.forEach(order => {
+        if (order.createdAt) {
+          const date = new Date(order.createdAt);
+          if (!isNaN(date.getTime())) {
+            months.add(`${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`);
+          }
+        }
+      });
+    }
 
     return Array.from(months).sort().reverse();
   }, [orders]);
@@ -46,19 +49,22 @@ export default function AdminDashboard() {
   const activeOrders = useMemo(() => orders.filter(o => o.status !== 'Cancelado'), [orders]);
   
   const filteredOrdersForChart = useMemo(() => activeOrders.filter(order => {
+    if (!order.createdAt) return false;
     const orderDate = new Date(order.createdAt);
     const orderMonth = `${orderDate.getFullYear()}-${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
     return orderMonth === selectedMonth;
   }), [activeOrders, selectedMonth]);
 
-  const totalRevenue = activeOrders.reduce((sum, order) => sum + order.total, 0);
+  const totalRevenue = activeOrders.reduce((sum, order) => sum + (order.total || 0), 0);
   const totalOrdersCount = activeOrders.length;
   const totalProductsCount = products.length;
   
   const salesByProduct = useMemo(() => filteredOrdersForChart.reduce((acc, order) => {
-    order.items.forEach(item => {
-      acc[item.name] = (acc[item.name] || 0) + item.quantity;
-    });
+    if (order.items) {
+      order.items.forEach(item => {
+        acc[item.name] = (acc[item.name] || 0) + item.quantity;
+      });
+    }
     return acc;
   }, {} as Record<string, number>), [filteredOrdersForChart]);
 
@@ -181,10 +187,10 @@ export default function AdminDashboard() {
                         {order.orderNumber ? `#${order.orderNumber}` : `#${order.id.substr(0, 6)}`}
                       </p>
                       <p className="font-medium text-xs truncate">{order.customerName}</p>
-                      <p className="text-[9px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-[9px] text-muted-foreground">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : 'Data Indisponível'}</p>
                     </div>
                     <div className="text-right space-y-1 shrink-0 ml-2">
-                      <p className="font-bold text-primary text-xs md:text-sm">R$ {order.total.toFixed(2)}</p>
+                      <p className="font-bold text-primary text-xs md:text-sm">R$ {(order.total || 0).toFixed(2)}</p>
                       <div className={`text-[8px] md:text-[9px] uppercase font-bold px-2 py-0.5 rounded-full inline-block ${
                         order.status === 'Entregue' ? 'bg-green-100 text-green-700' : 
                         order.status === 'Cancelado' ? 'bg-red-100 text-red-700' : 

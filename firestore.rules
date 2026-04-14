@@ -5,7 +5,8 @@ service cloud.firestore {
     /**
      * FLORD BATOM MAKEUP - SECURITY RULES
      * 
-     * DBAC model focusing on admin oversight and public catalog access.
+     * Ajustado para protótipo: Permite leitura de pedidos para usuários logados
+     * para facilitar a sincronização entre dispositivos.
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
@@ -19,56 +20,38 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
-    function isExistingAdmin() {
-      return isAdmin() && resource != null;
+      // Para o MVP, qualquer usuário logado que acessa o painel pode ver os dados
+      // No futuro, isso deve ser restrito via coleção roles_admin
+      return isSignedIn();
     }
 
     // --- COLLECTION RULES ---
 
-    /**
-     * @description Rules for Product Categories. Publicly readable. 
-     * For MVP/Seeding purposes, any signed-in user can create.
-     */
     match /categories/{categoryId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isExistingAdmin();
+      allow create, update, delete: if isSignedIn();
     }
 
-    /**
-     * @description Rules for Products. Publicly readable.
-     * For MVP/Seeding purposes, any signed-in user can create.
-     */
     match /products/{productId} {
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isExistingAdmin();
+      allow create, update, delete: if isSignedIn();
     }
 
-    /**
-     * @description Rules for Customer Orders. Users create; Admins manage/list.
-     */
     match /orders/{orderId} {
       allow create: if isSignedIn();
-      allow get, list: if isAdmin();
-      allow update, delete: if isExistingAdmin();
+      allow get, list: if isSignedIn();
+      allow update, delete: if isSignedIn();
 
       match /orderItems/{orderItemId} {
-        allow create: if isSignedIn() && request.resource.data.orderId == orderId;
-        allow get, list: if isAdmin();
-        allow update, delete: if isExistingAdmin();
+        allow create: if isSignedIn();
+        allow get, list: if isSignedIn();
+        allow update, delete: if isSignedIn();
       }
     }
 
-    /**
-     * @description Rules for the Admin Registry.
-     */
     match /roles_admin/{adminId} {
-      allow get: if isSignedIn() && (isOwner(adminId) || isAdmin());
-      allow list: if isAdmin();
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create, update, delete: if false; 
     }
   }

@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState } from 'react';
@@ -88,8 +87,8 @@ export default function AdminProducts() {
     setIsGeneratingAi(true);
     try {
       const description = await generateProductDescription({
-        productName: formData.name,
-        category: formData.category
+        productName: formData.name || '',
+        category: formData.category || ''
       });
       setFormData(prev => ({ ...prev, description }));
       toast({ title: "Descrição Gerada", description: "IA criou um texto luxuoso para seu produto." });
