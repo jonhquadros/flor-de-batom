@@ -1,0 +1,131 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * FLORD BATOM MAKEUP - SECURITY RULES ANALYSIS & DOCUMENTATION
+     * 
+     * Core Philosophy:
+     * This ruleset implements a Database-Backed Access Control (DBAC) model focused on 
+     * administrative oversight and public catalog accessibility. It prioritizes 
+     * Authorization Independence, using a dedicated admin collection to verify 
+     * privileges without relying on complex user profile lookups or custom claims.
+     * 
+     * Data Structure:
+     * - Public Catalog: /categories and /products are publicly readable.
+     * - Transactional Data: /orders and /orderItems are created by users (anonymous or logged in)
+     *   and managed exclusively by administrators.
+     * - Authorization: /roles_admin stores UIDs of users with administrative rights.
+     * 
+     * Key Security Decisions:
+     * 1. Public Read/Admin Write: Catalog items are available to everyone to facilitate 
+     *    unhindered browsing, while modifications require verified admin status.
+     * 2. Anonymous Ordering: Customers (often anonymous) can create orders, but cannot 
+     *    read them back once created. This protects customer privacy while allowing 
+     *    frictionless checkout.
+     * 3. DBAC Admin Check: Admin privileges are checked via `exists()` on the 
+     *    /roles_admin collection, making the rules performant and easy to debug.
+     * 4. Relational Integrity: Order items are strictly validated against their 
+     *    parent order ID during creation to prevent data orphans.
+     */
+
+    // --- GLOBAL HELPER FUNCTIONS ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    function isExistingAdmin() {
+      // This function implies an admin must also have an existing resource to operate on,
+      // which is typically used for update/delete operations on admin-controlled data.
+      return isAdmin() && resource != null;
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Rules for Product Categories. Publicly readable, admin-managed.
+     * @path /categories/{categoryId}
+     * @allow Public users: (get, list). Admins: (create, update, delete).
+     * @deny Non-admin users: (create, update, delete).
+     * @principle Public Read with Owner-Only Writes (Admin as Owner).
+     */
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isExistingAdmin();
+    }
+
+    /**
+     * @description Rules for Products. Publicly readable, admin-managed stock and info.
+     * @path /products/{productId}
+     * @allow Public users: (get, list). Admins: (create, update, delete).
+     * @deny Non-admin users: (create, update, delete).
+     * @principle Public Read with Owner-Only Writes (Admin as Owner).
+     */
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isExistingAdmin();
+    }
+
+    /**
+     * @description Rules for Customer Orders. Users create; Admins manage/list.
+     * @path /orders/{orderId}
+     * @allow Authenticated/Anonymous: (create). Admins: (get, list, update, delete).
+     * @deny Standard users/Anonymous: (get, list, update, delete).
+     * @principle Shared Access for Creation, Admin-Only Management.
+     */
+    match /orders/{orderId} {
+      // Allow any user (authenticated or anonymous) to create an order.
+      // This is flexible for data shape, focusing on who can write.
+      allow create: if isSignedIn();
+      
+      // Only admins can read, list, update, or delete orders.
+      allow get, list: if isAdmin();
+      allow update, delete: if isExistingAdmin();
+
+      /**
+       * @description Rules for specific items within an order.
+       * @path /orders/{orderId}/orderItems/{orderItemId}
+       * @allow Creator: (create) with path validation. Admins: (get, list, update, delete).
+       * @deny Cross-order creation (mismatched orderId).
+       * @principle Path-based relational integrity validation.
+       */
+      match /orderItems/{orderItemId} {
+        // Allow any user (authenticated or anonymous) to create an order item,
+        // but enforce that the 'orderId' field in the new item's data matches the parent order's ID.
+        allow create: if isSignedIn() && request.resource.data.orderId == orderId;
+        
+        // Only admins can read, list, update, or delete order items.
+        allow get, list: if isAdmin();
+        allow update, delete: if isExistingAdmin();
+      }
+    }
+
+    /**
+     * @description Rules for the Admin Registry. Used to bootstrap authorization.
+     * @path /roles_admin/{adminId}
+     * @allow Admins: (get, list). User checking self: (get).
+     * @deny Public: (get, list). Anyone: (write).
+     * @principle Database-Backed Access Control (DBAC).
+     */
+    match /roles_admin/{adminId} {
+      // Allow an authenticated user to get their own admin status, or any admin to get any status.
+      allow get: if isSignedIn() && (isOwner(adminId) || isAdmin());
+      // Only admins can list all admin roles.
+      allow list: if isAdmin();
+      // No one can create, update, or delete admin roles via client-side operations.
+      // These operations should only be done via Firebase Admin SDK.
+      allow create, update, delete: if false; 
+    }
+  }
+}
