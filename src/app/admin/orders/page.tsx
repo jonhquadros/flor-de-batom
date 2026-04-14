@@ -48,7 +48,8 @@ export default function AdminOrders() {
   }, []);
 
   const sendWhatsAppStatusUpdate = (order: Order) => {
-    const telefone = order.customerPhone.replace(/\D/g, '');
+    const rawPhone = order.customerPhone.replace(/\D/g, '');
+    const telefone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
     const nome = order.customerName;
     const id = order.orderNumber || order.id.substr(0, 6);
     const status = order.status;
@@ -75,7 +76,7 @@ export default function AdminOrders() {
     if (!mensagem) return;
 
     const msg = encodeURIComponent(mensagem);
-    window.open(`https://wa.me/55${telefone}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${telefone}?text=${msg}`, '_blank');
   };
 
   const initiateStatusChange = (id: string, status: OrderStatus) => {
@@ -122,7 +123,6 @@ export default function AdminOrders() {
     const product = products.find(p => p.id === id);
     if (!product) return;
 
-    // Verificação de estoque da variação específica
     if (delta > 0) {
       let availableStock = product.stock;
       if (product.variations && color) {
@@ -172,7 +172,6 @@ export default function AdminOrders() {
       return;
     }
 
-    // Verifica estoque disponível
     let availableStock = selectedProductToAdd.stock;
     if (hasVariations && selectedColorToAdd) {
       const v = selectedProductToAdd.variations?.find(v => v.name === selectedColorToAdd);
@@ -204,7 +203,6 @@ export default function AdminOrders() {
     const newTotal = updatedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     setSelectedOrder({ ...selectedOrder, items: updatedItems, total: newTotal });
     
-    // Reset form
     setIsAddingProduct(false);
     setSelectedProductToAdd(null);
     setSelectedColorToAdd('');
@@ -223,7 +221,9 @@ export default function AdminOrders() {
   const resendToWhatsApp = () => {
     if (!selectedOrder) return;
 
-    const NUMERO_LOJA = "5591987199039";
+    const rawPhone = selectedOrder.customerPhone.replace(/\D/g, '');
+    const finalPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
+
     const linhasProdutos = selectedOrder.items.map(i =>
       `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
     ).join('\n');
@@ -245,7 +245,7 @@ export default function AdminOrders() {
       `_Versão atualizada pelo painel administrativo_`
     );
     
-    window.open(`https://wa.me/${NUMERO_LOJA}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${finalPhone}?text=${msg}`, '_blank');
   };
 
   const exportToCSV = () => {
