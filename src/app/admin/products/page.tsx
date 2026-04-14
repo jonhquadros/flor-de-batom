@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState } from 'react';
@@ -25,8 +26,11 @@ export default function AdminProducts() {
   const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
   const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
 
-  const { data: products = [], isLoading: productsLoading } = useCollection<Product>(productsQuery);
-  const { data: categories = [] } = useCollection<Category>(categoriesQuery);
+  const { data: productsData, isLoading: productsLoading } = useCollection<Product>(productsQuery);
+  const { data: categoriesData } = useCollection<Category>(categoriesQuery);
+
+  const products = productsData || [];
+  const categories = categoriesData || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);

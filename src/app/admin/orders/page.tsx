@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label as LabelComponent } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus, Product, CartItem } from '@/lib/types';
 import { updateOrderStatus, updateOrder } from '@/lib/storage-utils';
@@ -25,8 +26,11 @@ export default function AdminOrders() {
   const ordersQuery = useMemoFirebase(() => collection(db, 'orders'), [db]);
   const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
 
-  const { data: orders = [] } = useCollection<Order>(ordersQuery);
-  const { data: products = [] } = useCollection<Product>(productsQuery);
+  const { data: ordersData } = useCollection<Order>(ordersQuery);
+  const { data: productsData } = useCollection<Product>(productsQuery);
+
+  const orders = ordersData || [];
+  const products = productsData || [];
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('Todos');

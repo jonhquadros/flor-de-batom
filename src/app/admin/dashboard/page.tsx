@@ -17,8 +17,11 @@ export default function AdminDashboard() {
   const ordersQuery = useMemoFirebase(() => collection(db, 'orders'), [db]);
   const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
 
-  const { data: orders = [], isLoading: ordersLoading } = useCollection<Order>(ordersQuery);
-  const { data: products = [], isLoading: productsLoading } = useCollection<Product>(productsQuery);
+  const { data: ordersData, isLoading: ordersLoading } = useCollection<Order>(ordersQuery);
+  const { data: productsData, isLoading: productsLoading } = useCollection<Product>(productsQuery);
+
+  const orders = ordersData || [];
+  const products = productsData || [];
 
   const [selectedMonth, setSelectedMonth] = React.useState<string>(() => {
     const now = new Date();
