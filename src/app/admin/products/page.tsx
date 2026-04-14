@@ -1,9 +1,8 @@
-
 "use client"
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Palette, X, ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Palette, X, ImageIcon, Sparkles, RefreshCcw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,8 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Product, Category, ProductVariation } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, deleteDoc } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { generateProductDescription } from '@/ai/flows/generate-product-description';
 
 export default function AdminProducts() {
   const db = useFirestore();
@@ -31,6 +31,7 @@ export default function AdminProducts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
@@ -71,6 +72,28 @@ export default function AdminProducts() {
       const productRef = doc(db, 'products', id);
       deleteDocumentNonBlocking(productRef);
       toast({ title: "Removido do Banco de Dados" });
+    }
+  };
+
+  const handleAiDescription = async () => {
+    if (!formData.name || !formData.category) {
+      toast({ variant: "destructive", title: "Dados incompletos", description: "Informe o nome e a categoria antes de gerar a descrição." });
+      return;
+    }
+
+    setIsGeneratingAi(true);
+    try {
+      const description = await generateProductDescription({
+        productName: formData.name,
+        category: formData.category
+      });
+      setFormData(prev => ({ ...prev, description }));
+      toast({ title: "Descrição Gerada", description: "IA criou um texto luxuoso para seu produto." });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Erro na IA", description: "Não foi possível gerar a descrição no momento." });
+    } finally {
+      setIsGeneratingAi(false);
     }
   };
 
@@ -256,7 +279,7 @@ export default function AdminProducts() {
             <div className="space-y-3 p-4 bg-muted/10 rounded-xl">
               <div className="flex justify-between items-center">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <Palette className="h-4 w-4" /> Variações e Imagens
+                  <Palette className="h-4 w-4" /> Variações e Imagens de Cores
                 </Label>
                 <Button type="button" variant="outline" size="sm" onClick={addVariation} className="h-8 text-[10px] font-bold rounded-lg border-primary/20 text-primary">
                   <Plus className="h-3 w-3 mr-1" /> Adicionar Cor
@@ -283,19 +306,35 @@ export default function AdminProducts() {
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Input 
-                    placeholder="URL da Imagem da Cor (Opcional)" 
-                    value={v.imageUrl || ''} 
-                    onChange={(e) => updateVariation(i, 'imageUrl', e.target.value)}
-                    className="h-9 text-[10px] rounded-xl border-dashed"
-                  />
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="URL da Imagem desta cor (Pode usar picsum.photos)" 
+                      value={v.imageUrl || ''} 
+                      onChange={(e) => updateVariation(i, 'imageUrl', e.target.value)}
+                      className="h-9 text-[10px] rounded-xl border-dashed"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="desc" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</Label>
-              <Textarea id="desc" rows={3} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl" />
+              <div className="flex justify-between items-center">
+                <Label htmlFor="desc" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</Label>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-[9px] font-bold gap-1 bg-primary/10 text-primary hover:bg-primary/20 rounded-full"
+                  onClick={handleAiDescription}
+                  disabled={isGeneratingAi}
+                >
+                  {isGeneratingAi ? <RefreshCcw className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                  Gerar com IA
+                </Button>
+              </div>
+              <Textarea id="desc" rows={4} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl" />
             </div>
 
             <div className="space-y-1.5">
