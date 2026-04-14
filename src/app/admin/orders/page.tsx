@@ -427,15 +427,60 @@ export default function AdminOrders() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/20 p-6 rounded-2xl text-xs">
                 <div className="space-y-1">
                   <Label className="text-[9px] uppercase font-bold text-muted-foreground opacity-70 tracking-widest">Cliente</Label>
-                  <p className="font-bold text-sm">{selectedOrder.customerName}</p>
+                  {selectedOrder.status === 'Pendente' ? (
+                    <Input 
+                      value={selectedOrder.customerName} 
+                      onChange={(e) => setSelectedOrder({...selectedOrder, customerName: e.target.value})}
+                      className="h-8 text-xs bg-white rounded-lg border-none shadow-sm font-bold"
+                    />
+                  ) : (
+                    <p className="font-bold text-sm">{selectedOrder.customerName}</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[9px] uppercase font-bold text-muted-foreground opacity-70 tracking-widest">Telefone</Label>
-                  <p className="font-bold text-sm">{selectedOrder.customerPhone}</p>
+                  {selectedOrder.status === 'Pendente' ? (
+                    <Input 
+                      value={selectedOrder.customerPhone} 
+                      onChange={(e) => setSelectedOrder({...selectedOrder, customerPhone: e.target.value})}
+                      className="h-8 text-xs bg-white rounded-lg border-none shadow-sm font-bold"
+                    />
+                  ) : (
+                    <p className="font-bold text-sm">{selectedOrder.customerPhone}</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[9px] uppercase font-bold text-muted-foreground opacity-70 tracking-widest">Pagamento</Label>
-                  <p className="font-bold text-sm">{selectedOrder.paymentMethod} {selectedOrder.change ? `(Troco p/ R$ ${selectedOrder.change})` : ''}</p>
+                  {selectedOrder.status === 'Pendente' ? (
+                    <div className="space-y-2">
+                      <Select 
+                        value={selectedOrder.paymentMethod} 
+                        onValueChange={(v: 'Pix' | 'Dinheiro') => setSelectedOrder({...selectedOrder, paymentMethod: v})}
+                      >
+                        <SelectTrigger className="h-8 text-[10px] bg-white rounded-lg border-none shadow-sm font-bold uppercase tracking-widest">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="Pix" className="text-[10px] font-bold">PIX</SelectItem>
+                          <SelectItem value="Dinheiro" className="text-[10px] font-bold">DINHEIRO</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {selectedOrder.paymentMethod === 'Dinheiro' && (
+                        <div className="flex items-center gap-2">
+                          <Label className="text-[8px] font-bold uppercase shrink-0">Troco p/:</Label>
+                          <Input 
+                            type="number"
+                            placeholder="Valor"
+                            value={selectedOrder.change || ''}
+                            onChange={(e) => setSelectedOrder({...selectedOrder, change: parseFloat(e.target.value) || 0})}
+                            className="h-7 text-[10px] bg-white rounded-lg border-none shadow-sm font-bold w-16"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="font-bold text-sm">{selectedOrder.paymentMethod} {selectedOrder.change ? `(Troco p/ R$ ${selectedOrder.change})` : ''}</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <Label className="text-[9px] uppercase font-bold text-muted-foreground opacity-70 tracking-widest">Status do Pedido</Label>
