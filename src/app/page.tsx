@@ -95,23 +95,25 @@ export default function Storefront() {
       return;
     }
 
+    // VERIFICAÇÃO DE ESTOQUE AGREGADA (Somando todas as cores do mesmo produto)
+    const totalQtyInCart = cart
+      .filter(item => item.id === product.id)
+      .reduce((acc, item) => acc + item.quantity, 0);
+
+    if (totalQtyInCart + 1 > product.stock) {
+      toast({ 
+        variant: "destructive", 
+        title: "Limite de Estoque", 
+        description: `O estoque total deste produto (somando todas as cores) é de ${product.stock} unidades.` 
+      });
+      return;
+    }
+
     const cartId = color ? `${product.id}-${color}` : product.id;
     const existing = cart.find(item => {
         const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
         return itemKey === cartId;
     });
-
-    const currentQtyInCart = existing ? existing.quantity : 0;
-    
-    // VERIFICAÇÃO DE ESTOQUE: Não permite adicionar mais do que o disponível
-    if (currentQtyInCart + 1 > product.stock) {
-      toast({ 
-        variant: "destructive", 
-        title: "Limite de Estoque", 
-        description: `Desculpe, temos apenas ${product.stock} unidades disponíveis deste item.` 
-      });
-      return;
-    }
 
     let newCart;
     if (existing) {
@@ -132,23 +134,26 @@ export default function Storefront() {
     const product = products.find(p => p.id === id);
     if (!product) return;
 
+    if (delta > 0) {
+      const totalQtyInCart = cart
+        .filter(item => item.id === id)
+        .reduce((acc, item) => acc + item.quantity, 0);
+
+      if (totalQtyInCart + 1 > product.stock) {
+        toast({ 
+          variant: "destructive", 
+          title: "Estoque Máximo", 
+          description: `Temos apenas ${product.stock} unidades totais deste produto disponível.` 
+        });
+        return;
+      }
+    }
+
     const cartId = color ? `${id}-${color}` : id;
     const newCart = cart.map(item => {
       const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
       if (itemKey === cartId) {
-        const newQty = Math.max(0, item.quantity + delta);
-        
-        // VERIFICAÇÃO DE ESTOQUE NO CARRINHO
-        if (delta > 0 && newQty > product.stock) {
-          toast({ 
-            variant: "destructive", 
-            title: "Estoque Máximo", 
-            description: `Temos apenas ${product.stock} unidades disponíveis.` 
-          });
-          return item;
-        }
-        
-        return { ...item, quantity: newQty };
+        return { ...item, quantity: Math.max(0, item.quantity + delta) };
       }
       return item;
     }).filter(item => item.quantity > 0);
@@ -165,14 +170,19 @@ export default function Storefront() {
       return;
     }
 
-    // VERIFICAÇÃO FINAL DE ESTOQUE ANTES DE CRIAR PEDIDO
-    for (const item of cart) {
-      const product = products.find(p => p.id === item.id);
-      if (product && item.quantity > product.stock) {
+    // VERIFICAÇÃO FINAL DE ESTOQUE AGREGADA ANTES DE CRIAR PEDIDO
+    const productQuantities: Record<string, number> = {};
+    cart.forEach(item => {
+      productQuantities[item.id] = (productQuantities[item.id] || 0) + item.quantity;
+    });
+
+    for (const [productId, totalQty] of Object.entries(productQuantities)) {
+      const product = products.find(p => p.id === productId);
+      if (product && totalQty > product.stock) {
         toast({ 
           variant: "destructive", 
           title: "Erro no Estoque", 
-          description: `O item ${item.name} não possui mais ${item.quantity} unidades em estoque.` 
+          description: `O item ${product.name} não possui estoque total suficiente (${totalQty} unidades solicitadas de ${product.stock} disponíveis).` 
         });
         return;
       }

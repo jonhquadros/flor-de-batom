@@ -91,7 +91,7 @@ export default function AdminOrders() {
 
     loadData();
     setIsStatusConfirmOpen(false);
-    setStatusToUpdate(null);
+    statusToUpdate && setStatusToUpdate(null);
     
     if (selectedOrder && selectedOrder.id === id) {
       setSelectedOrder(prev => prev ? { ...prev, status } : null);
@@ -108,25 +108,29 @@ export default function AdminOrders() {
     setIsDetailsOpen(true);
   };
 
-  const handleUpdateItemQuantity = (id: string, delta: number) => {
+  const handleUpdateItemQuantity = (id: string, delta: number, color?: string) => {
     if (!selectedOrder || selectedOrder.status !== 'Pendente') return;
 
-    // VERIFICAÇÃO DE ESTOQUE DISPONÍVEL
     const product = products.find(p => p.id === id);
     
+    // VERIFICAÇÃO DE ESTOQUE AGREGADA NO ADMIN
+    const totalQtyInOrder = selectedOrder.items
+      .filter(item => item.id === id)
+      .reduce((sum, item) => sum + item.quantity, 0);
+
+    if (delta > 0 && product && totalQtyInOrder + 1 > product.stock) {
+      toast({ 
+        variant: "destructive", 
+        title: "Estoque Insuficiente", 
+        description: `Este produto possui apenas ${product.stock} unidades em estoque total.` 
+      });
+      return;
+    }
+
     const updatedItems = selectedOrder.items.map(item => {
-      if (item.id === id) {
+      // Compara ID e Cor para identificar o item exato
+      if (item.id === id && item.selectedColor === color) {
         const newQty = Math.max(0, item.quantity + delta);
-        
-        if (delta > 0 && product && newQty > product.stock) {
-          toast({ 
-            variant: "destructive", 
-            title: "Estoque Insuficiente", 
-            description: `Este produto possui apenas ${product.stock} unidades em estoque.` 
-          });
-          return item;
-        }
-        
         return { ...item, quantity: newQty };
       }
       return item;
@@ -136,10 +140,10 @@ export default function AdminOrders() {
     setSelectedOrder({ ...selectedOrder, items: updatedItems, total: newTotal });
   };
 
-  const handleRemoveItem = (id: string) => {
+  const handleRemoveItem = (id: string, color?: string) => {
     if (!selectedOrder || selectedOrder.status !== 'Pendente') return;
 
-    const updatedItems = selectedOrder.items.filter(item => item.id !== id);
+    const updatedItems = selectedOrder.items.filter(item => !(item.id === id && item.selectedColor === color));
     const newTotal = updatedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     setSelectedOrder({ ...selectedOrder, items: updatedItems, total: newTotal });
   };
@@ -157,7 +161,7 @@ export default function AdminOrders() {
 
     const NUMERO_LOJA = "5591987199039";
     const linhasProdutos = selectedOrder.items.map(i =>
-      `• ${i.name} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
+      `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
     ).join('\n');
 
     const linhaPagamento = selectedOrder.paymentMethod === 'Dinheiro'
@@ -380,18 +384,18 @@ export default function AdminOrders() {
                 <Label className="text-xs font-bold">Itens</Label>
                 <div className="border rounded-xl divide-y bg-white overflow-hidden">
                   {selectedOrder.items.map(item => (
-                    <div key={item.id} className="p-3 flex items-center justify-between gap-3">
+                    <div key={item.id + (item.selectedColor || '')} className="p-3 flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <p className="text-[11px] font-bold truncate leading-tight">{item.name}</p>
-                        <p className="text-[9px] text-muted-foreground">R$ {item.price.toFixed(2)} unid.</p>
+                        <p className="text-[9px] text-muted-foreground">{item.selectedColor ? `COR: ${item.selectedColor} | ` : ''}R$ {item.price.toFixed(2)} unid.</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {selectedOrder.status === 'Pendente' ? (
                           <>
-                            <Button variant="outline" size="icon" className="h-6 w-6 rounded-lg" onClick={() => handleUpdateItemQuantity(item.id, -1)}><Minus className="h-3 w-3" /></Button>
+                            <Button variant="outline" size="icon" className="h-6 w-6 rounded-lg" onClick={() => handleUpdateItemQuantity(item.id, -1, item.selectedColor)}><Minus className="h-3 w-3" /></Button>
                             <span className="text-[11px] font-bold w-4 text-center">{item.quantity}</span>
-                            <Button variant="outline" size="icon" className="h-6 w-6 rounded-lg" onClick={() => handleUpdateItemQuantity(item.id, 1)}><Plus className="h-3 w-3" /></Button>
-                            <Button variant="ghost" size="icon" className="text-destructive h-6 w-6" onClick={() => handleRemoveItem(item.id)}><Trash2 className="h-3 w-3" /></Button>
+                            <Button variant="outline" size="icon" className="h-6 w-6 rounded-lg" onClick={() => handleUpdateItemQuantity(item.id, 1, item.selectedColor)}><Plus className="h-3 w-3" /></Button>
+                            <Button variant="ghost" size="icon" className="text-destructive h-6 w-6" onClick={() => handleRemoveItem(item.id, item.selectedColor)}><Trash2 className="h-3 w-3" /></Button>
                           </>
                         ) : (
                           <span className="text-[11px] font-bold whitespace-nowrap">{item.quantity}x R$ {item.price.toFixed(2)}</span>
