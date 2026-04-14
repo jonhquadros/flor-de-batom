@@ -51,14 +51,15 @@ export default function Storefront() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
 
   // Queries Memoizadas
   const productsQuery = useMemoFirebase(() => query(collection(db, 'products'), where('isActive', '==', true)), [db]);
   const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
 
   // Hooks de Dados Real-time
-  const { data: productsRaw = [] } = useCollection<Product>(productsQuery);
-  const { data: categoriesRaw = [] } = useCollection<Category>(categoriesQuery);
+  const { data: productsRaw } = useCollection<Product>(productsQuery);
+  const { data: categoriesRaw } = useCollection<Category>(categoriesQuery);
 
   const categories = useMemo(() => {
     const raw = categoriesRaw || [];
@@ -82,24 +83,33 @@ export default function Storefront() {
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
 
   useEffect(() => {
+    setMounted(true);
     // Carregar carrinho local
     const savedCart = localStorage.getItem('flordebatom_carrinho_v2');
-    if (savedCart) setCart(JSON.parse(savedCart));
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        setCart([]);
+      }
+    }
   }, []);
 
   useEffect(() => {
-    if (isUserLoading) return;
+    if (isUserLoading || !mounted) return;
 
     if (!user) {
       initiateAnonymousSignIn(auth);
     } else {
       seedInitialDataToFirestore(db);
     }
-  }, [user, isUserLoading, auth, db]);
+  }, [user, isUserLoading, auth, db, mounted]);
 
   useEffect(() => {
-    localStorage.setItem('flordebatom_carrinho_v2', JSON.stringify(cart));
-  }, [cart]);
+    if (mounted) {
+      localStorage.setItem('flordebatom_carrinho_v2', JSON.stringify(cart));
+    }
+  }, [cart, mounted]);
 
   const filteredProducts = useMemo(() => {
     const raw = productsRaw || [];
@@ -219,7 +229,6 @@ export default function Storefront() {
 
     const orderNum = Math.floor(10000 + Math.random() * 90000).toString();
 
-    // Criar o objeto de pedido sem campos undefined para o Firestore
     const orderData: any = {
       id: `ORD-${Date.now()}-${orderNum}`,
       orderNumber: orderNum,
@@ -236,7 +245,6 @@ export default function Storefront() {
       orderData.change = parseFloat(changeAmount) || 0;
     }
 
-    // Salvar no Firestore
     await saveOrderToFirestore(db, orderData as Order);
 
     const NUMERO_LOJA = "5591987199039";
@@ -280,6 +288,8 @@ export default function Storefront() {
     return selectedProduct.imageUrl;
   }, [selectedProduct, selectedColor]);
 
+  if (!mounted) return <div className="min-h-screen bg-[#FDFCFB]"></div>;
+
   return (
     <div className="flex min-h-screen bg-[#FDFCFB] text-foreground font-poppins">
       <aside className="hidden lg:flex w-64 flex-col bg-white border-r sticky top-0 h-screen overflow-y-auto z-40 p-6 space-y-8">
@@ -287,7 +297,7 @@ export default function Storefront() {
           <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border-2 border-primary/20">
             <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
           </div>
-          <h1 className="text-xl font-poppins font-bold text-primary leading-tight">Flor de Batom</h1>
+          <h1 className="text-xl font-bold text-primary leading-tight">Flor de Batom</h1>
         </div>
         
         <nav className="space-y-1">
@@ -343,7 +353,7 @@ export default function Storefront() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md p-0 flex flex-col z-[100] border-none shadow-2xl">
                   <SheetHeader className="p-6 border-b text-left">
-                    <SheetTitle className="font-poppins text-2xl text-primary font-bold">Carrinho</SheetTitle>
+                    <SheetTitle className="text-2xl text-primary font-bold">Carrinho</SheetTitle>
                   </SheetHeader>
                   <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {cart.length === 0 ? (
@@ -362,11 +372,11 @@ export default function Storefront() {
                               <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-poppins font-normal text-sm truncate text-primary">{item.name}</h4>
+                              <h4 className="font-normal text-sm truncate text-primary">{item.name}</h4>
                               {item.selectedColor && (
                                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Cor: {item.selectedColor}</p>
                               )}
-                              <p className="text-primary font-poppins font-semibold text-xl mt-1">R$ {item.price.toFixed(2)}</p>
+                              <p className="text-primary font-semibold text-xl mt-1">R$ {item.price.toFixed(2)}</p>
                               <div className="flex items-center gap-4 mt-2">
                                 <div className="flex items-center border rounded-full px-2 py-1 bg-muted/30">
                                   <button onClick={() => updateQuantity(item.id, -1, item.selectedColor)} className="p-1 hover:text-primary transition-colors"><Minus className="h-3 w-3" /></button>
@@ -386,7 +396,7 @@ export default function Storefront() {
                       <div className="w-full space-y-4">
                         <div className="flex justify-between items-end">
                           <span className="text-muted-foreground font-medium">Subtotal</span>
-                          <span className="text-3xl font-poppins font-semibold text-primary">R$ {cartTotal.toFixed(2)}</span>
+                          <span className="text-3xl font-semibold text-primary">R$ {cartTotal.toFixed(2)}</span>
                         </div>
                         <Button className="w-full bg-primary hover:bg-primary/90 h-16 rounded-3xl text-lg font-bold shadow-xl shadow-primary/20" onClick={() => setIsCheckoutOpen(true)}>
                           Finalizar Pedido
@@ -410,7 +420,7 @@ export default function Storefront() {
                       <span className="text-[10px] md:text-xs font-bold text-white uppercase tracking-[0.15em]">Coleção Exclusiva</span>
                     </div>
                     
-                    <h2 className="text-2xl md:text-5xl font-poppins font-bold text-white leading-[1.2] drop-shadow-lg">
+                    <h2 className="text-2xl md:text-5xl font-bold text-white leading-[1.2] drop-shadow-lg">
                       Realce sua beleza todos os dias 💓
                     </h2>
                     
@@ -468,8 +478,8 @@ export default function Storefront() {
 
           <div className="container mx-auto px-4 mt-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl md:text-2xl font-poppins font-bold text-primary flex items-center gap-2">
-                {selectedCategory.toUpperCase()} <span className="text-[10px] md:text-sm font-poppins text-muted-foreground font-medium">({filteredProducts.length} itens)</span>
+              <h3 className="text-xl md:text-2xl font-bold text-primary flex items-center gap-2">
+                {selectedCategory.toUpperCase()} <span className="text-[10px] md:text-sm text-muted-foreground font-medium">({filteredProducts.length} itens)</span>
               </h3>
               <select 
                 className="bg-transparent text-[10px] md:text-xs font-bold text-primary focus:ring-0 cursor-pointer appearance-none border-none pr-4 tracking-widest"
@@ -514,10 +524,10 @@ export default function Storefront() {
                   <CardContent className="p-3 md:p-5 flex flex-col flex-1">
                     <div className="flex-1 space-y-1">
                       <p className="text-[9px] md:text-[10px] font-bold text-primary/60 uppercase tracking-widest">{product.category}</p>
-                      <h4 className="font-poppins font-normal text-sm md:text-base leading-tight line-clamp-2 min-h-[2.5em] text-primary group-hover:text-primary/80 transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                      <h4 className="font-normal text-sm md:text-base leading-tight line-clamp-2 min-h-[2.5em] text-primary group-hover:text-primary/80 transition-colors cursor-pointer" onClick={() => setSelectedProduct(product)}>
                         {product.name}
                       </h4>
-                      <p className="text-base md:text-xl font-poppins font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
+                      <p className="text-base md:text-xl font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
                     </div>
                     
                     <button 
@@ -539,7 +549,7 @@ export default function Storefront() {
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/5 mb-6 text-primary">
                 <MessageCircle className="h-6 w-6" />
               </div>
-              <h2 className="text-3xl md:text-5xl font-poppins font-bold text-primary mb-6">Atendimento Exclusivo</h2>
+              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-6">Atendimento Exclusivo</h2>
               <p className="text-sm md:text-lg text-muted-foreground mb-12 leading-relaxed max-w-xl mx-auto">
                 Dúvidas sobre tons, texturas ou seu pedido?<br />Estamos prontos para te atender com todo o carinho que você merece 💖
               </p>
@@ -583,7 +593,7 @@ export default function Storefront() {
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/10">
                 <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
               </div>
-              <h2 className="text-xl font-poppins font-bold text-primary">Flor de Batom Makeup</h2>
+              <h2 className="text-xl font-bold text-primary">Flor de Batom Makeup</h2>
             </div>
             <p className="text-muted-foreground text-[10px] uppercase tracking-widest font-bold">© 2026 Flor de Batom Makeup</p>
           </div>
@@ -597,7 +607,7 @@ export default function Storefront() {
               <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md">
                 <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
               </div>
-              <SheetTitle className="text-2xl font-poppins font-bold text-primary">Categorias</SheetTitle>
+              <SheetTitle className="text-2xl font-bold text-primary">Categorias</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               <button 
@@ -642,7 +652,7 @@ export default function Storefront() {
                 <div className="space-y-8">
                   <div className="text-left space-y-2">
                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-60">{selectedProduct.category}</p>
-                    <h2 className="text-3xl md:text-4xl font-poppins font-bold text-primary leading-tight">{selectedProduct.name}</h2>
+                    <h2 className="text-3xl md:text-4xl font-bold text-primary leading-tight">{selectedProduct.name}</h2>
                     <DialogDescription className="text-sm text-muted-foreground">Visualize detalhes e escolha sua cor favorita.</DialogDescription>
                   </div>
 
@@ -669,10 +679,10 @@ export default function Storefront() {
                     )}
 
                     <div className="space-y-1">
-                      <p className="text-3xl md:text-4xl font-poppins font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                      <p className="text-3xl md:text-4xl font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
                     </div>
 
-                    <p className="text-muted-foreground text-sm font-poppins font-normal leading-relaxed border-t pt-6">
+                    <p className="text-muted-foreground text-sm font-normal leading-relaxed border-t pt-6">
                       {selectedProduct.description}
                     </p>
                   </div>
@@ -680,7 +690,7 @@ export default function Storefront() {
 
                 <div className="mt-10 space-y-4">
                   <Button 
-                    className={`w-full h-16 text-lg font-poppins font-bold rounded-3xl shadow-xl transition-all active:scale-[0.98] ${selectedProduct.stock <= 0 ? 'bg-[#E0E0E0] text-gray-400 cursor-not-allowed shadow-none hover:bg-[#E0E0E0]' : 'bg-primary hover:bg-primary/90 text-white shadow-primary/20'}`} 
+                    className={`w-full h-16 text-lg font-bold rounded-3xl shadow-xl transition-all active:scale-[0.98] ${selectedProduct.stock <= 0 ? 'bg-[#E0E0E0] text-gray-400 cursor-not-allowed shadow-none hover:bg-[#E0E0E0]' : 'bg-primary hover:bg-primary/90 text-white shadow-primary/20'}`} 
                     onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); setSelectedColor(''); }}
                     disabled={selectedProduct.stock <= 0}
                   >
@@ -702,7 +712,7 @@ export default function Storefront() {
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
         <DialogContent className="sm:max-w-lg z-[120] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
           <DialogHeader className="p-8 md:p-12 border-b bg-muted/20 text-center">
-            <DialogTitle className="text-3xl font-poppins font-bold text-primary">Finalizar Pedido</DialogTitle>
+            <DialogTitle className="text-3xl font-bold text-primary">Finalizar Pedido</DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs md:text-sm mt-2 font-medium">
               Informe seus dados para combinarmos a entrega via WhatsApp. 🌸
             </DialogDescription>
@@ -778,7 +788,7 @@ export default function Storefront() {
             
             <div className="bg-primary p-6 rounded-[2rem] flex items-center justify-between text-white shadow-2xl shadow-primary/30">
               <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Final</span>
-              <span className="text-3xl font-poppins font-semibold">R$ {cartTotal.toFixed(2)}</span>
+              <span className="text-3xl font-semibold">R$ {cartTotal.toFixed(2)}</span>
             </div>
           </div>
           <DialogFooter className="p-8 md:p-12 bg-muted/20 border-t">

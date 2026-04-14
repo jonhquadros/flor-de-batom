@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Package, ShoppingBag, DollarSign, TrendingUp, Calendar as CalendarIcon } from 'lucide-react';
 import { Order, Product } from '@/lib/types';
@@ -12,6 +13,7 @@ import { collection } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const db = useFirestore();
+  const [mounted, setMounted] = useState(false);
   
   const ordersQuery = useMemoFirebase(() => collection(db, 'orders'), [db]);
   const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
@@ -22,34 +24,36 @@ export default function AdminDashboard() {
   const orders = ordersData || [];
   const products = productsData || [];
 
-  const [selectedMonth, setSelectedMonth] = React.useState<string>(() => {
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+
+  useEffect(() => {
+    setMounted(true);
     const now = new Date();
-    return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-  });
+    setSelectedMonth(`${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`);
+  }, []);
 
   const monthOptions = useMemo(() => {
+    if (!mounted) return [];
     const months = new Set<string>();
     const now = new Date();
     months.add(`${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`);
     
-    if (orders) {
-      orders.forEach(order => {
-        if (order.createdAt) {
-          const date = new Date(order.createdAt);
-          if (!isNaN(date.getTime())) {
-            months.add(`${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`);
-          }
+    orders.forEach(order => {
+      if (order.createdAt) {
+        const date = new Date(order.createdAt);
+        if (!isNaN(date.getTime())) {
+          months.add(`${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`);
         }
-      });
-    }
+      }
+    });
 
     return Array.from(months).sort().reverse();
-  }, [orders]);
+  }, [orders, mounted]);
 
   const activeOrders = useMemo(() => orders.filter(o => o.status !== 'Cancelado'), [orders]);
   
   const filteredOrdersForChart = useMemo(() => activeOrders.filter(order => {
-    if (!order.createdAt) return false;
+    if (!order.createdAt || !selectedMonth) return false;
     const orderDate = new Date(order.createdAt);
     const orderMonth = `${orderDate.getFullYear()}-${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
     return orderMonth === selectedMonth;
@@ -90,7 +94,7 @@ export default function AdminDashboard() {
     { label: 'Ticket Médio', value: `R$ ${(totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
   ];
 
-  if (ordersLoading || productsLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Carregando dados sincronizados...</div>;
+  if (!mounted || ordersLoading || productsLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Carregando dados sincronizados...</div>;
 
   return (
     <div className="space-y-6 md:space-y-8 font-poppins">
@@ -107,8 +111,8 @@ export default function AdminDashboard() {
                 <stat.icon className={`h-4 w-4 md:h-6 md:w-6 ${stat.color}`} />
               </div>
               <div className="min-w-0 w-full space-y-1">
-                <p className="text-[10px] md:text-xs font-poppins font-normal text-muted-foreground uppercase tracking-wider truncate">{stat.label}</p>
-                <h3 className="text-sm md:text-xl font-poppins font-bold truncate">{stat.value}</h3>
+                <p className="text-[10px] md:text-xs font-normal text-muted-foreground uppercase tracking-wider truncate">{stat.label}</p>
+                <h3 className="text-sm md:text-xl font-bold truncate">{stat.value}</h3>
               </div>
             </CardContent>
           </Card>
