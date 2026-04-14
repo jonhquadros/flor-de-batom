@@ -1,4 +1,4 @@
-'use server';
+
 /**
  * @fileOverview An AI agent that generates product descriptions for the admin panel.
  *
@@ -28,7 +28,14 @@ export type GenerateProductDescriptionOutput = z.infer<
 export async function generateProductDescription(
   input: GenerateProductDescriptionInput
 ): Promise<GenerateProductDescriptionOutput> {
-  return generateProductDescriptionFlow(input);
+  // Nota: Em exportação estática (out), fluxos de servidor não funcionam no navegador.
+  // Esta função lançará um erro se chamada no ambiente estático.
+  try {
+    return generateProductDescriptionFlow(input);
+  } catch (error) {
+    console.error('IA não disponível em modo estático:', error);
+    return "A geração por IA requer um servidor ativo. Por favor, preencha a descrição manualmente.";
+  }
 }
 
 const prompt = ai.definePrompt({
