@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -30,7 +29,7 @@ export default function AdminInventory() {
   }, []);
 
   const lowStockProducts = useMemo(() => 
-    products.filter(p => p.stock <= 5).sort((a, b) => a.stock - b.stock),
+    products.filter(p => p.stock <= 12).sort((a, b) => a.stock - b.stock),
   [products]);
 
   const filteredProducts = useMemo(() => 
@@ -140,7 +139,7 @@ export default function AdminInventory() {
                     <TableCell>
                       {product.stock === 0 ? (
                         <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-[10px] font-bold">ESGOTADO</Badge>
-                      ) : product.stock <= 5 ? (
+                      ) : product.stock <= 12 ? (
                         <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 text-[10px] font-bold">CRÍTICO</Badge>
                       ) : (
                         <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 text-[10px] font-bold">OK</Badge>
