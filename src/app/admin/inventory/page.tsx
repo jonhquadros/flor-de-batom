@@ -1,9 +1,8 @@
-
 "use client"
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Search, AlertTriangle, Plus, Minus, Save, RefreshCcw, Boxes, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, AlertTriangle, Plus, Minus, Save, RefreshCcw, Boxes, ChevronDown, ChevronRight, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,7 +20,10 @@ export default function AdminInventory() {
 
   const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
   const { data: productsData, isLoading } = useCollection<Product>(productsQuery);
-  const products = productsData || [];
+  const products = React.useMemo(() => {
+    const raw = productsData || [];
+    return [...raw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+  }, [productsData]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
@@ -120,6 +122,7 @@ export default function AdminInventory() {
               <TableRow className="bg-muted/30">
                 <TableHead className="w-10"></TableHead>
                 <TableHead className="w-16 text-xs"></TableHead>
+                <TableHead className="w-12 text-xs">Ordem</TableHead>
                 <TableHead className="text-xs">Produto / Variação</TableHead>
                 <TableHead className="text-xs">Status</TableHead>
                 <TableHead className="text-xs text-center w-40">Estoque</TableHead>
@@ -143,6 +146,11 @@ export default function AdminInventory() {
                       <TableCell>
                         <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-muted border border-muted-foreground/10">
                           <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 font-bold text-[10px] text-primary">
+                          {product.order ?? 0}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -183,6 +191,7 @@ export default function AdminInventory() {
 
                     {hasVars && isExpanded && product.variations?.map((v, idx) => (
                       <TableRow key={`${product.id}-${v.name}`} className="bg-muted/5 animate-in slide-in-from-left-2 duration-200">
+                        <TableCell></TableCell>
                         <TableCell></TableCell>
                         <TableCell></TableCell>
                         <TableCell>

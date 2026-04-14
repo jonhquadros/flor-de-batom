@@ -1,8 +1,7 @@
-
 "use client"
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Tags } from 'lucide-react';
+import { Plus, Edit, Trash2, Tags, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,21 +19,28 @@ export default function AdminCategories() {
 
   const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
   const { data: categoriesData, isLoading } = useCollection<Category>(categoriesQuery);
-  const categories = categoriesData || [];
+  
+  const categories = React.useMemo(() => {
+    if (!categoriesData) return [];
+    return [...categoriesData].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+  }, [categoriesData]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [catName, setCatName] = useState('');
+  const [catOrder, setCatOrder] = useState('0');
 
   const openAddModal = () => {
     setEditingCategory(null);
     setCatName('');
+    setCatOrder('0');
     setIsModalOpen(true);
   };
 
   const openEditModal = (category: Category) => {
     setEditingCategory(category);
     setCatName(category.name);
+    setCatOrder(String(category.order ?? 0));
     setIsModalOpen(true);
   };
 
@@ -50,7 +56,11 @@ export default function AdminCategories() {
     if (!catName.trim()) return;
 
     const id = editingCategory?.id || Math.random().toString(36).substr(2, 9);
-    setDocumentNonBlocking(doc(db, 'categories', id), { id, name: catName }, { merge: true });
+    setDocumentNonBlocking(doc(db, 'categories', id), { 
+      id, 
+      name: catName,
+      order: Number(catOrder) || 0
+    }, { merge: true });
 
     setIsModalOpen(false);
     toast({ title: "Sucesso!", description: editingCategory ? "Atualizada." : "Criada." });
@@ -63,7 +73,7 @@ export default function AdminCategories() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Categorias</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Gestão global de filtros da vitrine.</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Gestão global e ordenação da vitrine.</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 gap-2 w-full sm:w-auto font-bold rounded-xl" onClick={openAddModal}>
           <Plus className="h-4 w-4" /> Nova Categoria
@@ -75,7 +85,7 @@ export default function AdminCategories() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
-                <TableHead className="w-12"></TableHead>
+                <TableHead className="w-12">Ordem</TableHead>
                 <TableHead className="text-xs">Nome</TableHead>
                 <TableHead className="text-right text-xs">Ações</TableHead>
               </TableRow>
@@ -90,7 +100,12 @@ export default function AdminCategories() {
               ) : (
                 categories.map(cat => (
                   <TableRow key={cat.id} className="hover:bg-muted/10">
-                    <TableCell><Tags className="h-4 w-4 text-muted-foreground" /></TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
+                        <span className="font-bold text-xs text-primary">{cat.order ?? 0}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="font-bold text-xs">{cat.name}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditModal(cat)}>
@@ -124,6 +139,19 @@ export default function AdminCategories() {
                 required 
                 className="h-12 rounded-xl"
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="catOrder" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Ordem de Exibição</Label>
+              <Input 
+                id="catOrder" 
+                type="number"
+                value={catOrder} 
+                onChange={(e) => setCatOrder(e.target.value)} 
+                placeholder="Ex: 1"
+                required 
+                className="h-12 rounded-xl"
+              />
+              <p className="text-[10px] text-muted-foreground italic">Números menores aparecem primeiro no catálogo.</p>
             </div>
             <DialogFooter className="gap-2 sm:gap-0 pt-2">
               <Button type="button" variant="ghost" className="rounded-xl h-11" onClick={() => setIsModalOpen(false)}>Cancelar</Button>

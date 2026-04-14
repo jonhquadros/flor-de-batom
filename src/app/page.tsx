@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -57,8 +56,13 @@ export default function Storefront() {
   const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
 
   // Hooks de Dados Real-time
-  const { data: products = [] } = useCollection<Product>(productsQuery);
-  const { data: categories = [] } = useCollection<Category>(categoriesQuery);
+  const { data: productsRaw = [] } = useCollection<Product>(productsQuery);
+  const { data: categoriesRaw = [] } = useCollection<Category>(categoriesQuery);
+
+  const categories = useMemo(() => {
+    const raw = categoriesRaw || [];
+    return [...raw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+  }, [categoriesRaw]);
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,20 +101,26 @@ export default function Storefront() {
   }, [cart]);
 
   const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    let result = products.filter(p => {
+    const raw = productsRaw || [];
+    let result = raw.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             p.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'Todos' || p.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
 
-    if (sortOrder === 'price-asc') result.sort((a, b) => a.price - b.price);
-    if (sortOrder === 'price-desc') result.sort((a, b) => b.price - a.price);
-    if (sortOrder === 'az') result.sort((a, b) => a.name.localeCompare(b.name));
+    if (sortOrder === 'relevance') {
+      result.sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+    } else if (sortOrder === 'price-asc') {
+      result.sort((a, b) => a.price - b.price);
+    } else if (sortOrder === 'price-desc') {
+      result.sort((a, b) => b.price - a.price);
+    } else if (sortOrder === 'az') {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    }
 
     return result;
-  }, [products, searchTerm, selectedCategory, sortOrder]);
+  }, [productsRaw, searchTerm, selectedCategory, sortOrder]);
 
   const addToCart = (product: Product, colorName?: string) => {
     const hasVariations = product.variations && product.variations.length > 0;
@@ -163,7 +173,7 @@ export default function Storefront() {
   };
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
-    const product = products?.find(p => p.id === id);
+    const product = (productsRaw || []).find(p => p.id === id);
     if (!product) return;
 
     if (delta > 0) {
@@ -465,9 +475,10 @@ export default function Storefront() {
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as any)}
               >
-                <option value="relevance">RELEVÂNCIA</option>
+                <option value="relevance">ORDEM PERSONALIZADA</option>
                 <option value="price-asc">MENOR PREÇO</option>
                 <option value="price-desc">MAIOR PREÇO</option>
+                <option value="az">A - Z</option>
               </select>
             </div>
 
@@ -618,7 +629,7 @@ export default function Storefront() {
               <div className="relative aspect-square md:w-1/2 bg-muted transition-all duration-500">
                 <Image src={displayedProductImage} alt={selectedProduct.name} fill className="object-cover" />
                 <Badge className="absolute top-6 left-6 bg-white/90 backdrop-blur text-primary font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-full shadow-lg border-none">
-                  {selectedProduct.category}
+                  {selectedCategory === 'Todos' ? selectedProduct.category : selectedCategory}
                 </Badge>
                 {(selectedColor ? (selectedProduct.variations?.find(v => v.name === selectedColor)?.stock ?? 0) <= 0 : selectedProduct.stock <= 0) && (
                   <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex items-center justify-center">

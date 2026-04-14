@@ -16,6 +16,7 @@ export interface Product {
   colors?: string[]; // Mantido para compatibilidade
   variations?: ProductVariation[]; // Estoque detalhado por cor
   isActive?: boolean;
+  order?: number; // Campo para ordenação personalizada no catálogo
 }
 
 export interface CartItem extends Product {
@@ -41,6 +42,7 @@ export interface Order {
 export interface Category {
   id: string;
   name: string;
+  order?: number;
 }
 
 export const INITIAL_CATEGORIES: string[] = [

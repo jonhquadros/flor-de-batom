@@ -1,9 +1,8 @@
-
 "use client"
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Palette, X, ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Palette, X, ImageIcon, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,7 +27,11 @@ export default function AdminProducts() {
   const { data: productsData, isLoading: productsLoading } = useCollection<Product>(productsQuery);
   const { data: categoriesData } = useCollection<Category>(categoriesQuery);
 
-  const products = productsData || [];
+  const products = React.useMemo(() => {
+    const raw = productsData || [];
+    return [...raw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+  }, [productsData]);
+
   const categories = categoriesData || [];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,6 +47,7 @@ export default function AdminProducts() {
     isFeatured: false,
     stock: 0,
     isActive: true,
+    order: 0,
     variations: []
   });
 
@@ -58,6 +62,7 @@ export default function AdminProducts() {
       isFeatured: false, 
       stock: 0,
       isActive: true,
+      order: 0,
       variations: []
     });
     setIsModalOpen(true);
@@ -122,6 +127,7 @@ export default function AdminProducts() {
       isFeatured: !!formData.isFeatured,
       isActive: formData.isActive !== false,
       stock: Number(formData.stock) || 0,
+      order: Number(formData.order) || 0,
       variations: formData.variations || []
     };
 
@@ -161,6 +167,7 @@ export default function AdminProducts() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
+                <TableHead className="w-12 text-xs">Ordem</TableHead>
                 <TableHead className="w-16 text-xs"></TableHead>
                 <TableHead className="text-xs">Nome</TableHead>
                 <TableHead className="text-xs hidden md:table-cell">Status</TableHead>
@@ -171,13 +178,19 @@ export default function AdminProducts() {
             <TableBody>
               {filteredProducts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-sm">
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground text-sm">
                     Nenhum produto cadastrado.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredProducts.map(product => (
                   <TableRow key={product.id} className={`hover:bg-muted/10 ${!product.isActive ? 'opacity-50' : ''}`}>
+                    <TableCell>
+                      <div className="flex items-center gap-1 font-bold text-xs text-primary">
+                        <ArrowUpDown className="h-3 w-3" />
+                        {product.order ?? 0}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-muted">
                         <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
@@ -241,6 +254,18 @@ export default function AdminProducts() {
                   required 
                   className="h-11 rounded-xl"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="order" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Ordem de Exibição</Label>
+                <Input 
+                  id="order" 
+                  type="number" 
+                  value={formData.order} 
+                  onChange={(e) => setFormData(p => ({...p, order: parseInt(e.target.value) || 0}))} 
+                  required 
+                  className="h-11 rounded-xl"
+                />
+                <p className="text-[10px] text-muted-foreground italic">Menores números aparecem primeiro.</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="stock" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Estoque Total</Label>
