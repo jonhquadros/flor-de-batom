@@ -49,7 +49,7 @@ import { saveOrderToFirestore, seedInitialDataToFirestore } from '@/lib/storage-
 export default function Storefront() {
   const db = useFirestore();
   const auth = useAuth();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
   // Queries Memoizadas
@@ -77,17 +77,21 @@ export default function Storefront() {
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
 
   useEffect(() => {
-    // Garantir que o usuário esteja logado (anônimo) para poder escrever no Firestore
-    if (!user) {
-      initiateAnonymousSignIn(auth);
-    }
-    // Popular dados iniciais se estiver vazio
-    seedInitialDataToFirestore(db);
-    
-    // Carregar carrinho local (persistência de sessão do usuário atual)
+    // Carregar carrinho local
     const savedCart = localStorage.getItem('flordebatom_carrinho_v2');
     if (savedCart) setCart(JSON.parse(savedCart));
-  }, [user, auth, db]);
+  }, []);
+
+  useEffect(() => {
+    if (isUserLoading) return;
+
+    if (!user) {
+      initiateAnonymousSignIn(auth);
+    } else {
+      // Popular dados iniciais apenas após termos um usuário (mesmo anônimo)
+      seedInitialDataToFirestore(db);
+    }
+  }, [user, isUserLoading, auth, db]);
 
   useEffect(() => {
     localStorage.setItem('flordebatom_carrinho_v2', JSON.stringify(cart));
@@ -203,8 +207,6 @@ export default function Storefront() {
       return;
     }
 
-    // Gerar um número de pedido aleatório mas sequencial no backend seria melhor, 
-    // mas usaremos um timestamp + random para garantir unicidade imediata
     const orderNum = Math.floor(10000 + Math.random() * 90000).toString();
 
     const order: Order = {
