@@ -486,7 +486,7 @@ export default function Storefront() {
               </div>
               <h2 className="text-3xl md:text-5xl font-poppins font-bold text-primary mb-6">Atendimento Exclusivo</h2>
               <p className="text-sm md:text-lg text-muted-foreground mb-12 leading-relaxed max-w-xl mx-auto">
-                Dúvidas sobre tons, texturas ou seu pedido? Nossa equipe de especialistas está pronta para te atender com todo o carinho que você merece.
+                Dúvidas sobre tons, texturas ou seu pedido?<br />Estamos prontos para te atender com todo o carinho que você merece 💖
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-4">
