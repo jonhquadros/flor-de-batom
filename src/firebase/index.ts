@@ -7,24 +7,38 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'
 
 /**
- * Initializes Firebase.
- * For static exports, we always use the firebaseConfig object to ensure
- * successful pre-rendering and client-side boot.
+ * Initializes Firebase services safely for both SSR and Client environments.
  */
 export function initializeFirebase() {
-  let app: FirebaseApp;
-  
-  if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApp();
+  if (typeof window === 'undefined') {
+    return {
+      firebaseApp: null,
+      auth: null,
+      firestore: null
+    };
   }
 
-  return {
-    firebaseApp: app,
-    auth: getAuth(app),
-    firestore: getFirestore(app)
-  };
+  let app: FirebaseApp;
+  try {
+    if (getApps().length === 0) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApp();
+    }
+
+    return {
+      firebaseApp: app,
+      auth: getAuth(app),
+      firestore: getFirestore(app)
+    };
+  } catch (error) {
+    console.error("Firebase initialization failed:", error);
+    return {
+      firebaseApp: null,
+      auth: null,
+      firestore: null
+    };
+  }
 }
 
 export * from './provider';
