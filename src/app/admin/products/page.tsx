@@ -1,9 +1,8 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Wand2, Loader2, Palette, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Wand2, Loader2, Palette, X, ImageIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -84,7 +83,7 @@ export default function AdminProducts() {
     const currentVars = formData.variations || [];
     setFormData({
       ...formData,
-      variations: [...currentVars, { name: '', stock: 0 }]
+      variations: [...currentVars, { name: '', stock: 0, imageUrl: '' }]
     });
   };
 
@@ -291,7 +290,7 @@ export default function AdminProducts() {
             <div className="space-y-3 p-4 bg-muted/10 rounded-xl">
               <div className="flex justify-between items-center">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <Palette className="h-4 w-4" /> Variações de Cor e Estoque
+                  <Palette className="h-4 w-4" /> Variações de Cor, Estoque e Imagem
                 </Label>
                 <Button type="button" variant="outline" size="sm" onClick={addVariation} className="h-8 text-[10px] font-bold rounded-lg border-primary/20 text-primary">
                   <Plus className="h-3 w-3 mr-1" /> Adicionar Cor
@@ -299,23 +298,34 @@ export default function AdminProducts() {
               </div>
               
               {formData.variations?.map((v, i) => (
-                <div key={i} className="flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
-                  <Input 
-                    placeholder="Nome da Cor (Ex: Vinho)" 
-                    value={v.name} 
-                    onChange={(e) => updateVariation(i, 'name', e.target.value)}
-                    className="flex-1 h-10 rounded-xl"
-                  />
-                  <Input 
-                    type="number" 
-                    placeholder="Qtd" 
-                    value={v.stock} 
-                    onChange={(e) => updateVariation(i, 'stock', parseInt(e.target.value) || 0)}
-                    className="w-20 h-10 text-center rounded-xl"
-                  />
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeVariation(i)} className="text-destructive h-10 w-10">
-                    <X className="h-4 w-4" />
-                  </Button>
+                <div key={i} className="flex flex-col gap-2 p-3 bg-white rounded-xl shadow-sm border animate-in fade-in slide-in-from-top-1">
+                  <div className="flex items-center gap-3">
+                    <Input 
+                      placeholder="Nome da Cor (Ex: Vinho)" 
+                      value={v.name} 
+                      onChange={(e) => updateVariation(i, 'name', e.target.value)}
+                      className="flex-1 h-10 rounded-xl"
+                    />
+                    <Input 
+                      type="number" 
+                      placeholder="Qtd" 
+                      value={v.stock} 
+                      onChange={(e) => updateVariation(i, 'stock', parseInt(e.target.value) || 0)}
+                      className="w-20 h-10 text-center rounded-xl"
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeVariation(i)} className="text-destructive h-10 w-10">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="relative">
+                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input 
+                      placeholder="URL da Imagem para esta cor (Opcional)" 
+                      value={v.imageUrl || ''} 
+                      onChange={(e) => updateVariation(i, 'imageUrl', e.target.value)}
+                      className="pl-9 h-9 text-[10px] rounded-xl border-dashed"
+                    />
+                  </div>
                 </div>
               ))}
               {(!formData.variations || formData.variations.length === 0) && (
@@ -342,7 +352,7 @@ export default function AdminProducts() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="img" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL Imagem</Label>
+              <Label htmlFor="img" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL Imagem Principal</Label>
               <Input id="img" value={formData.imageUrl || ''} onChange={(e) => setFormData(p => ({...p, imageUrl: e.target.value}))} required className="h-11 rounded-xl" />
             </div>
 

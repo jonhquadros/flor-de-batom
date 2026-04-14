@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -225,6 +224,15 @@ export default function Storefront() {
     navigator.clipboard.writeText("(91) 98719-9039");
     toast({ title: "Chave Pix Copiada", description: "O número do celular foi copiado para sua área de transferência." });
   };
+
+  const displayedProductImage = useMemo(() => {
+    if (!selectedProduct) return "";
+    if (selectedColor && selectedProduct.variations) {
+      const variation = selectedProduct.variations.find(v => v.name === selectedColor);
+      if (variation?.imageUrl) return variation.imageUrl;
+    }
+    return selectedProduct.imageUrl;
+  }, [selectedProduct, selectedColor]);
 
   return (
     <div className="flex min-h-screen bg-[#FDFCFB] text-foreground font-poppins">
@@ -572,12 +580,12 @@ export default function Storefront() {
           </DialogHeader>
           {selectedProduct && (
             <div className="flex flex-col md:flex-row h-full">
-              <div className="relative aspect-square md:w-1/2 bg-muted">
-                <Image src={selectedProduct.imageUrl} alt={selectedProduct.name} fill className="object-cover" />
+              <div className="relative aspect-square md:w-1/2 bg-muted transition-all duration-500">
+                <Image src={displayedProductImage} alt={selectedProduct.name} fill className="object-cover" />
                 <Badge className="absolute top-6 left-6 bg-white/90 backdrop-blur text-primary font-bold uppercase text-[10px] tracking-widest px-4 py-2 rounded-full shadow-lg border-none">
                   {selectedProduct.category}
                 </Badge>
-                {selectedProduct.stock <= 0 && (
+                {(selectedColor ? (selectedProduct.variations?.find(v => v.name === selectedColor)?.stock ?? 0) <= 0 : selectedProduct.stock <= 0) && (
                   <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex items-center justify-center">
                     <span className="text-xs font-bold uppercase tracking-widest bg-carbon text-white px-6 py-3 rounded-full shadow-2xl">Indisponível</span>
                   </div>

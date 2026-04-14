@@ -1,6 +1,7 @@
 export interface ProductVariation {
   name: string;
   stock: number;
+  imageUrl?: string;
 }
 
 export interface Product {
