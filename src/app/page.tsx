@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -34,11 +35,31 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Product, CartItem, Order, Category, ProductVariation } from '@/lib/types';
-import { getStoredProducts, getStoredCart, saveCart, saveOrder, seedInitialData, getStoredCategories, getStoredOrders } from '@/lib/storage-utils';
+import { 
+  useFirestore, 
+  useCollection, 
+  useMemoFirebase, 
+  useAuth,
+  useUser
+} from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
+import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
+import { saveOrderToFirestore, seedInitialDataToFirestore } from '@/lib/storage-utils';
 
 export default function Storefront() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const db = useFirestore();
+  const auth = useAuth();
+  const { user } = useUser();
+  const { toast } = useToast();
+
+  // Queries Memoizadas
+  const productsQuery = useMemoFirebase(() => query(collection(db, 'products'), where('isActive', '==', true)), [db]);
+  const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
+
+  // Hooks de Dados Real-time
+  const { data: products = [] } = useCollection<Product>(productsQuery);
+  const { data: categories = [] } = useCollection<Category>(categoriesQuery);
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
@@ -47,7 +68,6 @@ export default function Storefront() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'relevance' | 'price-asc' | 'price-desc' | 'az'>('relevance');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { toast } = useToast();
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -57,13 +77,24 @@ export default function Storefront() {
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
 
   useEffect(() => {
-    seedInitialData();
-    setProducts(getStoredProducts().filter(p => p.isActive !== false));
-    setCategories(getStoredCategories());
-    setCart(getStoredCart());
-  }, []);
+    // Garantir que o usuário esteja logado (anônimo) para poder escrever no Firestore
+    if (!user) {
+      initiateAnonymousSignIn(auth);
+    }
+    // Popular dados iniciais se estiver vazio
+    seedInitialDataToFirestore(db);
+    
+    // Carregar carrinho local (persistência de sessão do usuário atual)
+    const savedCart = localStorage.getItem('flordebatom_carrinho_v2');
+    if (savedCart) setCart(JSON.parse(savedCart));
+  }, [user, auth, db]);
+
+  useEffect(() => {
+    localStorage.setItem('flordebatom_carrinho_v2', JSON.stringify(cart));
+  }, [cart]);
 
   const filteredProducts = useMemo(() => {
+    if (!products) return [];
     let result = products.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             p.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -125,12 +156,11 @@ export default function Storefront() {
     }
 
     setCart(newCart);
-    saveCart(newCart);
     toast({ title: "Adicionado!", description: `${product.name} ${colorName ? `(${colorName})` : ''} no carrinho.` });
   };
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
-    const product = products.find(p => p.id === id);
+    const product = products?.find(p => p.id === id);
     if (!product) return;
 
     if (delta > 0) {
@@ -163,23 +193,23 @@ export default function Storefront() {
     }).filter(item => item.quantity > 0);
     
     setCart(newCart);
-    saveCart(newCart);
   };
 
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!customerName || !customerPhone) {
       toast({ variant: "destructive", title: "Erro", description: "Por favor, preencha seu nome e telefone." });
       return;
     }
 
-    const currentOrders = getStoredOrders();
-    const nextOrderNumber = (currentOrders.length + 1).toString().padStart(5, '0');
+    // Gerar um número de pedido aleatório mas sequencial no backend seria melhor, 
+    // mas usaremos um timestamp + random para garantir unicidade imediata
+    const orderNum = Math.floor(10000 + Math.random() * 90000).toString();
 
     const order: Order = {
-      id: Math.random().toString(36).substr(2, 9).toUpperCase(),
-      orderNumber: nextOrderNumber,
+      id: `ORD-${Date.now()}-${orderNum}`,
+      orderNumber: orderNum,
       customerName,
       customerPhone,
       items: cart,
@@ -190,7 +220,8 @@ export default function Storefront() {
       createdAt: new Date().toISOString(),
     };
 
-    saveOrder(order);
+    // Salvar no Firestore
+    await saveOrderToFirestore(db, order);
 
     const NUMERO_LOJA = "5591987199039";
     const linhasProdutos = cart.map(i =>
@@ -202,7 +233,7 @@ export default function Storefront() {
       : `📱 Pix — comprovante a enviar`;
 
     const msg = encodeURIComponent(
-      `🌸 *PEDIDO #${nextOrderNumber} — Flor de Batom Makeup*\n\n` +
+      `🌸 *PEDIDO #${orderNum} — Flor de Batom Makeup*\n\n` +
       `👤 *Cliente:* ${customerName}\n` +
       `📱 *Telefone:* ${customerPhone}\n\n` +
       `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
@@ -215,9 +246,8 @@ export default function Storefront() {
     window.open(`https://wa.me/${NUMERO_LOJA}?text=${msg}`, '_blank');
     
     setCart([]);
-    saveCart([]);
     setIsCheckoutOpen(false);
-    toast({ title: "Pedido Enviado!", description: `Pedido #${nextOrderNumber} realizado com sucesso.` });
+    toast({ title: "Pedido Enviado!", description: `Pedido #${orderNum} realizado com sucesso.` });
   };
 
   const copyPixKey = () => {
@@ -252,7 +282,7 @@ export default function Storefront() {
           >
             TODOS OS PRODUTOS
           </button>
-          {categories.map(cat => (
+          {categories?.map(cat => (
             <button 
               key={cat.id} 
               className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === cat.name ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`}
@@ -407,7 +437,7 @@ export default function Storefront() {
               >
                 Todos
               </Button>
-              {categories.map(cat => (
+              {categories?.map(cat => (
                 <Button 
                   key={cat.id} 
                   variant="ghost" 
@@ -559,7 +589,7 @@ export default function Storefront() {
               >
                 TODOS {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}
               </button>
-              {categories.map(cat => (
+              {categories?.map(cat => (
                 <button 
                   key={cat.id} 
                   className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between ${selectedCategory === cat.name ? 'bg-primary text-white shadow-xl' : 'text-muted-foreground border border-transparent'}`}

@@ -1,35 +1,29 @@
+
 "use client"
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Package, ShoppingBag, DollarSign, TrendingUp, Calendar as CalendarIcon } from 'lucide-react';
-import { getStoredOrders, getStoredProducts } from '@/lib/storage-utils';
 import { Order, Product } from '@/lib/types';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis, Tooltip } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 export default function AdminDashboard() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [isLoaded, setIsLoaded] = useState(false);
+  const db = useFirestore();
+  
+  const ordersQuery = useMemoFirebase(() => collection(db, 'orders'), [db]);
+  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
 
-  useEffect(() => {
+  const { data: orders = [], isLoading: ordersLoading } = useCollection<Order>(ordersQuery);
+  const { data: products = [], isLoading: productsLoading } = useCollection<Product>(productsQuery);
+
+  const [selectedMonth, setSelectedMonth] = React.useState<string>(() => {
     const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-    setSelectedMonth(currentMonth);
-    
-    const loadData = () => {
-      setOrders(getStoredOrders());
-      setProducts(getStoredProducts());
-      setIsLoaded(true);
-    };
-
-    loadData();
-    window.addEventListener('storage', loadData);
-    return () => window.removeEventListener('storage', loadData);
-  }, []);
+    return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+  });
 
   const monthOptions = useMemo(() => {
     const months = new Set<string>();
@@ -87,13 +81,13 @@ export default function AdminDashboard() {
     { label: 'Ticket Médio', value: `R$ ${(totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0).toFixed(2)}`, icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-100' },
   ];
 
-  if (!isLoaded) return null;
+  if (ordersLoading || productsLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Carregando dados sincronizados...</div>;
 
   return (
     <div className="space-y-6 md:space-y-8 font-poppins">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-xs md:text-sm text-muted-foreground">Visão geral do seu negócio.</p>
+        <p className="text-xs md:text-sm text-muted-foreground">Visão geral em tempo real.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">

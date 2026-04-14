@@ -1,8 +1,9 @@
+
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Wand2, Loader2, Palette, X, ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Palette, X, ImageIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,16 +14,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Product, Category, ProductVariation } from '@/lib/types';
-import { getStoredProducts, saveProducts, getStoredCategories } from '@/lib/storage-utils';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, deleteDoc } from 'firebase/firestore';
+import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function AdminProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const db = useFirestore();
+  const { toast } = useToast();
+
+  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
+  const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
+
+  const { data: products = [], isLoading: productsLoading } = useCollection<Product>(productsQuery);
+  const { data: categories = [] } = useCollection<Category>(categoriesQuery);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
 
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
@@ -35,18 +43,6 @@ export default function AdminProducts() {
     isActive: true,
     variations: []
   });
-
-  useEffect(() => {
-    loadData();
-    const handleStorage = () => loadData();
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
-
-  const loadData = () => {
-    setProducts(getStoredProducts());
-    setCategories(getStoredCategories());
-  };
 
   const openAddModal = () => {
     setEditingProduct(null);
@@ -71,11 +67,10 @@ export default function AdminProducts() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Excluir este produto?')) {
-      const updated = products.filter(p => p.id !== id);
-      setProducts(updated);
-      saveProducts(updated);
-      toast({ title: "Removido" });
+    if (confirm('Excluir este produto permanentemente em todos os dispositivos?')) {
+      const productRef = doc(db, 'products', id);
+      deleteDocumentNonBlocking(productRef);
+      toast({ title: "Removido do Banco de Dados" });
     }
   };
 
@@ -112,10 +107,10 @@ export default function AdminProducts() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let updated: Product[];
     
+    const id = editingProduct?.id || Math.random().toString(36).substr(2, 9);
     const productData: Product = {
-      id: editingProduct?.id || Math.random().toString(36).substr(2, 9),
+      id,
       name: formData.name || '',
       description: formData.description || '',
       price: Number(formData.price) || 0,
@@ -127,33 +122,21 @@ export default function AdminProducts() {
       variations: formData.variations || []
     };
 
-    if (editingProduct) {
-      updated = products.map(p => p.id === editingProduct.id ? productData : p);
-    } else {
-      updated = [...products, productData];
-    }
-
-    setProducts(updated);
-    saveProducts(updated);
+    setDocumentNonBlocking(doc(db, 'products', id), productData, { merge: true });
     setIsModalOpen(false);
-    toast({ title: "Sucesso!", description: editingProduct ? "Atualizado." : "Criado." });
-  };
-
-  const handleAIGenerate = async () => {
-    toast({ 
-      title: "IA não disponível", 
-      description: "A geração por IA requer um servidor ativo. Em sites estáticos (Netlify), por favor preencha a descrição manualmente." 
-    });
+    toast({ title: "Sincronizado!", description: "Dados salvos na nuvem." });
   };
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  if (productsLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Sincronizando produtos...</div>;
 
   return (
     <div className="space-y-6 font-poppins">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Produtos</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Gestão de inventário e vitrine.</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Gestão global de inventário.</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 gap-2 w-full sm:w-auto font-bold rounded-xl" onClick={openAddModal}>
           <Plus className="h-4 w-4" /> Novo Produto
@@ -227,7 +210,7 @@ export default function AdminProducts() {
         <DialogContent className="w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto font-poppins rounded-2xl p-4 md:p-8">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">{editingProduct ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
-            <DialogDescription className="text-xs">Gerencie os detalhes e o estoque do seu produto.</DialogDescription>
+            <DialogDescription className="text-xs">As mudanças serão salvas em todos os dispositivos.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -267,16 +250,13 @@ export default function AdminProducts() {
                   required 
                   className="h-11 rounded-xl bg-muted/20"
                 />
-                {formData.variations && formData.variations.length > 0 && (
-                  <p className="text-[9px] text-muted-foreground">Calculado pelas variações de cor.</p>
-                )}
               </div>
             </div>
 
             <div className="space-y-3 p-4 bg-muted/10 rounded-xl">
               <div className="flex justify-between items-center">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <Palette className="h-4 w-4" /> Variações de Cor, Estoque e Imagem
+                  <Palette className="h-4 w-4" /> Variações e Imagens
                 </Label>
                 <Button type="button" variant="outline" size="sm" onClick={addVariation} className="h-8 text-[10px] font-bold rounded-lg border-primary/20 text-primary">
                   <Plus className="h-3 w-3 mr-1" /> Adicionar Cor
@@ -287,7 +267,7 @@ export default function AdminProducts() {
                 <div key={i} className="flex flex-col gap-2 p-3 bg-white rounded-xl shadow-sm border animate-in fade-in slide-in-from-top-1">
                   <div className="flex items-center gap-3">
                     <Input 
-                      placeholder="Nome da Cor (Ex: Vinho)" 
+                      placeholder="Nome da Cor" 
                       value={v.name} 
                       onChange={(e) => updateVariation(i, 'name', e.target.value)}
                       className="flex-1 h-10 rounded-xl"
@@ -303,37 +283,18 @@ export default function AdminProducts() {
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="relative">
-                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input 
-                      placeholder="URL da Imagem para esta cor (Opcional)" 
-                      value={v.imageUrl || ''} 
-                      onChange={(e) => updateVariation(i, 'imageUrl', e.target.value)}
-                      className="pl-9 h-9 text-[10px] rounded-xl border-dashed"
-                    />
-                  </div>
+                  <Input 
+                    placeholder="URL da Imagem da Cor (Opcional)" 
+                    value={v.imageUrl || ''} 
+                    onChange={(e) => updateVariation(i, 'imageUrl', e.target.value)}
+                    className="h-9 text-[10px] rounded-xl border-dashed"
+                  />
                 </div>
               ))}
-              {(!formData.variations || formData.variations.length === 0) && (
-                <p className="text-[10px] text-muted-foreground italic text-center py-2">Sem variações de cor. Usando estoque único.</p>
-              )}
             </div>
 
             <div className="space-y-1.5">
-              <div className="flex justify-between items-center mb-1">
-                <Label htmlFor="desc" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-7 text-[10px] font-bold rounded-lg border-primary/20 text-primary"
-                  onClick={handleAIGenerate}
-                  disabled={isGeneratingAI}
-                >
-                  {isGeneratingAI ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Wand2 className="h-3 w-3 mr-1" />}
-                  Gerar IA
-                </Button>
-              </div>
+              <Label htmlFor="desc" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</Label>
               <Textarea id="desc" rows={3} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl" />
             </div>
 
@@ -345,17 +306,17 @@ export default function AdminProducts() {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border">
                 <Switch id="feat" checked={!!formData.isFeatured} onCheckedChange={(v) => setFormData(p => ({...p, isFeatured: v}))} />
-                <Label htmlFor="feat" className="text-[10px] font-bold uppercase cursor-pointer">Destaque</Label>
+                <Label htmlFor="feat" className="text-[10px] font-bold uppercase">Destaque</Label>
               </div>
               <div className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border">
                 <Switch id="active" checked={formData.isActive !== false} onCheckedChange={(v) => setFormData(p => ({...p, isActive: v}))} />
-                <Label htmlFor="active" className="text-[10px] font-bold uppercase cursor-pointer">Ativo</Label>
+                <Label htmlFor="active" className="text-[10px] font-bold uppercase">Ativo</Label>
               </div>
             </div>
 
             <DialogFooter className="gap-2 sm:gap-0 pt-4">
               <Button type="button" variant="ghost" className="rounded-xl h-12" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90 px-8 rounded-xl h-12 font-bold shadow-lg shadow-primary/20">Salvar Produto</Button>
+              <Button type="submit" className="bg-primary hover:bg-primary/90 px-8 rounded-xl h-12 font-bold shadow-lg shadow-primary/20">Salvar Sincronizado</Button>
             </DialogFooter>
           </form>
         </DialogContent>
