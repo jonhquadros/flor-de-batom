@@ -1,3 +1,8 @@
+export interface ProductVariation {
+  name: string;
+  stock: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -6,13 +11,15 @@ export interface Product {
   category: string;
   imageUrl: string;
   isFeatured: boolean;
-  stock: number;
-  colors?: string[]; // Lista de cores disponíveis
+  stock: number; // Representa o estoque total (soma das variações)
+  colors?: string[]; // Mantido para compatibilidade
+  variations?: ProductVariation[]; // Estoque detalhado por cor
+  isActive?: boolean;
 }
 
 export interface CartItem extends Product {
   quantity: number;
-  selectedColor?: string; // Cor escolhida pelo cliente
+  selectedColor?: string; 
 }
 
 export type OrderStatus = 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado';

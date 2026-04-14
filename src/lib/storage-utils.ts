@@ -13,7 +13,9 @@ export const getStoredProducts = (): Product[] => {
       seedInitialData();
       return JSON.parse(localStorage.getItem(PRODUCTS_KEY) || '[]');
     }
-    return JSON.parse(stored);
+    const products: Product[] = JSON.parse(stored);
+    // Garantir que isActive exista
+    return products.map(p => ({ ...p, isActive: p.isActive ?? true }));
   } catch (e) {
     return [];
   }
@@ -84,37 +86,62 @@ export const updateOrderStatus = (orderId: string, status: OrderStatus) => {
   const oldStatus = order.status;
   const newStatus = status;
 
-  // Status que representam uma venda confirmada (saída de estoque)
   const soldStatuses: OrderStatus[] = ['Pago', 'Enviado', 'Entregue'];
   const wasSold = soldStatuses.includes(oldStatus);
   const isSold = soldStatuses.includes(newStatus);
 
-  // Lógica de Gestão de Estoque (Corrigida para somar variantes do mesmo produto)
   if (!wasSold && isSold) {
-    // Transição de Pendente/Cancelado para Pago: BAIXA NO ESTOQUE
     const updatedProducts = products.map(p => {
-      const itemsOfThisProduct = order.items.filter(item => item.id === p.id);
-      if (itemsOfThisProduct.length > 0) {
-        const totalQty = itemsOfThisProduct.reduce((sum, i) => sum + i.quantity, 0);
-        return { ...p, stock: Math.max(0, p.stock - totalQty) };
+      const orderItemsForThisProduct = order.items.filter(item => item.id === p.id);
+      if (orderItemsForThisProduct.length > 0) {
+        let newVariations = p.variations ? [...p.variations] : [];
+        let totalDeduction = 0;
+
+        orderItemsForThisProduct.forEach(item => {
+          totalDeduction += item.quantity;
+          if (newVariations.length > 0 && item.selectedColor) {
+            newVariations = newVariations.map(v => 
+              v.name === item.selectedColor ? { ...v, stock: Math.max(0, v.stock - item.quantity) } : v
+            );
+          }
+        });
+
+        return { 
+          ...p, 
+          stock: Math.max(0, p.stock - totalDeduction),
+          variations: newVariations 
+        };
       }
       return p;
     });
     saveProducts(updatedProducts);
   } else if (wasSold && !isSold) {
-    // Transição de Pago para Cancelado/Pendente: RETORNO AO ESTOQUE
     const updatedProducts = products.map(p => {
-      const itemsOfThisProduct = order.items.filter(item => item.id === p.id);
-      if (itemsOfThisProduct.length > 0) {
-        const totalQty = itemsOfThisProduct.reduce((sum, i) => sum + i.quantity, 0);
-        return { ...p, stock: p.stock + totalQty };
+      const orderItemsForThisProduct = order.items.filter(item => item.id === p.id);
+      if (orderItemsForThisProduct.length > 0) {
+        let newVariations = p.variations ? [...p.variations] : [];
+        let totalReturn = 0;
+
+        orderItemsForThisProduct.forEach(item => {
+          totalReturn += item.quantity;
+          if (newVariations.length > 0 && item.selectedColor) {
+            newVariations = newVariations.map(v => 
+              v.name === item.selectedColor ? { ...v, stock: v.stock + item.quantity } : v
+            );
+          }
+        });
+
+        return { 
+          ...p, 
+          stock: p.stock + totalReturn,
+          variations: newVariations 
+        };
       }
       return p;
     });
     saveProducts(updatedProducts);
   }
 
-  // Atualiza o status no pedido
   order.status = newStatus;
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
   window.dispatchEvent(new Event('storage'));
@@ -150,17 +177,10 @@ export const seedInitialData = (force: boolean = false) => {
   const existingProducts = localStorage.getItem(PRODUCTS_KEY);
   if (!existingProducts || force) {
     const initialProducts: Product[] = [
-      { id:"p001", name:"Batom Matte Vinho Intenso",    category:"Batom",            description:"Batom de longa duração com textura matte sedosa. Tom vinho intenso para lábios marcantes.",          price:29.90, stock:15, imageUrl:"https://picsum.photos/seed/lip1/400/400",     isFeatured:true, colors: ["Vinho", "Bordô", "Marsala"]  },
-      { id:"p002", name:"Batom Nude Rosado",             category:"Batom",            description:"Tom nude cremoso. Perfeito para o dia a dia com hidratação natural e brilho discreto.",           price:26.90, stock:12, imageUrl:"https://picsum.photos/seed/lip2/400/400",      isFeatured:false, colors: ["Nude 01", "Nude 02"] },
-      { id:"p003", name:"Batom Glitter Rosa Gold",       category:"Batom",            description:"Glitter dourado e tom rosa vibrante. Ideal para looks noturnos e festas sofisticadas.",               price:34.90, stock:8,  imageUrl:"https://picsum.photos/seed/lip3/400/400",   isFeatured:true  },
-      { id:"p004", name:"Delineador Líquido Preto",      category:"Delineador",       description:"Ponta fina para traços precisos e gatinhos perfeitos. Fórmula à prova d'água.",                      price:24.90, stock:20, imageUrl:"https://picsum.photos/seed/eye1/400/400",       isFeatured:true  },
-      { id:"p006", name:"Base Líquida Cobertura Total",  category:"Base",             description:"Alta cobertura, acabamento matte, fórmula leve que não pesa na pele.",                               price:45.90, stock:18, imageUrl:"https://picsum.photos/seed/face1/400/400",    isFeatured:true, colors: ["Bege 01", "Bege 02", "Bege 03", "Marrom 01"]  },
-      { id:"p008", name:"Paleta de Sombras Rose",        category:"Sombra",           description:"12 tons de rosa e nude, alta pigmentação e cores fáceis de esfumar.",                                     price:59.90, stock:7,  imageUrl:"https://picsum.photos/seed/palette1/400/400",  isFeatured:true  },
-      { id:"p010", name:"Blush Pêssego Luminoso",        category:"Blush",            description:"Shimmer suave em tom pêssego, ilumina o rosto com aspecto saudável.",                               price:32.90, stock:13, imageUrl:"https://picsum.photos/seed/blush1/400/400",   isFeatured:true  },
-      { id:"p012", name:"Máscara de Cílios Volume Max",  category:"Máscara de Cílios",description:"Volumiza e alonga os cílios em uma única passada para um olhar de impacto.",                             price:35.90, stock:22, imageUrl:"https://picsum.photos/seed/mask1/400/400",  isFeatured:true  },
-      { id:"p016", name:"Kit Contorno e Iluminador",     category:"Contorno",         description:"Pó de contorno + iluminador dourado em um único kit para definir o rosto.",                          price:49.90, stock:6,  imageUrl:"https://picsum.photos/seed/contour1/400/400",    isFeatured:true  },
-      { id:"p018", name:"Gloss Voluminizador Rosa",      category:"Gloss",            description:"Efeito voluminizador com brilho espelhado em tom rosa suave.",                        price:23.90, stock:19, imageUrl:"https://picsum.photos/seed/gloss1/400/400",      isFeatured:true, colors: ["Rosa Claro", "Rosa Choque"]  },
-      { id:"p020", name:"Corretivo Alta Cobertura",      category:"Corretivo",        description:"Cobertura total, cobre olheiras e imperfeições, acabamento matte natural.",             price:27.90, stock:21, imageUrl:"https://picsum.photos/seed/concealer1/400/400",       isFeatured:true, colors: ["Claro", "Médio", "Escuro"]  },
+      { id:"p001", name:"Batom Matte Vinho Intenso",    category:"Batom",            description:"Batom de longa duração com textura matte sedosa.", price:29.90, stock:25, imageUrl:"https://picsum.photos/seed/lip1/400/400", isFeatured:true, isActive: true, variations: [{name: "Vinho", stock: 15}, {name: "Bordô", stock: 10}] },
+      { id:"p002", name:"Batom Nude Rosado",             category:"Batom",            description:"Tom nude cremoso.", price:26.90, stock:12, imageUrl:"https://picsum.photos/seed/lip2/400/400", isFeatured:false, isActive: true, variations: [{name: "Nude 01", stock: 6}, {name: "Nude 02", stock: 6}] },
+      { id:"p004", name:"Delineador Líquido Preto",      category:"Delineador",       description:"Ponta fina para traços precisos.", price:24.90, stock:20, imageUrl:"https://picsum.photos/seed/eye1/400/400", isFeatured:true, isActive: true },
+      { id:"p006", name:"Base Líquida Cobertura Total",  category:"Base",             description:"Alta cobertura, acabamento matte.", price:45.90, stock:20, imageUrl:"https://picsum.photos/seed/face1/400/400", isFeatured:true, isActive: true, variations: [{name: "Bege 01", stock: 10}, {name: "Bege 02", stock: 10}] },
     ];
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(initialProducts));
   }

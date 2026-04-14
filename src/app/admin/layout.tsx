@@ -68,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-lg border border-white/20">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
             </div>
-            <h2 className="text-lg font-bold">Gestão Flor de Batom</h2>
+            <h2 className="text-xl font-bold">Gestão Flor de Batom</h2>
           </div>
         </div>
         <Separator className="bg-white/10 mx-6 w-auto" />
@@ -109,7 +109,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="relative w-9 h-9 rounded-full overflow-hidden border border-white/20 shrink-0">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
             </div>
-            <h2 className="text-lg font-bold truncate">Gestão Flor de Batom</h2>
+            <h2 className="text-xl font-bold truncate">Gestão Flor de Batom</h2>
           </div>
           <Button variant="ghost" size="icon" className="hover:bg-white/10 ml-2" onClick={() => setIsMobileMenuOpen(true)}>
             <Menu className="h-7 w-7" />

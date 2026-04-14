@@ -34,7 +34,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Product, CartItem, Order, Category } from '@/lib/types';
+import { Product, CartItem, Order, Category, ProductVariation } from '@/lib/types';
 import { getStoredProducts, getStoredCart, saveCart, saveOrder, seedInitialData, getStoredCategories, getStoredOrders } from '@/lib/storage-utils';
 
 export default function Storefront() {
@@ -50,7 +50,6 @@ export default function Storefront() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { toast } = useToast();
 
-  // Checkout Form State
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro'>('Pix');
@@ -60,7 +59,7 @@ export default function Storefront() {
 
   useEffect(() => {
     seedInitialData();
-    setProducts(getStoredProducts());
+    setProducts(getStoredProducts().filter(p => p.isActive !== false));
     setCategories(getStoredCategories());
     setCart(getStoredCart());
   }, []);
@@ -80,54 +79,55 @@ export default function Storefront() {
     return result;
   }, [products, searchTerm, selectedCategory, sortOrder]);
 
-  const addToCart = (product: Product, color?: string) => {
-    if (product.stock <= 0) {
-      toast({ 
-        variant: "destructive", 
-        title: "💔 Poxa! Item esgotado", 
-        description: "Esse item está esgotado no momento. Mas logo ele volta!" 
-      });
-      return;
-    }
-
-    if (product.colors && product.colors.length > 0 && !color) {
+  const addToCart = (product: Product, colorName?: string) => {
+    const hasVariations = product.variations && product.variations.length > 0;
+    
+    if (hasVariations && !colorName) {
       toast({ variant: "destructive", title: "Escolha uma cor", description: "Por favor, selecione uma opção antes de adicionar." });
       return;
     }
 
-    // VERIFICAÇÃO DE ESTOQUE AGREGADA (Somando todas as cores do mesmo produto)
-    const totalQtyInCart = cart
-      .filter(item => item.id === product.id)
-      .reduce((acc, item) => acc + item.quantity, 0);
+    let availableStock = product.stock;
+    if (hasVariations && colorName) {
+      const variation = product.variations?.find(v => v.name === colorName);
+      availableStock = variation?.stock || 0;
+    }
 
-    if (totalQtyInCart + 1 > product.stock) {
+    if (availableStock <= 0) {
       toast({ 
         variant: "destructive", 
-        title: "Limite de Estoque", 
-        description: `O estoque total deste produto (somando todas as cores) é de ${product.stock} unidades.` 
+        title: "💔 Poxa! Item esgotado", 
+        description: "Essa opção está esgotada no momento. Mas logo ela volta!" 
       });
       return;
     }
 
-    const cartId = color ? `${product.id}-${color}` : product.id;
-    const existing = cart.find(item => {
-        const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
-        return itemKey === cartId;
-    });
+    const currentInCart = cart.find(item => item.id === product.id && item.selectedColor === colorName);
+    const quantityInCart = currentInCart?.quantity || 0;
 
+    if (quantityInCart + 1 > availableStock) {
+      toast({ 
+        variant: "destructive", 
+        title: "Limite de Estoque", 
+        description: `Temos apenas ${availableStock} unidades disponíveis desta cor.` 
+      });
+      return;
+    }
+
+    const cartId = colorName ? `${product.id}-${colorName}` : product.id;
     let newCart;
-    if (existing) {
+    if (currentInCart) {
       newCart = cart.map(item => {
           const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
           return itemKey === cartId ? { ...item, quantity: item.quantity + 1 } : item;
       });
     } else {
-      newCart = [...cart, { ...product, quantity: 1, selectedColor: color }];
+      newCart = [...cart, { ...product, quantity: 1, selectedColor: colorName }];
     }
 
     setCart(newCart);
     saveCart(newCart);
-    toast({ title: "Adicionado!", description: `${product.name} ${color ? `(${color})` : ''} foi adicionado ao carrinho.` });
+    toast({ title: "Adicionado!", description: `${product.name} ${colorName ? `(${colorName})` : ''} no carrinho.` });
   };
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
@@ -135,15 +135,20 @@ export default function Storefront() {
     if (!product) return;
 
     if (delta > 0) {
-      const totalQtyInCart = cart
-        .filter(item => item.id === id)
-        .reduce((acc, item) => acc + item.quantity, 0);
+      let availableStock = product.stock;
+      if (product.variations && color) {
+        const variation = product.variations.find(v => v.name === color);
+        availableStock = variation?.stock || 0;
+      }
 
-      if (totalQtyInCart + 1 > product.stock) {
+      const itemInCart = cart.find(item => item.id === id && item.selectedColor === color);
+      const currentQty = itemInCart?.quantity || 0;
+
+      if (currentQty + delta > availableStock) {
         toast({ 
           variant: "destructive", 
           title: "Estoque Máximo", 
-          description: `Temos apenas ${product.stock} unidades totais deste produto disponível.` 
+          description: `Temos apenas ${availableStock} unidades disponíveis desta opção.` 
         });
         return;
       }
@@ -168,24 +173,6 @@ export default function Storefront() {
     if (!customerName || !customerPhone) {
       toast({ variant: "destructive", title: "Erro", description: "Por favor, preencha seu nome e telefone." });
       return;
-    }
-
-    // VERIFICAÇÃO FINAL DE ESTOQUE AGREGADA ANTES DE CRIAR PEDIDO
-    const productQuantities: Record<string, number> = {};
-    cart.forEach(item => {
-      productQuantities[item.id] = (productQuantities[item.id] || 0) + item.quantity;
-    });
-
-    for (const [productId, totalQty] of Object.entries(productQuantities)) {
-      const product = products.find(p => p.id === productId);
-      if (product && totalQty > product.stock) {
-        toast({ 
-          variant: "destructive", 
-          title: "Erro no Estoque", 
-          description: `O item ${product.name} não possui estoque total suficiente (${totalQty} unidades solicitadas de ${product.stock} disponíveis).` 
-        });
-        return;
-      }
     }
 
     const currentOrders = getStoredOrders();
@@ -580,6 +567,9 @@ export default function Storefront() {
 
       <Dialog open={!!selectedProduct} onOpenChange={(open) => { if(!open) { setSelectedProduct(null); setSelectedColor(''); } }}>
         <DialogContent className="sm:max-w-[850px] p-0 overflow-hidden border-none shadow-2xl z-[120] max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-[2.5rem]">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{selectedProduct?.name || 'Detalhes do Produto'}</DialogTitle>
+          </DialogHeader>
           {selectedProduct && (
             <div className="flex flex-col md:flex-row h-full">
               <div className="relative aspect-square md:w-1/2 bg-muted">
@@ -595,14 +585,14 @@ export default function Storefront() {
               </div>
               <div className="p-8 md:p-12 md:w-1/2 flex flex-col justify-between bg-white">
                 <div className="space-y-8">
-                  <DialogHeader className="text-left space-y-2">
+                  <div className="text-left space-y-2">
                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-60">{selectedProduct.category}</p>
-                    <DialogTitle className="text-3xl md:text-4xl font-poppins font-bold text-primary leading-tight">{selectedProduct.name}</DialogTitle>
-                    <DialogDescription className="sr-only">Visualizar detalhes de {selectedProduct.name}</DialogDescription>
-                  </DialogHeader>
+                    <h2 className="text-3xl md:text-4xl font-poppins font-bold text-primary leading-tight">{selectedProduct.name}</h2>
+                    <DialogDescription className="text-sm text-muted-foreground">Visualize detalhes e escolha sua cor favorita.</DialogDescription>
+                  </div>
 
                   <div className="space-y-6">
-                    {selectedProduct.colors && selectedProduct.colors.length > 0 && (
+                    {((selectedProduct.variations && selectedProduct.variations.length > 0)) && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
                           <Label className="text-xs font-bold text-foreground">Cor</Label>
@@ -613,9 +603,9 @@ export default function Storefront() {
                             <SelectValue placeholder="Escolha uma opção" />
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl border-none shadow-2xl z-[130]">
-                            {selectedProduct.colors.map(color => (
-                              <SelectItem key={color} value={color} className="rounded-xl py-3 cursor-pointer">
-                                {color}
+                            {selectedProduct.variations?.map(v => (
+                              <SelectItem key={v.name} value={v.name} className="rounded-xl py-3 cursor-pointer" disabled={v.stock <= 0}>
+                                {v.name} {v.stock <= 0 ? '(Esgotado)' : `(${v.stock} disponíveis)`}
                               </SelectItem>
                             ))}
                           </SelectContent>

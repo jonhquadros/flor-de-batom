@@ -1,18 +1,19 @@
+
 "use client"
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Wand2, Loader2, ImagePlus, Palette } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Wand2, Loader2, Palette, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Product, Category } from '@/lib/types';
+import { Product, Category, ProductVariation } from '@/lib/types';
 import { getStoredProducts, saveProducts, getStoredCategories } from '@/lib/storage-utils';
 import { generateProductDescription } from '@/ai/flows/generate-product-description';
 
@@ -25,7 +26,6 @@ export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
-  // Form State
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
     description: '',
@@ -34,21 +34,20 @@ export default function AdminProducts() {
     imageUrl: '',
     isFeatured: false,
     stock: 0,
-    colors: []
+    isActive: true,
+    variations: []
   });
-
-  const [colorsString, setColorsString] = useState('');
-
-  const loadData = () => {
-    setProducts(getStoredProducts());
-    setCategories(getStoredCategories());
-  };
 
   useEffect(() => {
     loadData();
     window.addEventListener('storage', loadData);
     return () => window.removeEventListener('storage', loadData);
   }, []);
+
+  const loadData = () => {
+    setProducts(getStoredProducts());
+    setCategories(getStoredCategories());
+  };
 
   const openAddModal = () => {
     setEditingProduct(null);
@@ -60,16 +59,15 @@ export default function AdminProducts() {
       imageUrl: `https://picsum.photos/seed/${Math.random()}/400/400`, 
       isFeatured: false, 
       stock: 0,
-      colors: []
+      isActive: true,
+      variations: []
     });
-    setColorsString('');
     setIsModalOpen(true);
   };
 
   const openEditModal = (product: Product) => {
     setEditingProduct(product);
     setFormData({ ...product });
-    setColorsString(product.colors?.join(', ') || '');
     setIsModalOpen(true);
   };
 
@@ -82,31 +80,58 @@ export default function AdminProducts() {
     }
   };
 
+  const addVariation = () => {
+    const currentVars = formData.variations || [];
+    setFormData({
+      ...formData,
+      variations: [...currentVars, { name: '', stock: 0 }]
+    });
+  };
+
+  const removeVariation = (index: number) => {
+    const currentVars = formData.variations || [];
+    setFormData({
+      ...formData,
+      variations: currentVars.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateVariation = (index: number, field: keyof ProductVariation, value: string | number) => {
+    const currentVars = formData.variations || [];
+    const updatedVars = currentVars.map((v, i) => 
+      i === index ? { ...v, [field]: value } : v
+    );
+    
+    const totalStock = updatedVars.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+    
+    setFormData({
+      ...formData,
+      variations: updatedVars,
+      stock: updatedVars.length > 0 ? totalStock : formData.stock
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     let updated: Product[];
     
-    const colorsArray = colorsString.split(',').map(s => s.trim()).filter(s => s !== '');
-
-    const productData = {
+    const productData: Product = {
+      id: editingProduct?.id || Math.random().toString(36).substr(2, 9),
       name: formData.name || '',
       description: formData.description || '',
       price: Number(formData.price) || 0,
       category: formData.category || '',
       imageUrl: formData.imageUrl || '',
       isFeatured: !!formData.isFeatured,
+      isActive: formData.isActive !== false,
       stock: Number(formData.stock) || 0,
-      colors: colorsArray
+      variations: formData.variations || []
     };
 
     if (editingProduct) {
-      updated = products.map(p => p.id === editingProduct.id ? { ...productData, id: p.id } : p);
+      updated = products.map(p => p.id === editingProduct.id ? productData : p);
     } else {
-      const newProduct: Product = { 
-        ...productData, 
-        id: Math.random().toString(36).substr(2, 9) 
-      };
-      updated = [...products, newProduct];
+      updated = [...products, productData];
     }
 
     setProducts(updated);
@@ -138,17 +163,12 @@ export default function AdminProducts() {
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const getNumericValue = (val: any) => {
-    if (val === undefined || val === null || isNaN(val)) return '';
-    return val;
-  };
-
   return (
     <div className="space-y-6 font-poppins">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Produtos</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Gestão de inventário.</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Gestão de inventário e vitrine.</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 gap-2 w-full sm:w-auto font-bold rounded-xl" onClick={openAddModal}>
           <Plus className="h-4 w-4" /> Novo Produto
@@ -172,21 +192,21 @@ export default function AdminProducts() {
               <TableRow className="bg-muted/30">
                 <TableHead className="w-16 text-xs"></TableHead>
                 <TableHead className="text-xs">Nome</TableHead>
-                <TableHead className="text-xs hidden md:table-cell">Categoria</TableHead>
+                <TableHead className="text-xs hidden md:table-cell">Status</TableHead>
                 <TableHead className="text-xs">Preço</TableHead>
-                <TableHead className="text-xs text-right">Ações</TableHead>
+                <TableHead className="text-right text-xs">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10 text-muted-foreground text-sm">
-                    Nenhum produto.
+                    Nenhum produto cadastrado.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredProducts.map(product => (
-                  <TableRow key={product.id} className="hover:bg-muted/10">
+                  <TableRow key={product.id} className={`hover:bg-muted/10 ${!product.isActive ? 'opacity-50' : ''}`}>
                     <TableCell>
                       <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-muted">
                         <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
@@ -198,7 +218,13 @@ export default function AdminProducts() {
                         <span className="text-[9px] text-muted-foreground md:hidden">{product.category}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs hidden md:table-cell">{product.category}</TableCell>
+                    <TableCell className="text-xs hidden md:table-cell">
+                      {product.isActive ? (
+                        <span className="text-green-600 font-bold">Ativo</span>
+                      ) : (
+                        <span className="text-red-500 font-bold">Desativado</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-xs font-bold text-primary">R$ {product.price.toFixed(2)}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditModal(product)}><Edit className="h-4 w-4" /></Button>
@@ -216,6 +242,7 @@ export default function AdminProducts() {
         <DialogContent className="w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto font-poppins rounded-2xl p-4 md:p-8">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">{editingProduct ? 'Editar Produto' : 'Novo Produto'}</DialogTitle>
+            <DialogDescription className="text-xs">Gerencie os detalhes e o estoque do seu produto.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -238,37 +265,62 @@ export default function AdminProducts() {
                   id="price" 
                   type="number" 
                   step="0.01" 
-                  value={getNumericValue(formData.price)} 
+                  value={formData.price} 
                   onChange={(e) => setFormData(p => ({...p, price: parseFloat(e.target.value)}))} 
                   required 
                   className="h-11 rounded-xl"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="stock" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Estoque</Label>
+                <Label htmlFor="stock" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Estoque Total</Label>
                 <Input 
                   id="stock" 
                   type="number" 
-                  value={getNumericValue(formData.stock)} 
+                  value={formData.stock} 
+                  readOnly={formData.variations && formData.variations.length > 0}
                   onChange={(e) => setFormData(p => ({...p, stock: parseInt(e.target.value)}))} 
                   required 
-                  className="h-11 rounded-xl"
+                  className="h-11 rounded-xl bg-muted/20"
                 />
+                {formData.variations && formData.variations.length > 0 && (
+                  <p className="text-[9px] text-muted-foreground">Calculado pelas variações de cor.</p>
+                )}
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="colors" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Cores (separe por vírgula)</Label>
-              <div className="relative">
-                <Palette className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  id="colors" 
-                  placeholder="Ex: Bege 01, Bege 02" 
-                  className="pl-10 h-11 rounded-xl"
-                  value={colorsString} 
-                  onChange={(e) => setColorsString(e.target.value)} 
-                />
+            <div className="space-y-3 p-4 bg-muted/10 rounded-xl">
+              <div className="flex justify-between items-center">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Palette className="h-4 w-4" /> Variações de Cor e Estoque
+                </Label>
+                <Button type="button" variant="outline" size="sm" onClick={addVariation} className="h-8 text-[10px] font-bold rounded-lg border-primary/20 text-primary">
+                  <Plus className="h-3 w-3 mr-1" /> Adicionar Cor
+                </Button>
               </div>
+              
+              {formData.variations?.map((v, i) => (
+                <div key={i} className="flex items-center gap-3 animate-in fade-in slide-in-from-top-1">
+                  <Input 
+                    placeholder="Nome da Cor (Ex: Vinho)" 
+                    value={v.name} 
+                    onChange={(e) => updateVariation(i, 'name', e.target.value)}
+                    className="flex-1 h-10 rounded-xl"
+                  />
+                  <Input 
+                    type="number" 
+                    placeholder="Qtd" 
+                    value={v.stock} 
+                    onChange={(e) => updateVariation(i, 'stock', parseInt(e.target.value) || 0)}
+                    className="w-20 h-10 text-center rounded-xl"
+                  />
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removeVariation(i)} className="text-destructive h-10 w-10">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              {(!formData.variations || formData.variations.length === 0) && (
+                <p className="text-[10px] text-muted-foreground italic text-center py-2">Sem variações de cor. Usando estoque único.</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -278,7 +330,7 @@ export default function AdminProducts() {
                   type="button" 
                   variant="outline" 
                   size="sm" 
-                  className="h-7 text-[10px] font-bold rounded-lg border-primary/20 text-primary hover:bg-primary/5"
+                  className="h-7 text-[10px] font-bold rounded-lg border-primary/20 text-primary"
                   onClick={handleAIGenerate}
                   disabled={isGeneratingAI}
                 >
@@ -286,7 +338,7 @@ export default function AdminProducts() {
                   Gerar IA
                 </Button>
               </div>
-              <Textarea id="desc" rows={4} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl" />
+              <Textarea id="desc" rows={3} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl" />
             </div>
 
             <div className="space-y-1.5">
@@ -294,9 +346,15 @@ export default function AdminProducts() {
               <Input id="img" value={formData.imageUrl || ''} onChange={(e) => setFormData(p => ({...p, imageUrl: e.target.value}))} required className="h-11 rounded-xl" />
             </div>
 
-            <div className="flex items-center gap-3 bg-muted/20 p-4 rounded-xl">
-              <Switch id="feat" checked={!!formData.isFeatured} onCheckedChange={(v) => setFormData(p => ({...p, isFeatured: v}))} />
-              <Label htmlFor="feat" className="text-xs font-medium cursor-pointer">Produto em Destaque na Vitrine</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border">
+                <Switch id="feat" checked={!!formData.isFeatured} onCheckedChange={(v) => setFormData(p => ({...p, isFeatured: v}))} />
+                <Label htmlFor="feat" className="text-[10px] font-bold uppercase cursor-pointer">Destaque</Label>
+              </div>
+              <div className="flex items-center gap-3 bg-muted/20 p-3 rounded-xl border">
+                <Switch id="active" checked={formData.isActive !== false} onCheckedChange={(v) => setFormData(p => ({...p, isActive: v}))} />
+                <Label htmlFor="active" className="text-[10px] font-bold uppercase cursor-pointer">Ativo</Label>
+              </div>
             </div>
 
             <DialogFooter className="gap-2 sm:gap-0 pt-4">
