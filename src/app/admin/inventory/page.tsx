@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Search, AlertTriangle, Plus, Minus, Save, RefreshCcw, Boxes, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -10,25 +10,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Product, ProductVariation } from '@/lib/types';
-import { getStoredProducts, saveProducts } from '@/lib/storage-utils';
+import { Product } from '@/lib/types';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function AdminInventory() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  const db = useFirestore();
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadData();
-    window.addEventListener('storage', loadData);
-    return () => window.removeEventListener('storage', loadData);
-  }, []);
+  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
+  const { data: productsData, isLoading } = useCollection<Product>(productsQuery);
+  const products = productsData || [];
 
-  const loadData = () => {
-    setProducts(getStoredProducts());
-  };
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
 
   const lowStockProducts = useMemo(() => 
     products.filter(p => p.stock <= 12).sort((a, b) => a.stock - b.stock),
@@ -39,30 +35,23 @@ export default function AdminInventory() {
   [products, searchTerm]);
 
   const handleUpdateStock = (productId: string, newStock: number, variationName?: string) => {
-    const updated = products.map(p => {
-      if (p.id === productId) {
-        if (variationName && p.variations) {
-          const updatedVars = p.variations.map(v => 
-            v.name === variationName ? { ...v, stock: Math.max(0, newStock) } : v
-          );
-          const totalStock = updatedVars.reduce((sum, v) => sum + v.stock, 0);
-          return { ...p, variations: updatedVars, stock: totalStock };
-        } else {
-          return { ...p, stock: Math.max(0, newStock) };
-        }
-      }
-      return p;
-    });
-    setProducts(updated);
-  };
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
 
-  const saveAllChanges = () => {
-    setIsUpdating(true);
-    saveProducts(products);
-    setTimeout(() => {
-      setIsUpdating(false);
-      toast({ title: "Estoque Atualizado", description: "As quantidades foram salvas com sucesso." });
-    }, 500);
+    const stockValue = Math.max(0, newStock);
+    const productRef = doc(db, 'products', productId);
+
+    if (variationName && product.variations) {
+      const updatedVars = product.variations.map(v => 
+        v.name === variationName ? { ...v, stock: stockValue } : v
+      );
+      const totalStock = updatedVars.reduce((sum, v) => sum + v.stock, 0);
+      updateDocumentNonBlocking(productRef, { variations: updatedVars, stock: totalStock });
+    } else {
+      updateDocumentNonBlocking(productRef, { stock: stockValue });
+    }
+    
+    toast({ title: "Estoque Atualizado", description: variationName ? `Cor ${variationName} atualizada.` : "Quantidade salva." });
   };
 
   const toggleExpand = (id: string) => {
@@ -79,28 +68,22 @@ export default function AdminInventory() {
 
   const collapseAll = () => setExpandedProducts(new Set());
 
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Sincronizando estoque...</div>;
+
   return (
     <div className="space-y-6 font-poppins">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Gestão de Estoque</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Monitore variações de cor e inventário geral.</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Monitore variações de cor e inventário geral em tempo real.</p>
         </div>
-        <Button 
-          className="bg-primary hover:bg-primary/90 gap-2 w-full sm:w-auto font-bold rounded-xl h-12 shadow-lg shadow-primary/20" 
-          onClick={saveAllChanges}
-          disabled={isUpdating}
-        >
-          {isUpdating ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Salvar Alterações
-        </Button>
       </div>
 
       {lowStockProducts.length > 0 && (
         <Card className="border-none bg-orange-50 border-orange-100 shadow-sm overflow-hidden">
           <CardHeader className="pb-2 flex flex-row items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-600" />
-            <CardTitle className="orange-900 text-lg font-bold">Atenção: Estoque Baixo (≤ 12)</CardTitle>
+            <CardTitle className="text-orange-900 text-lg font-bold">Atenção: Estoque Baixo (≤ 12)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
@@ -234,13 +217,6 @@ export default function AdminInventory() {
           </Table>
         </div>
       </div>
-      
-      <Button 
-        className="fixed bottom-6 right-6 lg:hidden h-14 w-14 rounded-full shadow-2xl bg-primary z-50 p-0"
-        onClick={saveAllChanges}
-      >
-        <Save className="h-6 w-6" />
-      </Button>
     </div>
   );
 }

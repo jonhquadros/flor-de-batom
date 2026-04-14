@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Tags } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,18 +10,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Category } from '@/lib/types';
-import { getStoredCategories, saveCategories } from '@/lib/storage-utils';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function AdminCategories() {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const db = useFirestore();
+  const { toast } = useToast();
+
+  const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
+  const { data: categoriesData, isLoading } = useCollection<Category>(categoriesQuery);
+  const categories = categoriesData || [];
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [catName, setCatName] = useState('');
-  const { toast } = useToast();
-
-  useEffect(() => {
-    setCategories(getStoredCategories());
-  }, []);
 
   const openAddModal = () => {
     setEditingCategory(null);
@@ -35,10 +39,8 @@ export default function AdminCategories() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Excluir categoria?')) {
-      const updated = categories.filter(c => c.id !== id);
-      setCategories(updated);
-      saveCategories(updated);
+    if (confirm('Excluir categoria? Isso afetará todos os dispositivos.')) {
+      deleteDocumentNonBlocking(doc(db, 'categories', id));
       toast({ title: "Removida" });
     }
   };
@@ -47,29 +49,21 @@ export default function AdminCategories() {
     e.preventDefault();
     if (!catName.trim()) return;
 
-    let updated: Category[];
-    if (editingCategory) {
-      updated = categories.map(c => c.id === editingCategory.id ? { ...c, name: catName } : c);
-    } else {
-      const newCat: Category = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: catName
-      };
-      updated = [...categories, newCat];
-    }
+    const id = editingCategory?.id || Math.random().toString(36).substr(2, 9);
+    setDocumentNonBlocking(doc(db, 'categories', id), { id, name: catName }, { merge: true });
 
-    setCategories(updated);
-    saveCategories(updated);
     setIsModalOpen(false);
     toast({ title: "Sucesso!", description: editingCategory ? "Atualizada." : "Criada." });
   };
+
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Sincronizando categorias...</div>;
 
   return (
     <div className="space-y-6 font-poppins">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Categorias</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Gestão de filtros da vitrine.</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Gestão global de filtros da vitrine.</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 gap-2 w-full sm:w-auto font-bold rounded-xl" onClick={openAddModal}>
           <Plus className="h-4 w-4" /> Nova Categoria
