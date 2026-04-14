@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -11,11 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Order, OrderStatus } from '@/lib/types';
-import { getStoredOrders, updateOrderStatus, updateOrder } from '@/lib/storage-utils';
+import { Order, OrderStatus, Product } from '@/lib/types';
+import { getStoredOrders, updateOrderStatus, updateOrder, getStoredProducts } from '@/lib/storage-utils';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('Todos');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -27,14 +29,15 @@ export default function AdminOrders() {
   
   const { toast } = useToast();
 
-  const loadOrders = () => {
+  const loadData = () => {
     setOrders(getStoredOrders());
+    setProducts(getStoredProducts());
   };
 
   useEffect(() => {
-    loadOrders();
-    window.addEventListener('storage', loadOrders);
-    return () => window.removeEventListener('storage', loadOrders);
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const sendWhatsAppStatusUpdate = (order: Order) => {
@@ -86,11 +89,10 @@ export default function AdminOrders() {
       }
     }
 
-    loadOrders();
+    loadData();
     setIsStatusConfirmOpen(false);
     setStatusToUpdate(null);
     
-    // Atualiza o pedido selecionado se for o mesmo que está sendo editado no modal
     if (selectedOrder && selectedOrder.id === id) {
       setSelectedOrder(prev => prev ? { ...prev, status } : null);
     }
@@ -109,9 +111,23 @@ export default function AdminOrders() {
   const handleUpdateItemQuantity = (id: string, delta: number) => {
     if (!selectedOrder || selectedOrder.status !== 'Pendente') return;
 
+    // VERIFICAÇÃO DE ESTOQUE DISPONÍVEL
+    const product = products.find(p => p.id === id);
+    
     const updatedItems = selectedOrder.items.map(item => {
       if (item.id === id) {
-        return { ...item, quantity: Math.max(0, item.quantity + delta) };
+        const newQty = Math.max(0, item.quantity + delta);
+        
+        if (delta > 0 && product && newQty > product.stock) {
+          toast({ 
+            variant: "destructive", 
+            title: "Estoque Insuficiente", 
+            description: `Este produto possui apenas ${product.stock} unidades em estoque.` 
+          });
+          return item;
+        }
+        
+        return { ...item, quantity: newQty };
       }
       return item;
     }).filter(item => item.quantity > 0);
@@ -131,7 +147,7 @@ export default function AdminOrders() {
   const saveOrderChanges = () => {
     if (!selectedOrder) return;
     updateOrder(selectedOrder);
-    loadOrders();
+    loadData();
     setIsDetailsOpen(false);
     toast({ title: "Pedido Atualizado", description: "Alterações salvas." });
   };
@@ -298,7 +314,6 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {/* Confirmação de Envio de WhatsApp */}
       <AlertDialog open={isStatusConfirmOpen} onOpenChange={setIsStatusConfirmOpen}>
         <AlertDialogContent className="font-poppins rounded-2xl">
           <AlertDialogHeader>

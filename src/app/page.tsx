@@ -81,7 +81,6 @@ export default function Storefront() {
   }, [products, searchTerm, selectedCategory, sortOrder]);
 
   const addToCart = (product: Product, color?: string) => {
-    // Verificação de estoque automática antes de permitir a adição
     if (product.stock <= 0) {
       toast({ 
         variant: "destructive", 
@@ -102,6 +101,18 @@ export default function Storefront() {
         return itemKey === cartId;
     });
 
+    const currentQtyInCart = existing ? existing.quantity : 0;
+    
+    // VERIFICAÇÃO DE ESTOQUE: Não permite adicionar mais do que o disponível
+    if (currentQtyInCart + 1 > product.stock) {
+      toast({ 
+        variant: "destructive", 
+        title: "Limite de Estoque", 
+        description: `Desculpe, temos apenas ${product.stock} unidades disponíveis deste item.` 
+      });
+      return;
+    }
+
     let newCart;
     if (existing) {
       newCart = cart.map(item => {
@@ -118,15 +129,30 @@ export default function Storefront() {
   };
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
     const cartId = color ? `${id}-${color}` : id;
     const newCart = cart.map(item => {
       const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
       if (itemKey === cartId) {
         const newQty = Math.max(0, item.quantity + delta);
+        
+        // VERIFICAÇÃO DE ESTOQUE NO CARRINHO
+        if (delta > 0 && newQty > product.stock) {
+          toast({ 
+            variant: "destructive", 
+            title: "Estoque Máximo", 
+            description: `Temos apenas ${product.stock} unidades disponíveis.` 
+          });
+          return item;
+        }
+        
         return { ...item, quantity: newQty };
       }
       return item;
     }).filter(item => item.quantity > 0);
+    
     setCart(newCart);
     saveCart(newCart);
   };
@@ -137,6 +163,19 @@ export default function Storefront() {
     if (!customerName || !customerPhone) {
       toast({ variant: "destructive", title: "Erro", description: "Por favor, preencha seu nome e telefone." });
       return;
+    }
+
+    // VERIFICAÇÃO FINAL DE ESTOQUE ANTES DE CRIAR PEDIDO
+    for (const item of cart) {
+      const product = products.find(p => p.id === item.id);
+      if (product && item.quantity > product.stock) {
+        toast({ 
+          variant: "destructive", 
+          title: "Erro no Estoque", 
+          description: `O item ${item.name} não possui mais ${item.quantity} unidades em estoque.` 
+        });
+        return;
+      }
     }
 
     const currentOrders = getStoredOrders();
@@ -192,7 +231,6 @@ export default function Storefront() {
 
   return (
     <div className="flex min-h-screen bg-[#FDFCFB] text-foreground font-poppins">
-      {/* Sidebar Desktop */}
       <aside className="hidden lg:flex w-64 flex-col bg-white border-r sticky top-0 h-screen overflow-y-auto z-40 p-6 space-y-8">
         <div className="flex items-center gap-3">
           <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border-2 border-primary/20">
@@ -222,7 +260,6 @@ export default function Storefront() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header Compacto */}
         <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b h-24 md:h-32 transition-all">
           <div className="container mx-auto px-4 h-full flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 lg:hidden">
@@ -313,7 +350,6 @@ export default function Storefront() {
         </header>
 
         <main className="flex-1 pb-20">
-          {/* Banner Hero */}
           <div className="px-4 pt-4 md:pt-8 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="container mx-auto">
               <div className="relative bg-gradient-to-br from-primary via-[#9E3D4D] to-[#F8C8DC] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden min-h-[200px] md:min-h-[260px] flex flex-col justify-center items-center shadow-xl shadow-primary/10 transition-all">
@@ -357,7 +393,6 @@ export default function Storefront() {
             </div>
           </div>
 
-          {/* Categorias Horizontal Mobile */}
           <div className="lg:hidden mt-8 px-4 overflow-x-auto no-scrollbar pb-2">
             <div className="flex gap-2 min-w-max">
               <Button 
@@ -380,7 +415,6 @@ export default function Storefront() {
             </div>
           </div>
 
-          {/* Grid de Produtos */}
           <div className="container mx-auto px-4 mt-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl md:text-2xl font-poppins font-bold text-primary flex items-center gap-2">
@@ -447,7 +481,6 @@ export default function Storefront() {
             </div>
           </div>
 
-          {/* Sessão Atendimento Exclusivo */}
           <section className="bg-transparent py-20 mt-16 relative overflow-hidden" id="contato">
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             <div className="container mx-auto px-4 text-center max-w-3xl">
@@ -505,7 +538,6 @@ export default function Storefront() {
         </footer>
       </div>
 
-      {/* Mobile Sidebar Menu */}
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
         <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[110]">
           <div className="h-full flex flex-col bg-white">
@@ -536,7 +568,6 @@ export default function Storefront() {
         </SheetContent>
       </Sheet>
 
-      {/* Product Details Modal */}
       <Dialog open={!!selectedProduct} onOpenChange={(open) => { if(!open) { setSelectedProduct(null); setSelectedColor(''); } }}>
         <DialogContent className="sm:max-w-[850px] p-0 overflow-hidden border-none shadow-2xl z-[120] max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-[2.5rem]">
           {selectedProduct && (
@@ -561,7 +592,6 @@ export default function Storefront() {
                   </DialogHeader>
 
                   <div className="space-y-6">
-                    {/* UI de Seleção de Cor */}
                     {selectedProduct.colors && selectedProduct.colors.length > 0 && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
@@ -614,7 +644,6 @@ export default function Storefront() {
         </DialogContent>
       </Dialog>
 
-      {/* Checkout Modal */}
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
         <DialogContent className="sm:max-w-lg z-[120] p-0 overflow-hidden max-h-[95vh] flex flex-col border-none shadow-2xl rounded-[2.5rem]">
           <DialogHeader className="p-8 md:p-12 border-b bg-muted/20 text-center">
