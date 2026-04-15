@@ -237,7 +237,7 @@ export default function Storefront() {
     const totalFormatado = cartTotal.toFixed(2).replace('.', ',');
 
     const msg = encodeURIComponent(
-      `🌸 *NOVO PEDIDO — Flor de Batom Makeup*\n\n` +
+      `🌸 *NOVO PEDIDO #${orderNum} - Flor de Batom Makeup*\n\n` +
       `👤 *Cliente:* ${customerName}\n` +
       `📱 *Telefone:* ${customerPhone}\n\n` +
       `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
