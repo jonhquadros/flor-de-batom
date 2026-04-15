@@ -88,6 +88,7 @@ export default function Storefront() {
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
   const WHATSAPP_LOJA = "5591987199039";
+  const INSTAGRAM_URL = "https://www.instagram.com/flordebatom_makeup/";
 
   useEffect(() => {
     if (!mounted) return;
@@ -232,7 +233,7 @@ export default function Storefront() {
 
     await saveOrderToFirestore(db, orderData as Order);
 
-    const NUMERO_LOJA = "5591987199039";
+    const NUMERO_LOJA_MSG = "5591987199039";
     
     const linhasProdutos = cart.map(i =>
       `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
@@ -255,7 +256,7 @@ export default function Storefront() {
       `_Pedido enviado pelo catálogo online_`
     );
 
-    window.open(`https://wa.me/${NUMERO_LOJA}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${NUMERO_LOJA_MSG}?text=${msg}`, '_blank');
     
     setCart([]);
     setIsCheckoutOpen(false);
@@ -517,12 +518,22 @@ export default function Storefront() {
                     Sua loja online de maquiagens selecionadas para realçar sua beleza com sofisticação e delicadeza. Beleza em cada detalhe.
                   </p>
                   <div className="flex items-center gap-4">
-                    <button className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                    <a 
+                      href={INSTAGRAM_URL} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all"
+                    >
                       <Instagram className="h-5 w-5" />
-                    </button>
-                    <button className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                    </a>
+                    <a 
+                      href={`https://wa.me/${WHATSAPP_LOJA}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all"
+                    >
                       <MessageCircle className="h-5 w-5" />
-                    </button>
+                    </a>
                   </div>
                 </div>
 
