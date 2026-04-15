@@ -88,7 +88,7 @@ export default function Storefront() {
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
   const WHATSAPP_LOJA = "5591987199039";
-  const INSTAGRAM_URL = "https://www.instagram.com/flordebatom_makeup/";
+  const INSTAGRAM_URL = "https://www.instagram.com/flordebatom.makeup?igsh=MTI0NTk3MWwwdnltNg==";
 
   useEffect(() => {
     if (!mounted) return;
