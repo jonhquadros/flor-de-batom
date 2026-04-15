@@ -575,11 +575,6 @@ export default function Storefront() {
                       <ShoppingBag className="h-3 w-3" /> DINHEIRO
                     </div>
                   </div>
-                  <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
-                    <p className="text-[10px] font-medium leading-relaxed text-primary/80">
-                      ✨ <span className="font-bold">Destaque:</span> Entregas em Belém e região metropolitana com agilidade e carinho.
-                    </p>
-                  </div>
                 </div>
               </div>
 
