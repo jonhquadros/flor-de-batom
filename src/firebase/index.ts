@@ -20,7 +20,8 @@ export function initializeFirebase() {
 
   let app: FirebaseApp;
   try {
-    if (getApps().length === 0) {
+    const apps = getApps();
+    if (apps.length === 0) {
       app = initializeApp(firebaseConfig);
     } else {
       app = getApp();
@@ -32,7 +33,7 @@ export function initializeFirebase() {
       firestore: getFirestore(app)
     };
   } catch (error) {
-    console.error("Firebase initialization failed:", error);
+    // During static build, this might fail, which is expected.
     return {
       firebaseApp: null,
       auth: null,

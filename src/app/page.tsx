@@ -73,9 +73,9 @@ export default function Storefront() {
   const { data: categoriesRaw } = useCollection<Category>(categoriesQuery as any);
 
   const categories = useMemo(() => {
-    if (!categoriesRaw || !Array.isArray(categoriesRaw)) return [];
+    if (!mounted || !categoriesRaw || !Array.isArray(categoriesRaw)) return [];
     return [...categoriesRaw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
-  }, [categoriesRaw]);
+  }, [categoriesRaw, mounted]);
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,7 +122,7 @@ export default function Storefront() {
 
   const filteredProducts = useMemo(() => {
     if (!mounted) return [];
-    const raw = productsRaw || [];
+    const raw = Array.isArray(productsRaw) ? productsRaw : [];
     let result = raw.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             p.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -186,7 +186,7 @@ export default function Storefront() {
   };
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
-    const product = (productsRaw || []).find(p => p.id === id);
+    const product = (Array.isArray(productsRaw) ? productsRaw : []).find(p => p.id === id);
     if (!product) return;
 
     if (delta > 0) {
@@ -449,6 +449,10 @@ export default function Storefront() {
 
       <Dialog open={!!selectedProduct} onOpenChange={(open) => { if(!open) { setSelectedProduct(null); setSelectedColor(''); } }}>
         <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden border-none shadow-2xl z-[120] rounded-[2rem]">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{selectedProduct?.name}</DialogTitle>
+            <DialogDescription>Detalhes do produto {selectedProduct?.name}</DialogDescription>
+          </DialogHeader>
           {selectedProduct && (
             <div className="flex flex-col md:flex-row h-full">
               <div className="relative aspect-square md:w-1/2 bg-muted">
