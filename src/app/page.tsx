@@ -225,11 +225,36 @@ export default function Storefront() {
     await saveOrderToFirestore(db, orderData as Order);
 
     const NUMERO_LOJA = "5591987199039";
-    const msg = encodeURIComponent(`🌸 *NOVO PEDIDO #${orderNum}*\n\n👤 *Cliente:* ${customerName}\n💰 *TOTAL: R$ ${cartTotal.toFixed(2)}*`);
+    
+    const linhasProdutos = cart.map(i =>
+      `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
+    ).join('\n');
+
+    const linhaPagamento = paymentMethod === 'Dinheiro'
+      ? `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`
+      : `📱 Pix — comprovante a enviar`;
+
+    const totalFormatado = cartTotal.toFixed(2).replace('.', ',');
+
+    const msg = encodeURIComponent(
+      `🌸 *NOVO PEDIDO — Flor de Batom Makeup*\n\n` +
+      `👤 *Cliente:* ${customerName}\n` +
+      `📱 *Telefone:* ${customerPhone}\n\n` +
+      `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
+      `🚚 *Entrega:* Grátis\n` +
+      `💰 *TOTAL: R$ ${totalFormatado}*\n` +
+      `💳 *Pagamento:* ${linhaPagamento}\n\n` +
+      `_Pedido enviado pelo catálogo online_`
+    );
+
     window.open(`https://wa.me/${NUMERO_LOJA}?text=${msg}`, '_blank');
     
     setCart([]);
     setIsCheckoutOpen(false);
+    setCustomerName('');
+    setCustomerPhone('');
+    setPaymentMethod('Pix');
+    setChangeAmount('');
   };
 
   const displayedProductImage = useMemo(() => {
