@@ -83,7 +83,7 @@ export default function Storefront() {
 
   useEffect(() => {
     if (!mounted) return;
-    const savedCart = localStorage.getItem('flordebatom_carrinho_v2');
+    const savedCart = localStorage.getItem('flordebatom_carrinho_v3');
     if (savedCart) {
       try {
         setCart(JSON.parse(savedCart));
@@ -104,7 +104,7 @@ export default function Storefront() {
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem('flordebatom_carrinho_v2', JSON.stringify(cart));
+      localStorage.setItem('flordebatom_carrinho_v3', JSON.stringify(cart));
     }
   }, [cart, mounted]);
 
@@ -139,9 +139,12 @@ export default function Storefront() {
     }
 
     let availableStock = product.stock;
+    let variationImage = product.imageUrl;
+    
     if (hasVariations && colorName) {
       const variation = product.variations?.find(v => v.name === colorName);
       availableStock = variation?.stock || 0;
+      if (variation?.imageUrl) variationImage = variation.imageUrl;
     }
 
     if (availableStock <= 0) {
@@ -165,7 +168,7 @@ export default function Storefront() {
           return itemKey === cartId ? { ...item, quantity: item.quantity + 1 } : item;
       });
     } else {
-      newCart = [...cart, { ...product, quantity: 1, selectedColor: colorName }];
+      newCart = [...cart, { ...product, imageUrl: variationImage, quantity: 1, selectedColor: colorName }];
     }
 
     setCart(newCart);
@@ -320,6 +323,11 @@ export default function Storefront() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <h4 className="font-normal text-sm truncate text-primary">{item.name}</h4>
+                              {item.selectedColor && (
+                                <p className="text-[10px] font-bold uppercase text-muted-foreground mt-0.5 tracking-tight">
+                                  Cor: {item.selectedColor}
+                                </p>
+                              )}
                               <p className="text-primary font-semibold mt-1">R$ {item.price.toFixed(2)}</p>
                               <div className="flex items-center gap-3 mt-2">
                                 <button onClick={() => updateQuantity(item.id, -1, item.selectedColor)} className="p-1"><Minus className="h-3 w-3" /></button>
@@ -525,7 +533,6 @@ export default function Storefront() {
                 </RadioGroup>
               </div>
 
-              {/* PIX Information Section */}
               {paymentMethod === 'Pix' && (
                 <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2">
                   <div className="flex flex-col gap-1">
