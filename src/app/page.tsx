@@ -8,7 +8,6 @@ import {
   ShoppingCart, 
   Plus, 
   Minus, 
-  Trash2, 
   Instagram, 
   MessageCircle, 
   X,
@@ -186,7 +185,8 @@ export default function Storefront() {
   };
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
-    const product = (Array.isArray(productsRaw) ? productsRaw : []).find(p => p.id === id);
+    const raw = Array.isArray(productsRaw) ? productsRaw : [];
+    const product = raw.find(p => p.id === id);
     if (!product) return;
 
     if (delta > 0) {
@@ -458,14 +458,40 @@ export default function Storefront() {
               <div className="relative aspect-square md:w-1/2 bg-muted">
                 <Image src={displayedProductImage} alt={selectedProduct.name} fill className="object-cover" />
               </div>
-              <div className="p-8 md:w-1/2 flex flex-col justify-between bg-white">
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-primary">{selectedProduct.name}</h2>
-                  <p className="text-2xl font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
-                  <p className="text-muted-foreground text-sm">{selectedProduct.description}</p>
+              <div className="p-8 md:w-1/2 flex flex-col justify-between bg-white overflow-y-auto max-h-[70vh] md:max-h-full">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">{selectedProduct.category}</p>
+                    <h2 className="text-2xl font-bold text-primary leading-tight">{selectedProduct.name}</h2>
+                    <p className="text-2xl font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                  </div>
+
+                  <p className="text-muted-foreground text-sm leading-relaxed">{selectedProduct.description}</p>
+
+                  {selectedProduct.variations && selectedProduct.variations.length > 0 && (
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Escolha a Cor</Label>
+                      <RadioGroup value={selectedColor} onValueChange={setSelectedColor} className="flex flex-wrap gap-2">
+                        {selectedProduct.variations.map((v) => (
+                          <div key={v.name} className="flex items-center">
+                            <RadioGroupItem value={v.name} id={`color-${v.name}`} className="sr-only" />
+                            <Label 
+                              htmlFor={`color-${v.name}`}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold border-2 cursor-pointer transition-all ${selectedColor === v.name ? 'border-primary bg-primary text-white shadow-md' : 'border-muted bg-white text-muted-foreground hover:border-primary/30'}`}
+                            >
+                              {v.name.toUpperCase()}
+                              {v.stock <= 5 && v.stock > 0 && <span className="ml-2 text-[8px] opacity-70">(ÚLTIMAS)</span>}
+                              {v.stock === 0 && <span className="ml-2 text-[8px] opacity-70">(ESGOTADO)</span>}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  )}
                 </div>
+
                 <Button 
-                  className="w-full h-14 mt-8 font-bold rounded-2xl bg-primary text-white" 
+                  className="w-full h-14 mt-10 font-bold rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 active:scale-95 transition-transform" 
                   onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); }}
                 >
                   Adicionar ao Carrinho
@@ -473,6 +499,49 @@ export default function Storefront() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+        <DialogContent className="w-[95%] max-w-md p-0 overflow-hidden border-none shadow-2xl z-[130] rounded-[2.5rem]">
+          <DialogHeader className="p-8 pb-4">
+            <DialogTitle className="text-2xl font-bold text-primary">Finalizar Pedido</DialogTitle>
+            <DialogDescription>Preencha os dados para entrega via WhatsApp.</DialogDescription>
+          </DialogHeader>
+          <div className="p-8 pt-4 space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="name" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Seu Nome</Label>
+                <Input id="name" placeholder="Ex: Maria Silva" className="h-12 rounded-2xl bg-muted/30 border-none" value={customerName} onChange={e => setCustomerName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="phone" className="text-[10px] font-bold uppercase text-primary/60 ml-1">WhatsApp</Label>
+                <Input id="phone" placeholder="(91) 98888-8888" className="h-12 rounded-2xl bg-muted/30 border-none" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
+              </div>
+              <div className="space-y-3">
+                <Label className="text-[10px] font-bold uppercase text-primary/60 ml-1">Pagamento</Label>
+                <RadioGroup value={paymentMethod} onValueChange={(v: any) => setPaymentMethod(v)} className="grid grid-cols-2 gap-3">
+                  <div className={`flex items-center gap-2 p-3 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Pix')}>
+                    <RadioGroupItem value="Pix" id="pix" className="text-primary border-primary" />
+                    <Label htmlFor="pix" className="font-bold text-xs cursor-pointer">PIX</Label>
+                  </div>
+                  <div className={`flex items-center gap-2 p-3 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Dinheiro')}>
+                    <RadioGroupItem value="Dinheiro" id="cash" className="text-primary border-primary" />
+                    <Label htmlFor="cash" className="font-bold text-xs cursor-pointer">DINHEIRO</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              {paymentMethod === 'Dinheiro' && (
+                <div className="space-y-1.5 animate-in slide-in-from-top-2">
+                  <Label htmlFor="change" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Precisa de troco para quanto?</Label>
+                  <Input id="change" type="number" placeholder="Ex: 50" className="h-12 rounded-2xl bg-muted/30 border-none" value={changeAmount} onChange={e => setChangeAmount(e.target.value)} />
+                </div>
+              )}
+            </div>
+            <Button className="w-full h-16 rounded-[1.5rem] bg-primary text-lg font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform" onClick={handleCheckout}>
+              Enviar para o WhatsApp
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
