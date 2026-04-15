@@ -13,7 +13,9 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  ShoppingBag
+  ShoppingBag,
+  Truck,
+  Sparkles
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -386,6 +388,38 @@ export default function Storefront() {
 
         <main className="flex-1 pb-20">
           <div className="container mx-auto px-4 mt-8">
+            {/* Promo Banner */}
+            <div className="mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#7B1C2A] to-[#A02C3D] p-8 md:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="space-y-4 md:max-w-[60%] z-10">
+                <div className="inline-flex items-center bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10">
+                  Coleção Exclusiva
+                </div>
+                <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight font-poppins">
+                  Realce sua beleza todos os dias <span className="inline-block animate-pulse">💓</span>
+                </h2>
+                <p className="text-white/80 text-sm md:text-base leading-relaxed max-w-md">
+                  Maquiagens selecionadas para valorizar sua autoestima com delicadeza <Sparkles className="h-4 w-4 inline text-yellow-300" />
+                </p>
+                <div className="flex flex-wrap items-center gap-6 pt-2 text-white/90">
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <Truck className="h-4 w-4" /> Entrega grátis
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <ShoppingBag className="h-4 w-4" /> Loja 100% online
+                  </div>
+                </div>
+              </div>
+              <div className="relative shrink-0 z-10">
+                <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
+                <div className="relative w-40 h-40 md:w-56 md:h-56 rounded-full overflow-hidden border-[8px] border-white/20 shadow-2xl">
+                  <Image src={LOGO_URL} alt="Flor de Batom Logo" fill className="object-cover" />
+                </div>
+              </div>
+              {/* Decorative elements */}
+              <div className="absolute top-[-20px] right-[-20px] w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-[-40px] left-[-40px] w-80 h-80 bg-black/10 rounded-full blur-3xl"></div>
+            </div>
+
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl md:text-2xl font-bold text-primary">
                 {selectedCategory.toUpperCase()}
