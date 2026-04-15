@@ -15,7 +15,12 @@ import {
   XCircle,
   ShoppingBag,
   Truck,
-  Sparkles
+  Sparkles,
+  MessageCircle,
+  Instagram,
+  MapPin,
+  CreditCard,
+  Heart
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +87,7 @@ export default function Storefront() {
   const [changeAmount, setChangeAmount] = useState('');
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
+  const WHATSAPP_LOJA = "5591987199039";
 
   useEffect(() => {
     if (!mounted) return;
@@ -386,8 +392,8 @@ export default function Storefront() {
           </div>
         </header>
 
-        <main className="flex-1 pb-20">
-          <div className="container mx-auto px-4 mt-8">
+        <main className="flex-1">
+          <div className="container mx-auto px-4 mt-8 pb-10">
             {/* Promo Banner */}
             <div className="mb-6 md:mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#7B1C2A] to-[#A02C3D] p-6 md:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="space-y-4 md:max-w-[60%] z-10 text-center md:text-left">
@@ -471,7 +477,111 @@ export default function Storefront() {
                 </Card>
               ))}
             </div>
+
+            {/* Atendimento Exclusivo Section */}
+            <div className="mt-20 py-16 px-4 md:px-8 bg-primary/5 rounded-[3rem] border border-primary/10 relative overflow-hidden">
+               <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+                  <div className="mx-auto w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg mb-4">
+                     <MessageCircle className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="text-3xl md:text-5xl font-bold text-primary font-poppins">Atendimento Exclusivo</h3>
+                  <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
+                    Dúvidas sobre tons, aplicação ou disponibilidade? Nossa equipe está pronta para te ajudar a escolher os melhores produtos para realçar sua beleza.
+                  </p>
+                  <div className="pt-4">
+                    <Button 
+                      className="h-16 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-lg font-bold shadow-xl shadow-primary/20 gap-3"
+                      onClick={() => window.open(`https://wa.me/${WHATSAPP_LOJA}?text=Olá! Gostaria de um atendimento personalizado.`, '_blank')}
+                    >
+                      <MessageCircle className="h-6 w-6" /> Falar no WhatsApp
+                    </Button>
+                  </div>
+               </div>
+               <div className="absolute top-[-50px] left-[-50px] w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+               <div className="absolute bottom-[-50px] right-[-50px] w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+            </div>
           </div>
+
+          {/* Footer */}
+          <footer className="bg-white border-t pt-16 pb-8 px-4 md:px-8">
+            <div className="container mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border border-primary/10">
+                      <Image src={LOGO_URL} alt="Flor de Batom" fill className="object-cover" />
+                    </div>
+                    <span className="text-2xl font-bold text-primary tracking-tight">Flor de Batom</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Sua loja online de maquiagens selecionadas para realçar sua beleza com sofisticação e delicadeza. Beleza em cada detalhe.
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <button className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                      <Instagram className="h-5 w-5" />
+                    </button>
+                    <button className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                      <MessageCircle className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-primary">Navegação</h4>
+                  <ul className="space-y-3">
+                    <li><button onClick={() => setSelectedCategory('Todos')} className="text-muted-foreground text-sm hover:text-primary transition-colors">Início</button></li>
+                    <li><button onClick={() => setSelectedCategory('Todos')} className="text-muted-foreground text-sm hover:text-primary transition-colors">Novidades</button></li>
+                    <li><button onClick={() => setSelectedCategory('Batom')} className="text-muted-foreground text-sm hover:text-primary transition-colors">Batons</button></li>
+                    <li><button onClick={() => setSelectedCategory('Base')} className="text-muted-foreground text-sm hover:text-primary transition-colors">Face</button></li>
+                  </ul>
+                </div>
+
+                <div className="space-y-6">
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-primary">Contato & Endereço</h4>
+                  <ul className="space-y-4">
+                    <li className="flex items-start gap-3">
+                      <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground text-sm">Belém, Pará - Brasil<br />Atendimento Online Nacional</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <MessageCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground text-sm">(91) 98719-9039</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <Clock className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground text-sm">Seg - Sex: 09h às 18h<br />Sáb: 09h às 13h</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-6">
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-primary">Formas de Pagamento</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="px-3 py-1.5 rounded-lg border bg-muted/20 flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
+                      <CreditCard className="h-3 w-3" /> PIX
+                    </div>
+                    <div className="px-3 py-1.5 rounded-lg border bg-muted/20 flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
+                      <ShoppingBag className="h-3 w-3" /> DINHEIRO
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                    <p className="text-[10px] font-medium leading-relaxed text-primary/80">
+                      ✨ <span className="font-bold">Destaque:</span> Entregas em Belém e região metropolitana com agilidade e carinho.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p className="text-[10px] text-muted-foreground font-medium">
+                  © {new Date().getFullYear()} Flor de Batom Makeup. Todos os direitos reservados.
+                </p>
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                   Feito com <Heart className="h-3 w-3 text-red-400 fill-red-400" /> para realçar sua beleza.
+                </div>
+              </div>
+            </div>
+          </footer>
         </main>
       </div>
 
