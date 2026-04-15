@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useMemo, type ReactNode } from 'react';
+import React, { useState, useEffect, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
 import { initializeFirebase } from '@/firebase';
 
@@ -10,15 +10,26 @@ interface FirebaseClientProviderProps {
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  const firebaseServices = useMemo(() => {
-    return initializeFirebase();
+  const [services, setServices] = useState<{
+    firebaseApp: any;
+    auth: any;
+    firestore: any;
+  } | null>(null);
+
+  useEffect(() => {
+    // Inicializa apenas no cliente para evitar erros de hidratação no build estático
+    setServices(initializeFirebase());
   }, []);
+
+  if (!services) {
+    return <>{children}</>;
+  }
 
   return (
     <FirebaseProvider
-      firebaseApp={firebaseServices.firebaseApp as any}
-      auth={firebaseServices.auth as any}
-      firestore={firebaseServices.firestore as any}
+      firebaseApp={services.firebaseApp}
+      auth={services.auth}
+      firestore={services.firestore}
     >
       {children}
     </FirebaseProvider>

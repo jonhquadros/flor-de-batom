@@ -8,41 +8,30 @@ import {
   ShoppingCart, 
   Plus, 
   Minus, 
-  Instagram, 
-  MessageCircle, 
-  X,
-  Star,
-  Info,
-  Copy,
   Menu,
   ChevronRight,
-  ChevronDown,
-  Sparkles,
-  Flower2,
-  Truck,
-  ShoppingBag,
-  Heart
+  Clock,
+  CheckCircle2,
+  XCircle,
+  ShoppingBag
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Product, CartItem, Order, Category, ProductVariation } from '@/lib/types';
+import { Product, CartItem, Order, Category } from '@/lib/types';
 import { 
   useFirestore, 
   useCollection, 
   useMemoFirebase, 
-  useAuth,
   useUser,
   FirebaseContext
 } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 import { saveOrderToFirestore, seedInitialDataToFirestore } from '@/lib/storage-utils';
 
@@ -72,7 +61,7 @@ export default function Storefront() {
   const { data: categoriesRaw } = useCollection<Category>(categoriesQuery as any);
 
   const categories = useMemo(() => {
-    if (!mounted || !categoriesRaw || !Array.isArray(categoriesRaw)) return [];
+    if (!mounted || !categoriesRaw) return [];
     return [...categoriesRaw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   }, [categoriesRaw, mounted]);
 
@@ -120,9 +109,8 @@ export default function Storefront() {
   }, [cart, mounted]);
 
   const filteredProducts = useMemo(() => {
-    if (!mounted) return [];
-    const raw = Array.isArray(productsRaw) ? productsRaw : [];
-    let result = raw.filter(p => {
+    if (!mounted || !productsRaw) return [];
+    let result = [...productsRaw].filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             p.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'Todos' || p.category === selectedCategory;
@@ -185,8 +173,8 @@ export default function Storefront() {
   };
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
-    const raw = Array.isArray(productsRaw) ? productsRaw : [];
-    const product = raw.find(p => p.id === id);
+    if (!productsRaw) return;
+    const product = productsRaw.find(p => p.id === id);
     if (!product) return;
 
     if (delta > 0) {
@@ -250,7 +238,7 @@ export default function Storefront() {
     return selectedProduct.imageUrl;
   }, [selectedProduct, selectedColor]);
 
-  if (!mounted) return <div className="min-h-screen bg-[#FDFCFB]"></div>;
+  if (!mounted) return null;
 
   return (
     <div className="flex min-h-screen bg-[#FDFCFB] text-foreground font-poppins">
@@ -448,50 +436,53 @@ export default function Storefront() {
       </Sheet>
 
       <Dialog open={!!selectedProduct} onOpenChange={(open) => { if(!open) { setSelectedProduct(null); setSelectedColor(''); } }}>
-        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden border-none shadow-2xl z-[120] rounded-[2rem]">
+        <DialogContent className="w-[95%] sm:max-w-[800px] p-0 overflow-hidden border-none shadow-2xl z-[120] rounded-[2.5rem] max-h-[92vh]">
           <DialogHeader className="sr-only">
             <DialogTitle>{selectedProduct?.name}</DialogTitle>
             <DialogDescription>Detalhes do produto {selectedProduct?.name}</DialogDescription>
           </DialogHeader>
           {selectedProduct && (
-            <div className="flex flex-col md:flex-row h-full">
-              <div className="relative aspect-square md:w-1/2 bg-muted">
+            <div className="flex flex-col md:flex-row h-full overflow-hidden">
+              <div className="relative aspect-square md:w-1/2 bg-muted shrink-0">
                 <Image src={displayedProductImage} alt={selectedProduct.name} fill className="object-cover" />
               </div>
-              <div className="p-8 md:w-1/2 flex flex-col justify-between bg-white overflow-y-auto max-h-[70vh] md:max-h-full">
+              <div className="p-6 md:p-10 flex-1 flex flex-col justify-between bg-white overflow-y-auto">
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">{selectedProduct.category}</p>
-                    <h2 className="text-2xl font-bold text-primary leading-tight">{selectedProduct.name}</h2>
-                    <p className="text-2xl font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                    <h2 className="text-xl md:text-3xl font-bold text-primary leading-tight">{selectedProduct.name}</h2>
+                    <p className="text-xl md:text-2xl font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
                   </div>
 
-                  <p className="text-muted-foreground text-sm leading-relaxed">{selectedProduct.description}</p>
+                  <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{selectedProduct.description}</p>
 
                   {selectedProduct.variations && selectedProduct.variations.length > 0 && (
                     <div className="space-y-3">
                       <Label className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Escolha a Cor</Label>
-                      <RadioGroup value={selectedColor} onValueChange={setSelectedColor} className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2">
                         {selectedProduct.variations.map((v) => (
-                          <div key={v.name} className="flex items-center">
-                            <RadioGroupItem value={v.name} id={`color-${v.name}`} className="sr-only" />
-                            <Label 
-                              htmlFor={`color-${v.name}`}
-                              className={`px-4 py-2 rounded-xl text-xs font-bold border-2 cursor-pointer transition-all ${selectedColor === v.name ? 'border-primary bg-primary text-white shadow-md' : 'border-muted bg-white text-muted-foreground hover:border-primary/30'}`}
-                            >
-                              {v.name.toUpperCase()}
-                              {v.stock <= 5 && v.stock > 0 && <span className="ml-2 text-[8px] opacity-70">(ÚLTIMAS)</span>}
-                              {v.stock === 0 && <span className="ml-2 text-[8px] opacity-70">(ESGOTADO)</span>}
-                            </Label>
-                          </div>
+                          <button
+                            key={v.name}
+                            onClick={() => setSelectedColor(v.name)}
+                            disabled={v.stock === 0}
+                            className={`px-4 py-2 rounded-xl text-[10px] font-bold border-2 transition-all ${
+                              selectedColor === v.name 
+                                ? 'border-primary bg-primary text-white shadow-md' 
+                                : 'border-muted bg-white text-muted-foreground hover:border-primary/30 disabled:opacity-40 disabled:cursor-not-allowed'
+                            }`}
+                          >
+                            {v.name.toUpperCase()}
+                            {v.stock <= 5 && v.stock > 0 && <span className="ml-2 opacity-70">(ÚLTIMAS)</span>}
+                            {v.stock === 0 && <span className="ml-2 opacity-70">(ESGOTADO)</span>}
+                          </button>
                         ))}
-                      </RadioGroup>
+                      </div>
                     </div>
                   )}
                 </div>
 
                 <Button 
-                  className="w-full h-14 mt-10 font-bold rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 active:scale-95 transition-transform" 
+                  className="w-full h-14 mt-8 md:mt-10 font-bold rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 active:scale-95 transition-transform" 
                   onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); }}
                 >
                   Adicionar ao Carrinho
@@ -547,3 +538,4 @@ export default function Storefront() {
     </div>
   );
 }
+

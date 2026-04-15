@@ -33,7 +33,6 @@ export function initializeFirebase() {
       firestore: getFirestore(app)
     };
   } catch (error) {
-    // During static build, this might fail, which is expected.
     return {
       firebaseApp: null,
       auth: null,
