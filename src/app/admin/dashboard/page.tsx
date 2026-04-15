@@ -112,7 +112,7 @@ export default function AdminDashboard() {
               </div>
               <div className="min-w-0 w-full space-y-1">
                 <p className="text-[10px] md:text-xs font-normal text-muted-foreground uppercase tracking-wider truncate">{stat.label}</p>
-                <h3 className="text-sm md:text-xl font-bold truncate">{stat.value}</h3>
+                <h3 className="text-sm md:text-xl font-bold font-poppins truncate">{stat.value}</h3>
               </div>
             </CardContent>
           </Card>
