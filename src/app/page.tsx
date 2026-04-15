@@ -486,7 +486,7 @@ export default function Storefront() {
                   </div>
                   <h3 className="text-3xl md:text-5xl font-bold text-primary font-poppins">Atendimento Exclusivo</h3>
                   <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
-                    Dúvidas sobre tons, aplicação ou disponibilidade? Nossa equipe está pronta para te ajudar a escolher os melhores produtos para realçar sua beleza.
+                    Dúvidas sobre tons, texturas ou seu pedido? Estamos prontos para te atender com todo o carinho que você merece 💖
                   </p>
                   <div className="pt-4">
                     <Button 
