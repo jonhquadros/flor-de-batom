@@ -524,6 +524,23 @@ export default function Storefront() {
                   </div>
                 </RadioGroup>
               </div>
+
+              {/* PIX Information Section */}
+              {paymentMethod === 'Pix' && (
+                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-bold uppercase text-primary/60">Chave Pix (Celular)</span>
+                    <span className="text-sm font-bold text-primary">(91) 98719-9039</span>
+                  </div>
+                  <div className="p-3 bg-white/50 border border-primary/10 rounded-xl">
+                    <p className="text-[10px] leading-relaxed text-primary">
+                      ⚠️ <span className="font-bold uppercase tracking-tighter">Aviso:</span> Após o pagamento, envie o comprovante para confirmar seu pedido pelo WhatsApp da loja: <br />
+                      <span className="font-bold">(91) 98719-9039</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {paymentMethod === 'Dinheiro' && (
                 <div className="space-y-1.5 animate-in slide-in-from-top-2">
                   <Label htmlFor="change" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Precisa de troco para quanto?</Label>
