@@ -436,57 +436,59 @@ export default function Storefront() {
       </Sheet>
 
       <Dialog open={!!selectedProduct} onOpenChange={(open) => { if(!open) { setSelectedProduct(null); setSelectedColor(''); } }}>
-        <DialogContent className="w-[95%] sm:max-w-[800px] p-0 overflow-hidden border-none shadow-2xl z-[120] rounded-[2.5rem] max-h-[92vh]">
+        <DialogContent className="w-[95%] sm:max-w-[800px] p-0 border-none shadow-2xl z-[120] rounded-[2.5rem] max-h-[92vh] flex flex-col overflow-hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>{selectedProduct?.name}</DialogTitle>
             <DialogDescription>Detalhes do produto {selectedProduct?.name}</DialogDescription>
           </DialogHeader>
           {selectedProduct && (
-            <div className="flex flex-col md:flex-row h-full overflow-hidden">
-              <div className="relative aspect-square md:w-1/2 bg-muted shrink-0">
-                <Image src={displayedProductImage} alt={selectedProduct.name} fill className="object-cover" />
-              </div>
-              <div className="p-6 md:p-10 flex-1 flex flex-col justify-between bg-white overflow-y-auto">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">{selectedProduct.category}</p>
-                    <h2 className="text-xl md:text-3xl font-bold text-primary leading-tight">{selectedProduct.name}</h2>
-                    <p className="text-xl md:text-2xl font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+            <div className="flex-1 overflow-y-auto no-scrollbar">
+              <div className="flex flex-col md:flex-row h-full">
+                <div className="relative aspect-[4/3] md:aspect-square md:w-1/2 bg-muted shrink-0">
+                  <Image src={displayedProductImage} alt={selectedProduct.name} fill className="object-cover" />
+                </div>
+                <div className="p-5 md:p-10 flex-1 flex flex-col bg-white">
+                  <div className="space-y-5 md:space-y-6 flex-1">
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">{selectedProduct.category}</p>
+                      <h2 className="text-lg md:text-3xl font-bold text-primary leading-tight">{selectedProduct.name}</h2>
+                      <p className="text-xl md:text-2xl font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                    </div>
+
+                    <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{selectedProduct.description}</p>
+
+                    {selectedProduct.variations && selectedProduct.variations.length > 0 && (
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Escolha a Cor</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedProduct.variations.map((v) => (
+                            <button
+                              key={v.name}
+                              onClick={() => setSelectedColor(v.name)}
+                              disabled={v.stock === 0}
+                              className={`px-3 py-2 md:px-4 md:py-2 rounded-xl text-[10px] font-bold border-2 transition-all ${
+                                selectedColor === v.name 
+                                  ? 'border-primary bg-primary text-white shadow-md' 
+                                  : 'border-muted bg-white text-muted-foreground hover:border-primary/30 disabled:opacity-40 disabled:cursor-not-allowed'
+                              }`}
+                            >
+                              {v.name.toUpperCase()}
+                              {v.stock <= 5 && v.stock > 0 && <span className="ml-2 opacity-70">(ÚLTIMAS)</span>}
+                              {v.stock === 0 && <span className="ml-2 opacity-70">(ESGOTADO)</span>}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{selectedProduct.description}</p>
-
-                  {selectedProduct.variations && selectedProduct.variations.length > 0 && (
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Escolha a Cor</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedProduct.variations.map((v) => (
-                          <button
-                            key={v.name}
-                            onClick={() => setSelectedColor(v.name)}
-                            disabled={v.stock === 0}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-bold border-2 transition-all ${
-                              selectedColor === v.name 
-                                ? 'border-primary bg-primary text-white shadow-md' 
-                                : 'border-muted bg-white text-muted-foreground hover:border-primary/30 disabled:opacity-40 disabled:cursor-not-allowed'
-                            }`}
-                          >
-                            {v.name.toUpperCase()}
-                            {v.stock <= 5 && v.stock > 0 && <span className="ml-2 opacity-70">(ÚLTIMAS)</span>}
-                            {v.stock === 0 && <span className="ml-2 opacity-70">(ESGOTADO)</span>}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <Button 
+                    className="w-full h-14 mt-6 md:mt-10 font-bold rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 active:scale-95 transition-transform" 
+                    onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); }}
+                  >
+                    Adicionar ao Carrinho
+                  </Button>
                 </div>
-
-                <Button 
-                  className="w-full h-14 mt-8 md:mt-10 font-bold rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 active:scale-95 transition-transform" 
-                  onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); }}
-                >
-                  Adicionar ao Carrinho
-                </Button>
               </div>
             </div>
           )}
@@ -538,4 +540,3 @@ export default function Storefront() {
     </div>
   );
 }
-
