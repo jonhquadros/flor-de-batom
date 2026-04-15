@@ -395,7 +395,7 @@ export default function Storefront() {
 
         <main className="flex-1">
           <div className="container mx-auto px-4 mt-8 pb-10">
-            {/* Promo Banner */}
+            {/* Promo Banner Otimizado para Mobile */}
             <div className="mb-6 md:mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#7B1C2A] to-[#A02C3D] p-6 md:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="space-y-4 md:max-w-[60%] z-10 text-center md:text-left">
                 <div className="inline-flex items-center bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10">
@@ -552,7 +552,7 @@ export default function Storefront() {
                   <ul className="space-y-4">
                     <li className="flex items-start gap-3">
                       <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground text-sm">Belém, Pará - Brasil<br />Atendimento Online Nacional</span>
+                      <span className="text-muted-foreground text-sm">Capanema, Pará - Brasil</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <MessageCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
