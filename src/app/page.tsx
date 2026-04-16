@@ -664,7 +664,7 @@ export default function Storefront() {
       </Dialog>
 
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <DialogContent className="w-[95%] max-w-md p-0 overflow-hidden border-none shadow-2xl z-[130] rounded-[2.5rem]">
+        <DialogContent className="w-[95%] max-w-[400px] p-0 overflow-hidden border-none shadow-2xl z-[130] rounded-[2.5rem]">
           <DialogHeader className="p-8 pb-4">
             <DialogTitle className="text-2xl font-bold text-primary font-poppins">Finalizar Pedido</DialogTitle>
             <DialogDescription className="font-poppins">Preencha os dados para entrega via WhatsApp.</DialogDescription>
