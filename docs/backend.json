@@ -61,6 +61,10 @@
           "type": "number",
           "description": "The selling price of the product."
         },
+        "cost": {
+          "type": "number",
+          "description": "The acquisition cost of the product for billing reports."
+        },
         "stock": {
           "type": "number",
           "description": "The total quantity available in inventory."

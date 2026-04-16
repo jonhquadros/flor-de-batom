@@ -10,6 +10,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  cost?: number; // Custo de aquisição para relatórios futuros
   category: string;
   imageUrl: string;
   isFeatured: boolean;

@@ -43,6 +43,7 @@ export default function AdminProducts() {
     name: '',
     description: '',
     price: 0,
+    cost: 0,
     category: '',
     imageUrl: '',
     isFeatured: false,
@@ -58,6 +59,7 @@ export default function AdminProducts() {
       name: '', 
       description: '', 
       price: 0, 
+      cost: 0,
       category: categories.length > 0 ? categories[0].name : '', 
       imageUrl: `https://picsum.photos/seed/${Math.random()}/400/400`, 
       isFeatured: false, 
@@ -123,6 +125,7 @@ export default function AdminProducts() {
       name: formData.name || '',
       description: formData.description || '',
       price: Number(formData.price) || 0,
+      cost: Number(formData.cost) || 0,
       category: formData.category || '',
       imageUrl: formData.imageUrl || '',
       isFeatured: !!formData.isFeatured,
@@ -245,7 +248,7 @@ export default function AdminProducts() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="price" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Preço (R$)</Label>
+                <Label htmlFor="price" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Preço de Venda (R$)</Label>
                 <Input 
                   id="price" 
                   type="number" 
@@ -255,6 +258,19 @@ export default function AdminProducts() {
                   required 
                   className="h-11 rounded-xl"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="cost" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Custo (R$)</Label>
+                <Input 
+                  id="cost" 
+                  type="number" 
+                  step="0.01" 
+                  value={formData.cost} 
+                  onChange={(e) => setFormData(p => ({...p, cost: parseFloat(e.target.value)}))} 
+                  className="h-11 rounded-xl"
+                  placeholder="Ex: 15.00"
+                />
+                <p className="text-[10px] text-muted-foreground italic">Apenas para relatórios internos.</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="order" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Ordem de Exibição</Label>
