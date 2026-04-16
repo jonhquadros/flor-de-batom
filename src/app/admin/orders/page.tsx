@@ -2,7 +2,7 @@
 "use client"
 
 import React, { useState, useMemo } from 'react';
-import { Download, Search, CheckCircle2, Package, Truck, Clock, Eye, MessageCircle, Save, Trash2, Plus, Minus, XCircle } from 'lucide-react';
+import { Download, Search, CheckCircle2, Package, Truck, Clock, Eye, MessageCircle, Save, Trash2, Plus, Minus, XCircle, ChevronLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label as LabelComponent } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus, Product, CartItem } from '@/lib/types';
 import { updateOrderStatus, updateOrder } from '@/lib/storage-utils';
@@ -84,7 +83,7 @@ export default function AdminOrders() {
   const handleStatusChangeExecution = (sendNotification: boolean) => {
     if (!statusToUpdate) return;
     const { id, status } = statusToUpdate;
-    updateOrderStatus(db, id, status);
+    if (db) updateOrderStatus(db, id, status);
     
     if (sendNotification) {
       const order = orders.find(o => o.id === id);
@@ -101,6 +100,9 @@ export default function AdminOrders() {
     setSelectedOrder({ ...order });
     setIsDetailsOpen(true);
     setIsAddingProduct(false);
+    setSelectedProductToAdd(null);
+    setSelectedColorToAdd('');
+    setQuantityToAdd(1);
   };
 
   const handleUpdateItemQuantity = (id: string, delta: number, color?: string) => {
@@ -130,16 +132,46 @@ export default function AdminOrders() {
 
   const handleAddProductToOrder = () => {
     if (!selectedOrder || !selectedProductToAdd) return;
-    const updatedItems = [...selectedOrder.items, { ...selectedProductToAdd, quantity: quantityToAdd, selectedColor: selectedColorToAdd }];
+    
+    const needsColor = selectedProductToAdd.variations && selectedProductToAdd.variations.length > 0;
+    if (needsColor && !selectedColorToAdd) {
+      toast({ variant: "destructive", title: "Selecione uma cor" });
+      return;
+    }
+
+    // Procura se já existe o mesmo item com a mesma cor no pedido
+    const existingItemIdx = selectedOrder.items.findIndex(
+      item => item.id === selectedProductToAdd.id && item.selectedColor === selectedColorToAdd
+    );
+
+    let updatedItems;
+    if (existingItemIdx > -1) {
+      updatedItems = [...selectedOrder.items];
+      updatedItems[existingItemIdx] = {
+        ...updatedItems[existingItemIdx],
+        quantity: updatedItems[existingItemIdx].quantity + quantityToAdd
+      };
+    } else {
+      updatedItems = [...selectedOrder.items, { 
+        ...selectedProductToAdd, 
+        quantity: quantityToAdd, 
+        selectedColor: selectedColorToAdd 
+      }];
+    }
+
     const newTotal = updatedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     setSelectedOrder({ ...selectedOrder, items: updatedItems, total: newTotal });
+    
+    // Reset states
     setIsAddingProduct(false);
     setSelectedProductToAdd(null);
+    setSelectedColorToAdd('');
+    setQuantityToAdd(1);
     toast({ title: "Produto Adicionado" });
   };
 
   const saveOrderChanges = () => {
-    if (!selectedOrder) return;
+    if (!selectedOrder || !db) return;
     updateOrder(db, selectedOrder);
     setIsDetailsOpen(false);
     toast({ title: "Pedido Atualizado" });
@@ -260,17 +292,61 @@ export default function AdminOrders() {
               </div>
 
               <div className="space-y-4">
-                <div className="flex justify-between items-center"><Label className="text-[11px] font-bold uppercase text-primary">Itens</Label>{selectedOrder.status === 'Pendente' && <Button variant="outline" size="sm" onClick={() => setIsAddingProduct(!isAddingProduct)} className="rounded-full h-8 text-[10px]">{isAddingProduct ? 'Fechar' : '+ Adicionar'}</Button>}</div>
+                <div className="flex justify-between items-center"><Label className="text-[11px] font-bold uppercase text-primary">Itens</Label>{selectedOrder.status === 'Pendente' && <Button variant="outline" size="sm" onClick={() => { setIsAddingProduct(!isAddingProduct); setSelectedProductToAdd(null); }} className="rounded-full h-8 text-[10px]">{isAddingProduct ? 'Fechar' : '+ Adicionar'}</Button>}</div>
+                
                 {isAddingProduct && (
-                  <div className="bg-primary/5 p-4 rounded-xl space-y-3">
-                    <Input placeholder="Buscar produto..." value={addingProductSearch} onChange={(e) => setAddingProductSearch(e.target.value)} className="h-9 bg-white" />
-                    <div className="max-h-32 overflow-y-auto space-y-1">
-                      {products.filter(p => p.name.toLowerCase().includes(addingProductSearch.toLowerCase())).map(p => (
-                        <div key={p.id} onClick={() => { setSelectedProductToAdd(p); handleAddProductToOrder(); }} className="p-2 bg-white hover:bg-primary/5 cursor-pointer rounded-lg text-xs flex justify-between"><span>{p.name}</span><span className="font-bold">R$ {p.price.toFixed(2)}</span></div>
-                      ))}
-                    </div>
+                  <div className="bg-primary/5 p-4 rounded-xl space-y-3 animate-in fade-in duration-200">
+                    {!selectedProductToAdd ? (
+                      <>
+                        <Input placeholder="Buscar produto..." value={addingProductSearch} onChange={(e) => setAddingProductSearch(e.target.value)} className="h-9 bg-white" />
+                        <div className="max-h-32 overflow-y-auto space-y-1">
+                          {products.filter(p => p.name.toLowerCase().includes(addingProductSearch.toLowerCase())).map(p => (
+                            <div key={p.id} onClick={() => setSelectedProductToAdd(p)} className="p-2 bg-white hover:bg-primary/5 cursor-pointer rounded-lg text-xs flex justify-between">
+                              <span>{p.name}</span>
+                              <span className="font-bold text-primary">R$ {p.price.toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => { setSelectedProductToAdd(null); setSelectedColorToAdd(''); }} className="h-7 w-7"><ChevronLeft className="h-4 w-4" /></Button>
+                          <span className="text-xs font-bold text-primary uppercase">{selectedProductToAdd.name}</span>
+                        </div>
+                        
+                        {selectedProductToAdd.variations && selectedProductToAdd.variations.length > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-[9px] font-bold uppercase">Escolha a Cor</Label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {selectedProductToAdd.variations.map(v => (
+                                <button
+                                  key={v.name}
+                                  onClick={() => setSelectedColorToAdd(v.name)}
+                                  className={`px-3 py-1.5 rounded-lg text-[9px] font-bold border-2 transition-all ${
+                                    selectedColorToAdd === v.name ? 'border-primary bg-primary text-white' : 'border-muted bg-white'
+                                  }`}
+                                >
+                                  {v.name.toUpperCase()}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center border rounded-xl px-2 bg-white h-10">
+                            <button onClick={() => setQuantityToAdd(Math.max(1, quantityToAdd - 1))} className="p-1"><Minus className="h-3 w-3" /></button>
+                            <span className="w-10 text-center font-bold text-xs">{quantityToAdd}</span>
+                            <button onClick={() => setQuantityToAdd(quantityToAdd + 1)} className="p-1"><Plus className="h-3 w-3" /></button>
+                          </div>
+                          <Button onClick={handleAddProductToOrder} className="flex-1 h-10 font-bold rounded-xl shadow-lg shadow-primary/20">Confirmar Item</Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
+
                 <div className="border rounded-2xl divide-y bg-white overflow-hidden shadow-sm">
                   {selectedOrder.items.map(item => (
                     <div key={item.id + (item.selectedColor || '')} className="p-4 flex items-center justify-between">
