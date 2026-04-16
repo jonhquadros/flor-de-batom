@@ -20,7 +20,8 @@ import {
   Instagram,
   MapPin,
   CreditCard,
-  Heart
+  Heart,
+  Copy
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +89,7 @@ export default function Storefront() {
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
   const WHATSAPP_LOJA = "5591987199039";
+  const PIX_KEY = "91987199039";
   const INSTAGRAM_URL = "https://www.instagram.com/flordebatom.makeup?igsh=MTI0NTk3MWwwdnltNg==";
 
   useEffect(() => {
@@ -264,6 +266,14 @@ export default function Storefront() {
     setCustomerPhone('');
     setPaymentMethod('Pix');
     setChangeAmount('');
+  };
+
+  const copyPixKey = () => {
+    navigator.clipboard.writeText(PIX_KEY);
+    toast({
+      title: "Chave Copiada!",
+      description: "A chave Pix foi copiada com sucesso.",
+    });
   };
 
   const displayedProductImage = useMemo(() => {
@@ -694,15 +704,21 @@ export default function Storefront() {
               </div>
 
               {paymentMethod === 'Pix' && (
-                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2 font-poppins">
-                  <div className="flex flex-col gap-1">
+                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2 font-poppins text-center">
+                  <div className="flex flex-col gap-1 items-center">
                     <span className="text-[10px] font-bold uppercase text-primary/60">Chave Pix (Celular)</span>
-                    <span className="text-sm font-bold text-primary">(91) 98719-9039</span>
+                    <button 
+                      onClick={copyPixKey}
+                      className="group relative flex items-center gap-2 text-sm font-bold text-primary bg-white px-6 py-3 rounded-xl border border-primary/20 hover:border-primary/40 active:scale-95 transition-all shadow-sm"
+                    >
+                      (91) 98719-9039
+                      <Copy className="h-3 w-3 opacity-50 group-hover:opacity-100" />
+                    </button>
+                    <span className="text-[9px] text-primary/40 italic">Clique no número para copiar</span>
                   </div>
                   <div className="p-3 bg-white/50 border border-primary/10 rounded-xl">
                     <p className="text-[10px] leading-relaxed text-primary">
-                      ⚠️ <span className="font-bold uppercase tracking-tighter">Aviso:</span> Após o pagamento, envie o comprovante para confirmar seu pedido pelo WhatsApp da loja: <br />
-                      <span className="font-bold">(91) 98719-9039</span>
+                      ⚠️ <span className="font-bold uppercase tracking-tighter">Aviso:</span> Após o pagamento, envie o comprovante para confirmar seu pedido pelo WhatsApp da loja.
                     </p>
                   </div>
                 </div>
