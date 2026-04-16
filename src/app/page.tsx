@@ -517,24 +517,6 @@ export default function Storefront() {
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     Sua loja online de maquiagens selecionadas para realçar sua beleza com sofisticação e delicadeza. Beleza em cada detalhe.
                   </p>
-                  <div className="flex items-center gap-4">
-                    <a 
-                      href={INSTAGRAM_URL} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all"
-                    >
-                      <Instagram className="h-5 w-5" />
-                    </a>
-                    <a 
-                      href={`https://wa.me/${WHATSAPP_LOJA}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all"
-                    >
-                      <MessageCircle className="h-5 w-5" />
-                    </a>
-                  </div>
                 </div>
 
                 <div className="space-y-6">
@@ -553,6 +535,24 @@ export default function Storefront() {
                       <span className="text-muted-foreground text-sm">Seg - Sex: 09h às 18h<br />Sáb: 09h às 13h</span>
                     </li>
                   </ul>
+                  <div className="flex items-center gap-4 pt-2">
+                    <a 
+                      href={INSTAGRAM_URL} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all"
+                    >
+                      <Instagram className="h-5 w-5" />
+                    </a>
+                    <a 
+                      href={`https://wa.me/${WHATSAPP_LOJA}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all"
+                    >
+                      <MessageCircle className="h-5 w-5" />
+                    </a>
+                  </div>
                 </div>
               </div>
 
