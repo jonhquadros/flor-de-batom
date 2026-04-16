@@ -395,7 +395,7 @@ export default function Storefront() {
 
         <main className="flex-1">
           <div className="container mx-auto px-4 mt-8 pb-10">
-            {/* Promo Banner Otimizado para Mobile */}
+            {/* Promo Banner */}
             <div className="mb-6 md:mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#7B1C2A] to-[#A02C3D] p-6 md:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="space-y-4 md:max-w-[60%] z-10 text-center md:text-left">
                 <div className="inline-flex items-center bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10">
@@ -506,7 +506,7 @@ export default function Storefront() {
           {/* Footer */}
           <footer className="bg-white border-t pt-16 pb-8 px-4 md:px-8">
             <div className="container mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border border-primary/10">
@@ -553,18 +553,6 @@ export default function Storefront() {
                       <span className="text-muted-foreground text-sm">Seg - Sex: 09h às 18h<br />Sáb: 09h às 13h</span>
                     </li>
                   </ul>
-                </div>
-
-                <div className="space-y-6">
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-primary">Formas de Pagamento</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <div className="px-3 py-1.5 rounded-lg border bg-muted/20 flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
-                      <CreditCard className="h-3 w-3" /> PIX
-                    </div>
-                    <div className="px-3 py-1.5 rounded-lg border bg-muted/20 flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
-                      <ShoppingBag className="h-3 w-3" /> DINHEIRO
-                    </div>
-                  </div>
                 </div>
               </div>
 
