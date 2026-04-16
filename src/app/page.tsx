@@ -481,7 +481,7 @@ export default function Storefront() {
                   <CardContent className="p-3 md:p-5 flex flex-col flex-1">
                     <div className="flex-1 space-y-1">
                       <p className="text-[9px] font-bold text-primary/60 uppercase tracking-widest">{product.category}</p>
-                      <h4 className="font-poppins font-normal text-sm leading-tight line-clamp-2 min-h-[2.5em] text-primary cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                      <h4 className="font-poppins font-normal text-xs leading-tight line-clamp-2 min-h-[2.5em] text-primary cursor-pointer" onClick={() => setSelectedProduct(product)}>
                         {product.name}
                       </h4>
                       <p className="text-base font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
