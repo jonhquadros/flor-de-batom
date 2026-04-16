@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -356,7 +355,7 @@ export default function Storefront() {
                               <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-normal text-sm truncate text-primary">{item.name}</h4>
+                              <h4 className="font-poppins font-normal text-sm truncate text-primary">{item.name}</h4>
                               {item.selectedColor && (
                                 <p className="text-[10px] font-bold uppercase text-muted-foreground mt-0.5 tracking-tight">
                                   Cor: {item.selectedColor}
@@ -404,7 +403,7 @@ export default function Storefront() {
                 <h2 className="text-2xl md:text-5xl font-bold text-white leading-tight font-poppins">
                   Realce sua beleza todos os dias <span className="inline-block animate-pulse">💓</span>
                 </h2>
-                <p className="text-white/80 text-xs md:text-base leading-relaxed max-w-md mx-auto md:mx-0">
+                <p className="text-white/80 text-xs md:text-base leading-relaxed max-w-md mx-auto md:mx-0 font-poppins">
                   Maquiagens selecionadas para valorizar sua autoestima com delicadeza <Sparkles className="h-4 w-4 inline text-yellow-300" />
                 </p>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 pt-2 text-white/90">
@@ -422,7 +421,6 @@ export default function Storefront() {
                   <Image src={LOGO_URL} alt="Flor de Batom Logo" fill className="object-cover" />
                 </div>
               </div>
-              {/* Decorative elements */}
               <div className="absolute top-[-20px] right-[-20px] w-48 h-48 md:w-64 md:h-64 bg-white/5 rounded-full blur-3xl"></div>
               <div className="absolute bottom-[-40px] left-[-40px] w-64 h-64 md:w-80 md:h-80 bg-black/10 rounded-full blur-3xl"></div>
             </div>
@@ -482,7 +480,7 @@ export default function Storefront() {
                   <CardContent className="p-3 md:p-5 flex flex-col flex-1">
                     <div className="flex-1 space-y-1">
                       <p className="text-[9px] font-bold text-primary/60 uppercase tracking-widest">{product.category}</p>
-                      <h4 className="font-normal text-sm leading-tight line-clamp-2 min-h-[2.5em] text-primary cursor-pointer" onClick={() => setSelectedProduct(product)}>
+                      <h4 className="font-poppins font-normal text-sm leading-tight line-clamp-2 min-h-[2.5em] text-primary cursor-pointer" onClick={() => setSelectedProduct(product)}>
                         {product.name}
                       </h4>
                       <p className="text-base font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
@@ -505,7 +503,7 @@ export default function Storefront() {
                      <MessageCircle className="h-8 w-8 text-primary" />
                   </div>
                   <h3 className="text-3xl md:text-5xl font-bold text-primary font-poppins">Atendimento Exclusivo</h3>
-                  <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">
+                  <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto leading-relaxed font-poppins">
                     Dúvidas sobre tons, texturas ou seu pedido? Estamos prontos para te atender com todo o carinho que você merece 💖
                   </p>
                   <div className="pt-4">
@@ -527,15 +525,15 @@ export default function Storefront() {
             <div className="container mx-auto">
               <div className="flex flex-col items-center justify-center text-center space-y-6 mb-16">
                 <div className="space-y-6">
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-primary">Contato & Endereço</h4>
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-primary font-poppins">Contato & Endereço</h4>
                   <ul className="space-y-4">
                     <li className="flex items-center justify-center gap-3">
                       <MapPin className="h-5 w-5 text-primary shrink-0" />
-                      <span className="text-muted-foreground text-sm">Capanema, Pará - Brasil</span>
+                      <span className="text-muted-foreground text-sm font-poppins">Capanema, Pará - Brasil</span>
                     </li>
                     <li className="flex items-center justify-center gap-3">
                       <MessageCircle className="h-5 w-5 text-primary shrink-0" />
-                      <span className="text-muted-foreground text-sm">(91) 98719-9039</span>
+                      <span className="text-muted-foreground text-sm font-poppins">(91) 98719-9039</span>
                     </li>
                   </ul>
                   <div className="flex items-center justify-center gap-4 pt-2">
@@ -560,10 +558,10 @@ export default function Storefront() {
               </div>
 
               <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                <p className="text-[10px] text-muted-foreground font-medium">
+                <p className="text-[10px] text-muted-foreground font-medium font-poppins">
                   © {new Date().getFullYear()} Flor de Batom Makeup. Todos os direitos reservados.
                 </p>
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-poppins">
                    Feito com <Heart className="h-3 w-3 text-red-400 fill-red-400" /> para realçar sua beleza.
                 </div>
               </div>
@@ -576,11 +574,11 @@ export default function Storefront() {
         <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[110]">
           <div className="h-full flex flex-col bg-white">
             <SheetHeader className="p-8 border-b flex flex-row items-center gap-3 bg-primary/5 text-left">
-              <SheetTitle className="text-2xl font-bold text-primary">Categorias</SheetTitle>
+              <SheetTitle className="text-2xl font-bold text-primary font-poppins">Categorias</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               <button 
-                className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between ${selectedCategory === 'Todos' ? 'bg-primary text-white' : 'text-muted-foreground'}`}
+                className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === 'Todos' ? 'bg-primary text-white' : 'text-muted-foreground'}`}
                 onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}
               >
                 TODOS {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}
@@ -588,7 +586,7 @@ export default function Storefront() {
               {categories.map(cat => (
                 <button 
                   key={cat.id} 
-                  className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between ${selectedCategory === cat.name ? 'bg-primary text-white' : 'text-muted-foreground'}`}
+                  className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === cat.name ? 'bg-primary text-white' : 'text-muted-foreground'}`}
                   onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}
                 >
                   {cat.name.toUpperCase()} {selectedCategory === cat.name && <ChevronRight className="h-5 w-5" />}
@@ -614,23 +612,23 @@ export default function Storefront() {
                 <div className="p-5 md:p-10 flex-1 flex flex-col bg-white">
                   <div className="space-y-5 md:space-y-6 flex-1">
                     <div className="space-y-2">
-                      <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">{selectedProduct.category}</p>
-                      <h2 className="text-lg md:text-3xl font-bold text-primary leading-tight">{selectedProduct.name}</h2>
-                      <p className="text-xl md:text-2xl font-semibold text-primary">R$ {selectedProduct.price.toFixed(2)}</p>
+                      <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest font-poppins">{selectedProduct.category}</p>
+                      <h2 className="text-lg md:text-3xl font-bold text-primary leading-tight font-poppins">{selectedProduct.name}</h2>
+                      <p className="text-xl md:text-2xl font-semibold text-primary font-poppins">R$ {selectedProduct.price.toFixed(2)}</p>
                     </div>
 
-                    <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{selectedProduct.description}</p>
+                    <p className="text-muted-foreground text-xs md:text-sm leading-relaxed font-poppins">{selectedProduct.description}</p>
 
                     {selectedProduct.variations && selectedProduct.variations.length > 0 && (
                       <div className="space-y-3">
-                        <Label className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Escolha a Cor</Label>
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-primary/60 font-poppins">Escolha a Cor</Label>
                         <div className="flex flex-wrap gap-2">
                           {selectedProduct.variations.map((v) => (
                             <button
                               key={v.name}
                               onClick={() => setSelectedColor(v.name)}
                               disabled={v.stock === 0}
-                              className={`px-3 py-2 md:px-4 md:py-2 rounded-xl text-[10px] font-bold border-2 transition-all ${
+                              className={`px-3 py-2 md:px-4 md:py-2 rounded-xl text-[10px] font-bold border-2 transition-all font-poppins ${
                                 selectedColor === v.name 
                                   ? 'border-primary bg-primary text-white shadow-md' 
                                   : 'border-muted bg-white text-muted-foreground hover:border-primary/30 disabled:opacity-40 disabled:cursor-not-allowed'
@@ -647,7 +645,7 @@ export default function Storefront() {
                   </div>
 
                   <Button 
-                    className="w-full h-14 mt-6 md:mt-10 font-bold rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 active:scale-95 transition-transform" 
+                    className="w-full h-14 mt-6 md:mt-10 font-bold rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 active:scale-95 transition-transform font-poppins" 
                     onClick={() => { addToCart(selectedProduct, selectedColor); setSelectedProduct(null); }}
                   >
                     Adicionar ao Carrinho
@@ -662,35 +660,35 @@ export default function Storefront() {
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
         <DialogContent className="w-[95%] max-w-md p-0 overflow-hidden border-none shadow-2xl z-[130] rounded-[2.5rem]">
           <DialogHeader className="p-8 pb-4">
-            <DialogTitle className="text-2xl font-bold text-primary">Finalizar Pedido</DialogTitle>
-            <DialogDescription>Preencha os dados para entrega via WhatsApp.</DialogDescription>
+            <DialogTitle className="text-2xl font-bold text-primary font-poppins">Finalizar Pedido</DialogTitle>
+            <DialogDescription className="font-poppins">Preencha os dados para entrega via WhatsApp.</DialogDescription>
           </DialogHeader>
           <div className="p-8 pt-4 space-y-6">
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Seu Nome</Label>
-                <Input id="name" placeholder="Ex: Maria Silva" className="h-12 rounded-2xl bg-muted/30 border-none" value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                <Label htmlFor="name" className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">Seu Nome</Label>
+                <Input id="name" placeholder="Ex: Maria Silva" className="h-12 rounded-2xl bg-muted/30 border-none font-poppins" value={customerName} onChange={e => setCustomerName(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="phone" className="text-[10px] font-bold uppercase text-primary/60 ml-1">WhatsApp</Label>
-                <Input id="phone" placeholder="(91) 98888-8888" className="h-12 rounded-2xl bg-muted/30 border-none" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
+                <Label htmlFor="phone" className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">WhatsApp</Label>
+                <Input id="phone" placeholder="(91) 98888-8888" className="h-12 rounded-2xl bg-muted/30 border-none font-poppins" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
               </div>
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold uppercase text-primary/60 ml-1">Pagamento</Label>
+                <Label className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">Pagamento</Label>
                 <RadioGroup value={paymentMethod} onValueChange={(v: any) => setPaymentMethod(v)} className="grid grid-cols-2 gap-3">
                   <div className={`flex items-center gap-2 p-3 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Pix')}>
                     <RadioGroupItem value="Pix" id="pix" className="text-primary border-primary" />
-                    <Label htmlFor="pix" className="font-bold text-xs cursor-pointer">PIX</Label>
+                    <Label htmlFor="pix" className="font-bold text-xs cursor-pointer font-poppins">PIX</Label>
                   </div>
                   <div className={`flex items-center gap-2 p-3 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Dinheiro')}>
                     <RadioGroupItem value="Dinheiro" id="cash" className="text-primary border-primary" />
-                    <Label htmlFor="cash" className="font-bold text-xs cursor-pointer">DINHEIRO</Label>
+                    <Label htmlFor="cash" className="font-bold text-xs cursor-pointer font-poppins">DINHEIRO</Label>
                   </div>
                 </RadioGroup>
               </div>
 
               {paymentMethod === 'Pix' && (
-                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2">
+                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2 font-poppins">
                   <div className="flex flex-col gap-1">
                     <span className="text-[10px] font-bold uppercase text-primary/60">Chave Pix (Celular)</span>
                     <span className="text-sm font-bold text-primary">(91) 98719-9039</span>
@@ -705,13 +703,13 @@ export default function Storefront() {
               )}
 
               {paymentMethod === 'Dinheiro' && (
-                <div className="space-y-1.5 animate-in slide-in-from-top-2">
+                <div className="space-y-1.5 animate-in slide-in-from-top-2 font-poppins">
                   <Label htmlFor="change" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Precisa de troco para quanto?</Label>
-                  <Input id="change" type="number" placeholder="Ex: 50" className="h-12 rounded-2xl bg-muted/30 border-none" value={changeAmount} onChange={e => setChangeAmount(e.target.value)} />
+                  <Input id="change" type="number" placeholder="Ex: 50" className="h-12 rounded-2xl bg-muted/30 border-none font-poppins" value={changeAmount} onChange={e => setChangeAmount(e.target.value)} />
                 </div>
               )}
             </div>
-            <Button className="w-full h-16 rounded-[1.5rem] bg-primary text-lg font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform" onClick={handleCheckout}>
+            <Button className="w-full h-16 rounded-[1.5rem] bg-primary text-lg font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform font-poppins" onClick={handleCheckout}>
               Enviar para o WhatsApp
             </Button>
           </div>
