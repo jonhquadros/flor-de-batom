@@ -679,33 +679,33 @@ export default function Storefront() {
       </Dialog>
 
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <DialogContent className="w-[95%] max-w-[400px] p-0 overflow-hidden border-none shadow-2xl z-[130] rounded-[2.5rem]">
-          <DialogHeader className="p-8 pb-4">
-            <DialogTitle className="text-2xl font-bold text-primary font-poppins">Finalizar Pedido</DialogTitle>
-            <DialogDescription className="font-poppins">Preencha os dados para entrega via WhatsApp.</DialogDescription>
+        <DialogContent className="w-[95%] max-w-[400px] p-0 overflow-hidden border-none shadow-2xl z-[130] rounded-[2rem] max-h-[90vh] flex flex-col">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="text-xl font-bold text-primary font-poppins">Finalizar Pedido</DialogTitle>
+            <DialogDescription className="text-xs font-poppins">Preencha os dados para entrega via WhatsApp.</DialogDescription>
           </DialogHeader>
-          <div className="p-8 pt-4 space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-4 no-scrollbar">
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="name" className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">Seu Nome</Label>
-                <Input id="name" placeholder="Ex: Maria Silva" className="h-12 rounded-2xl bg-muted/30 border-none font-poppins" value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                <Input id="name" placeholder="Ex: Maria Silva" className="h-11 rounded-2xl bg-muted/30 border-none font-poppins text-sm" value={customerName} onChange={e => setCustomerName(e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone" className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">WhatsApp</Label>
-                <Input id="phone" placeholder="(91) 98888-8888" className="h-12 rounded-2xl bg-muted/30 border-none font-poppins" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
+                <Input id="phone" placeholder="(91) 98888-8888" className="h-11 rounded-2xl bg-muted/30 border-none font-poppins text-sm" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="address" className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">Endereço de Entrega</Label>
-                <Textarea id="address" placeholder="Rua, Número, Bairro, Ponto de Referência" className="min-h-[80px] rounded-2xl bg-muted/30 border-none font-poppins resize-none" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} />
+                <Textarea id="address" placeholder="Rua, Número, Bairro, Ponto de Referência" className="min-h-[70px] rounded-2xl bg-muted/30 border-none font-poppins resize-none text-sm" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} />
               </div>
               <div className="space-y-3">
                 <Label className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">Pagamento</Label>
                 <RadioGroup value={paymentMethod} onValueChange={(v: any) => setPaymentMethod(v)} className="grid grid-cols-2 gap-3">
-                  <div className={`flex items-center gap-2 p-3 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Pix')}>
+                  <div className={`flex items-center gap-2 p-2.5 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Pix' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Pix')}>
                     <RadioGroupItem value="Pix" id="pix" className="text-primary border-primary" />
                     <Label htmlFor="pix" className="font-bold text-xs cursor-pointer font-poppins">PIX</Label>
                   </div>
-                  <div className={`flex items-center gap-2 p-3 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Dinheiro')}>
+                  <div className={`flex items-center gap-2 p-2.5 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Dinheiro')}>
                     <RadioGroupItem value="Dinheiro" id="cash" className="text-primary border-primary" />
                     <Label htmlFor="cash" className="font-bold text-xs cursor-pointer font-poppins">DINHEIRO</Label>
                   </div>
@@ -718,14 +718,14 @@ export default function Storefront() {
                     <span className="text-[10px] font-bold uppercase text-primary/60">Chave Pix (Celular)</span>
                     <button 
                       onClick={copyPixKey}
-                      className="group relative flex items-center gap-2 text-sm font-bold text-primary bg-white px-6 py-3 rounded-xl border border-primary/20 hover:border-primary/40 active:scale-95 transition-all shadow-sm"
+                      className="group relative flex items-center gap-2 text-sm font-bold text-primary bg-white px-5 py-2.5 rounded-xl border border-primary/20 hover:border-primary/40 active:scale-95 transition-all shadow-sm"
                     >
                       (91) 98719-9039
                       <Copy className="h-3 w-3 opacity-50 group-hover:opacity-100" />
                     </button>
                     <span className="text-[9px] text-primary/40 italic">Clique no número para copiar</span>
                   </div>
-                  <div className="p-3 bg-white/50 border border-primary/10 rounded-xl">
+                  <div className="p-2.5 bg-white/50 border border-primary/10 rounded-xl">
                     <p className="text-[10px] leading-relaxed text-primary">
                       ⚠️ <span className="font-bold uppercase tracking-tighter">Aviso:</span> Após o pagamento, envie o comprovante para confirmar seu pedido pelo WhatsApp da loja.
                     </p>
@@ -736,11 +736,11 @@ export default function Storefront() {
               {paymentMethod === 'Dinheiro' && (
                 <div className="space-y-1.5 animate-in slide-in-from-top-2 font-poppins">
                   <Label htmlFor="change" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Precisa de troco para quanto?</Label>
-                  <Input id="change" type="number" placeholder="Ex: 50" className="h-12 rounded-2xl bg-muted/30 border-none font-poppins" value={changeAmount} onChange={e => setChangeAmount(e.target.value)} />
+                  <Input id="change" type="number" placeholder="Ex: 50" className="h-11 rounded-2xl bg-muted/30 border-none font-poppins text-sm" value={changeAmount} onChange={e => setChangeAmount(e.target.value)} />
                 </div>
               )}
             </div>
-            <Button className="w-full h-16 rounded-[1.5rem] bg-primary text-lg font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform font-poppins" onClick={handleCheckout}>
+            <Button className="w-full h-14 rounded-2xl bg-primary text-base font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform font-poppins" onClick={handleCheckout}>
               Enviar para o WhatsApp
             </Button>
           </div>
