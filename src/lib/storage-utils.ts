@@ -4,6 +4,7 @@ import {
   collection, 
   doc, 
   getDocs, 
+  getDoc,
   Firestore
 } from 'firebase/firestore';
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -48,9 +49,60 @@ export const updateOrder = (db: Firestore, order: Order) => {
   updateDocumentNonBlocking(orderRef, sanitizeData(order));
 };
 
-export const updateOrderStatus = (db: Firestore, orderId: string, status: OrderStatus) => {
-  const orderRef = doc(db, 'orders', orderId);
-  updateDocumentNonBlocking(orderRef, { status });
+/** 
+ * Ajusta o inventário baseado nos itens de um pedido.
+ * @param type 'decrement' para baixar estoque, 'increment' para estornar.
+ */
+export const adjustInventoryForOrder = async (db: Firestore, order: Order, type: 'decrement' | 'increment') => {
+  for (const item of order.items) {
+    const productRef = doc(db, 'products', item.id);
+    const productSnap = await getDoc(productRef);
+    
+    if (productSnap.exists()) {
+      const product = productSnap.data() as Product;
+      const multiplier = type === 'decrement' ? -1 : 1;
+      const quantityChange = item.quantity * multiplier;
+
+      let updatedVariations = product.variations || [];
+      let newTotalStock = product.stock;
+
+      if (item.selectedColor && updatedVariations.length > 0) {
+        updatedVariations = updatedVariations.map(v => 
+          v.name === item.selectedColor ? { ...v, stock: Math.max(0, v.stock + quantityChange) } : v
+        );
+        newTotalStock = updatedVariations.reduce((sum, v) => sum + v.stock, 0);
+      } else {
+        newTotalStock = Math.max(0, product.stock + quantityChange);
+      }
+
+      updateDocumentNonBlocking(productRef, {
+        stock: newTotalStock,
+        variations: updatedVariations
+      });
+    }
+  }
+};
+
+/**
+ * Atualiza o status do pedido e gerencia o estoque automaticamente.
+ */
+export const updateOrderStatus = async (db: Firestore, order: Order, newStatus: OrderStatus) => {
+  const oldStatus = order.status;
+  
+  const isPaidState = (s: OrderStatus) => ['Pago', 'Enviado', 'Entregue'].includes(s);
+  const isUnpaidState = (s: OrderStatus) => ['Pendente', 'Cancelado'].includes(s);
+
+  // Lógica de Baixa: Sai de Pendente/Cancelado e entra em Pago/Enviado/Entregue
+  if (isUnpaidState(oldStatus) && isPaidState(newStatus)) {
+    await adjustInventoryForOrder(db, order, 'decrement');
+  } 
+  // Lógica de Estorno: Sai de Pago/Enviado/Entregue e volta para Pendente/Cancelado
+  else if (isPaidState(oldStatus) && isUnpaidState(newStatus)) {
+    await adjustInventoryForOrder(db, order, 'increment');
+  }
+
+  const orderRef = doc(db, 'orders', order.id);
+  updateDocumentNonBlocking(orderRef, { status: newStatus });
 };
 
 export const seedInitialDataToFirestore = async (db: Firestore) => {

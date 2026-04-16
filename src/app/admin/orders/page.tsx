@@ -83,17 +83,22 @@ export default function AdminOrders() {
   const handleStatusChangeExecution = (sendNotification: boolean) => {
     if (!statusToUpdate) return;
     const { id, status } = statusToUpdate;
-    if (db) updateOrderStatus(db, id, status);
     
-    if (sendNotification) {
-      const order = orders.find(o => o.id === id);
-      if (order) sendWhatsAppStatusUpdate({ ...order, status });
+    // Busca o objeto completo do pedido para gerenciar o estoque
+    const order = orders.find(o => o.id === id);
+    
+    if (db && order) {
+      updateOrderStatus(db, order, status);
+    }
+    
+    if (sendNotification && order) {
+      sendWhatsAppStatusUpdate({ ...order, status });
     }
 
     setIsStatusConfirmOpen(false);
     setStatusToUpdate(null);
     if (selectedOrder && selectedOrder.id === id) setSelectedOrder(prev => prev ? { ...prev, status } : null);
-    toast({ title: "Status Atualizado" });
+    toast({ title: "Status Atualizado", description: "O estoque foi ajustado automaticamente." });
   };
 
   const openDetails = (order: Order) => {
