@@ -1,3 +1,4 @@
+
 export interface ProductVariation {
   name: string;
   stock: number;
@@ -31,18 +32,13 @@ export interface Order {
   orderNumber: string;
   customerName: string;
   customerPhone: string;
+  customerAddress: string;
   items: CartItem[];
   total: number;
   paymentMethod: 'Pix' | 'Dinheiro';
   change?: number;
   status: OrderStatus;
   createdAt: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  order?: number;
 }
 
 export const INITIAL_CATEGORIES: string[] = [

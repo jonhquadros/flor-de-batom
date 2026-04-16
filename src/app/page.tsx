@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -84,6 +85,7 @@ export default function Storefront() {
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro'>('Pix');
   const [changeAmount, setChangeAmount] = useState('');
 
@@ -214,8 +216,8 @@ export default function Storefront() {
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   const handleCheckout = async () => {
-    if (!customerName || !customerPhone || !db) {
-      toast({ variant: "destructive", title: "Erro", description: "Preencha nome e telefone." });
+    if (!customerName || !customerPhone || !customerAddress || !db) {
+      toast({ variant: "destructive", title: "Erro", description: "Preencha nome, telefone e endereço." });
       return;
     }
 
@@ -225,6 +227,7 @@ export default function Storefront() {
       orderNumber: orderNum,
       customerName,
       customerPhone,
+      customerAddress,
       items: cart,
       total: cartTotal,
       paymentMethod,
@@ -250,7 +253,8 @@ export default function Storefront() {
     const msg = encodeURIComponent(
       `🌸 *NOVO PEDIDO #${orderNum} - Flor de Batom Makeup*\n\n` +
       `👤 *Cliente:* ${customerName}\n` +
-      `📱 *Telefone:* ${customerPhone}\n\n` +
+      `📱 *Telefone:* ${customerPhone}\n` +
+      `📍 *Endereço:* ${customerAddress}\n\n` +
       `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
       `🚚 *Entrega:* Grátis\n` +
       `💰 *TOTAL: R$ ${totalFormatado}*\n` +
@@ -264,6 +268,7 @@ export default function Storefront() {
     setIsCheckoutOpen(false);
     setCustomerName('');
     setCustomerPhone('');
+    setCustomerAddress('');
     setPaymentMethod('Pix');
     setChangeAmount('');
   };
@@ -688,6 +693,10 @@ export default function Storefront() {
               <div className="space-y-1.5">
                 <Label htmlFor="phone" className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">WhatsApp</Label>
                 <Input id="phone" placeholder="(91) 98888-8888" className="h-12 rounded-2xl bg-muted/30 border-none font-poppins" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="address" className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">Endereço de Entrega</Label>
+                <Textarea id="address" placeholder="Rua, Número, Bairro, Ponto de Referência" className="min-h-[80px] rounded-2xl bg-muted/30 border-none font-poppins resize-none" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} />
               </div>
               <div className="space-y-3">
                 <Label className="text-[10px] font-bold uppercase text-primary/60 ml-1 font-poppins">Pagamento</Label>

@@ -137,6 +137,10 @@
           "type": "string",
           "description": "The phone number of the customer."
         },
+        "customerAddress": {
+          "type": "string",
+          "description": "The delivery address of the customer."
+        },
         "paymentMethod": {
           "type": "string",
           "enum": ["Pix", "Dinheiro"]
@@ -162,6 +166,7 @@
         "id",
         "customerName",
         "customerPhone",
+        "customerAddress",
         "paymentMethod",
         "total",
         "status"
