@@ -506,7 +506,7 @@ export default function Storefront() {
           {/* Footer */}
           <footer className="bg-white border-t pt-16 pb-8 px-4 md:px-8">
             <div className="container mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border border-primary/10">
@@ -535,16 +535,6 @@ export default function Storefront() {
                       <MessageCircle className="h-5 w-5" />
                     </a>
                   </div>
-                </div>
-
-                <div className="space-y-6">
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-primary">Navegação</h4>
-                  <ul className="space-y-3">
-                    <li><button onClick={() => setSelectedCategory('Todos')} className="text-muted-foreground text-sm hover:text-primary transition-colors">Início</button></li>
-                    <li><button onClick={() => setSelectedCategory('Todos')} className="text-muted-foreground text-sm hover:text-primary transition-colors">Novidades</button></li>
-                    <li><button onClick={() => setSelectedCategory('Batom')} className="text-muted-foreground text-sm hover:text-primary transition-colors">Batons</button></li>
-                    <li><button onClick={() => setSelectedCategory('Base')} className="text-muted-foreground text-sm hover:text-primary transition-colors">Face</button></li>
-                  </ul>
                 </div>
 
                 <div className="space-y-6">
