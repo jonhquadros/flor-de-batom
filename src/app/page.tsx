@@ -530,10 +530,6 @@ export default function Storefront() {
                       <MessageCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                       <span className="text-muted-foreground text-sm">(91) 98719-9039</span>
                     </li>
-                    <li className="flex items-start gap-3">
-                      <Clock className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground text-sm">Seg - Sex: 09h às 18h<br />Sáb: 09h às 13h</span>
-                    </li>
                   </ul>
                   <div className="flex items-center gap-4 pt-2">
                     <a 
