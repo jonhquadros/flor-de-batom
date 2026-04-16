@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -146,8 +147,8 @@ export default function Storefront() {
       return;
     }
 
-    let availableStock = product.stock;
     let variationImage = product.imageUrl;
+    let availableStock = product.stock;
     
     if (hasVariations && colorName) {
       const variation = product.variations?.find(v => v.name === colorName);
@@ -607,7 +608,7 @@ export default function Storefront() {
             <div className="flex-1 overflow-y-auto no-scrollbar">
               <div className="flex flex-col md:flex-row h-full">
                 <div className="relative aspect-[4/3] md:aspect-square md:w-1/2 bg-muted shrink-0">
-                  <Image src={displayedProductImage} alt={selectedProduct.name} fill className="object-cover" />
+                  <Image src={displayedProductImage} alt={selectedProduct.name} fill className="object-cover transition-all duration-500" />
                 </div>
                 <div className="p-5 md:p-10 flex-1 flex flex-col bg-white">
                   <div className="space-y-5 md:space-y-6 flex-1">
@@ -628,15 +629,20 @@ export default function Storefront() {
                               key={v.name}
                               onClick={() => setSelectedColor(v.name)}
                               disabled={v.stock === 0}
-                              className={`px-3 py-2 md:px-4 md:py-2 rounded-xl text-[10px] font-bold border-2 transition-all font-poppins ${
+                              className={`group relative pl-3 pr-4 py-2 rounded-xl text-[10px] font-bold border-2 transition-all font-poppins flex items-center gap-2 ${
                                 selectedColor === v.name 
                                   ? 'border-primary bg-primary text-white shadow-md' 
                                   : 'border-muted bg-white text-muted-foreground hover:border-primary/30 disabled:opacity-40 disabled:cursor-not-allowed'
                               }`}
                             >
-                              {v.name.toUpperCase()}
-                              {v.stock <= 5 && v.stock > 0 && <span className="ml-2 opacity-70">(ÚLTIMAS)</span>}
-                              {v.stock === 0 && <span className="ml-2 opacity-70">(ESGOTADO)</span>}
+                              {v.imageUrl && (
+                                <div className="relative h-5 w-5 rounded-full overflow-hidden border border-black/10">
+                                  <Image src={v.imageUrl} alt={v.name} fill className="object-cover" />
+                                </div>
+                              )}
+                              <span>{v.name.toUpperCase()}</span>
+                              {v.stock <= 5 && v.stock > 0 && <span className="ml-1 opacity-70">(ÚLTIMAS)</span>}
+                              {v.stock === 0 && <span className="ml-1 opacity-70">(ESGOTADO)</span>}
                             </button>
                           ))}
                         </div>

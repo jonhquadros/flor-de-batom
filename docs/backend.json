@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Category": {
@@ -17,6 +18,10 @@
         "description": {
           "type": "string",
           "description": "A brief description of the category, explaining its purpose or content."
+        },
+        "order": {
+          "type": "number",
+          "description": "Custom display order for categories."
         },
         "createdAt": {
           "type": "string",
@@ -50,7 +55,7 @@
         },
         "description": {
           "type": "string",
-          "description": "A detailed description of the product, potentially AI-generated to enhance content."
+          "description": "A detailed description of the product."
         },
         "price": {
           "type": "number",
@@ -58,22 +63,39 @@
         },
         "stock": {
           "type": "number",
-          "description": "The current quantity of the product available in inventory."
+          "description": "The total quantity available in inventory."
         },
-        "imageUrls": {
-          "type": "array",
-          "description": "An array of URLs pointing to images of the product.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "categoryId": {
+        "imageUrl": {
           "type": "string",
-          "description": "Reference to the Category this product belongs to. (Relationship: Category 1:N Product)"
+          "description": "Primary image URL for the product."
+        },
+        "category": {
+          "type": "string",
+          "description": "Name of the category this product belongs to."
         },
         "isFeatured": {
           "type": "boolean",
-          "description": "Indicates if the product is marked as featured for promotional display on the homepage or catalog."
+          "description": "Indicates if the product is featured."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Indicates if the product is active in the storefront."
+        },
+        "order": {
+          "type": "number",
+          "description": "Custom display order for products."
+        },
+        "variations": {
+          "type": "array",
+          "description": "Product variations such as colors or sizes with specific stock and images.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "stock": { "type": "number" },
+              "imageUrl": { "type": "string" }
+            }
+          }
         },
         "createdAt": {
           "type": "string",
@@ -89,80 +111,50 @@
       "required": [
         "id",
         "name",
-        "description",
         "price",
-        "stock",
-        "categoryId"
+        "category"
       ]
     },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents a customer's purchase order, containing details about the customer, payment, and overall status.",
+      "description": "Represents a customer's purchase order.",
       "properties": {
         "id": {
           "type": "string",
           "description": "Unique identifier for the Order entity."
         },
+        "orderNumber": {
+          "type": "string",
+          "description": "Human-readable order number."
+        },
         "customerName": {
           "type": "string",
-          "description": "The full name of the customer placing the order."
+          "description": "The full name of the customer."
         },
         "customerPhone": {
           "type": "string",
-          "description": "The phone number of the customer for contact and WhatsApp checkout communication."
-        },
-        "customerEmail": {
-          "type": "string",
-          "description": "The email address of the customer (optional).",
-          "format": "email"
-        },
-        "customerAddress": {
-          "type": "string",
-          "description": "The delivery address for the customer's order."
+          "description": "The phone number of the customer."
         },
         "paymentMethod": {
           "type": "string",
-          "description": "The chosen payment method by the customer (e.g., 'Money', 'Pix')."
+          "enum": ["Pix", "Dinheiro"]
         },
-        "changeNeeded": {
+        "change": {
           "type": "number",
-          "description": "The amount of change required if the payment method is 'Money' and customer pays with a larger denomination."
+          "description": "Change needed for cash payments."
         },
-        "pixKeyUsed": {
-          "type": "string",
-          "description": "The Pix key provided by the customer for payment if the payment method is 'Pix'."
-        },
-        "totalAmount": {
+        "total": {
           "type": "number",
-          "description": "The total monetary amount of the order, including shipping costs."
+          "description": "Total order amount."
         },
         "status": {
           "type": "string",
-          "description": "The current lifecycle status of the order (e.g., 'Pendente', 'Em Separação', 'Em Entrega', 'Entregue')."
-        },
-        "orderDate": {
-          "type": "string",
-          "description": "The date and time the order was placed.",
-          "format": "date-time"
-        },
-        "shippingCost": {
-          "type": "number",
-          "description": "The cost of shipping for this order. Set to 0 for free shipping."
-        },
-        "notes": {
-          "type": "string",
-          "description": "Any additional notes or special instructions provided by the customer or added by the admin."
+          "enum": ["Pendente", "Pago", "Enviado", "Entregue", "Cancelado"]
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp when the order record was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the order record was last updated.",
           "format": "date-time"
         }
       },
@@ -170,73 +162,16 @@
         "id",
         "customerName",
         "customerPhone",
-        "customerAddress",
         "paymentMethod",
-        "totalAmount",
-        "status",
-        "orderDate"
-      ]
-    },
-    "OrderItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OrderItem",
-      "type": "object",
-      "description": "Represents a single product item within a customer's order, capturing product details at the time of purchase for historical accuracy.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the OrderItem entity."
-        },
-        "orderId": {
-          "type": "string",
-          "description": "Reference to the Order this item belongs to. (Relationship: Order 1:N OrderItem)"
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the Product purchased. (Relationship: Product 1:N OrderItem)"
-        },
-        "productName": {
-          "type": "string",
-          "description": "A snapshot of the product's name at the time of purchase."
-        },
-        "productPrice": {
-          "type": "number",
-          "description": "A snapshot of the product's price at the time of purchase, crucial for historical order data."
-        },
-        "quantity": {
-          "type": "number",
-          "description": "The quantity of this specific product ordered."
-        },
-        "subtotal": {
-          "type": "number",
-          "description": "The calculated subtotal for this order item (productPrice * quantity)."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp when the order item record was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp when the order item record was last updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "orderId",
-        "productId",
-        "productName",
-        "productPrice",
-        "quantity",
-        "subtotal"
+        "total",
+        "status"
       ]
     }
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "anonymous",
+      "password"
     ]
   },
   "firestore": {
@@ -248,13 +183,7 @@
           "schema": {
             "$ref": "#/backend/entities/Category"
           },
-          "description": "Stores product categories. Read access is public for displaying the catalog; write access is restricted to administrators for managing categories.",
-          "params": [
-            {
-              "name": "categoryId",
-              "description": "The unique identifier for a product category."
-            }
-          ]
+          "description": "Product categories."
         }
       },
       {
@@ -264,13 +193,7 @@
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Contains details for all makeup products. Read access is public for the catalog; write access (including stock updates) is restricted to administrators.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for a product."
-            }
-          ]
+          "description": "Product catalog."
         }
       },
       {
@@ -280,52 +203,9 @@
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Stores customer purchase orders. Anonymous users can create new orders; administrators have full read, list, update, and delete access. Includes denormalized 'totalAmount', 'status', 'orderDate' for quick access.",
-          "params": [
-            {
-              "name": "orderId",
-              "description": "The unique identifier for a customer order."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/orders/{orderId}/orderItems/{orderItemId}",
-        "definition": {
-          "entityName": "OrderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Stores individual product items within a specific order. Created by anonymous users as part of the order transaction; administrators have full read, list, update, and delete access. Includes denormalized 'productName' and 'productPrice' for historical accuracy.",
-          "params": [
-            {
-              "name": "orderId",
-              "description": "The unique identifier of the parent order."
-            },
-            {
-              "name": "orderItemId",
-              "description": "The unique identifier for an item within an order."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{adminId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "This collection identifies administrators. The existence of a document with a user's UID signifies admin privileges. Used for Authorization Independence via 'exists()' checks in security rules.",
-          "params": [
-            {
-              "name": "adminId",
-              "description": "The Firebase Authentication UID of an administrator."
-            }
-          ]
+          "description": "Customer orders."
         }
       }
-    ],
-    "reasoning": "The recommended Firestore structure addresses the user's core problem of data persistence and global accessibility, moving away from local storage reliance. The design adheres strictly to the CORE DESIGN PRINCIPLES and DESIGN STRATEGY MANDATES to ensure a secure, scalable, and debuggable solution.\n\n**Authorization Independence (CRITICAL) and QAPs (Rules are not Filters):**\n\n1.  **Public Data (`/categories`, `/products`):** These collections are designed with a homogeneous security posture: read access is public for all documents, and write access is restricted to administrators. This directly supports QAPs, as any `list` operation by a public user will return all documents in the collection, which is the intended authorized set. Authorization independence is inherent because public reads do not require any user context, and admin writes are authenticated via the `/roles_admin` collection (see point 4).\n\n2.  **Order Creation (`/orders`, `/orders/{orderId}/orderItems`):** Anonymous users are permitted to *create* orders and their associated order items. This is handled as an atomic operation (e.g., a batched write or transaction) where the order, its items, and product stock adjustments are all committed. After creation, anonymous users do not have `read` or `list` access to these collections. This satisfies QAPs as anonymous users are not expected to list or read past orders directly from the database; their interaction is via the WhatsApp flow for status updates. Authorization for creation is independent as it simply checks if the user is anonymous or authenticated (allowing both for creation, or restricting to anonymous if desired).\n\n3.  **Admin-Managed Data (`/orders`, `/orders/{orderId}/orderItems`, `/products`, `/categories` - for writes):** All administrative operations (read/list/update/delete for orders/order items, and write for products/categories) are exclusively granted to authenticated administrators. The authorization for an administrator is determined by the *existence* of their UID in the dedicated `/roles_admin/{adminId}` collection. This is the cornerstone of **Authorization Independence**. Security rules will check `exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid))` without performing any `get()` operations on other collections. This makes admin authorization atomic, robust, and highly debuggable. For QAPs, an admin user performing a `list` on `/orders` will receive all order documents, as all orders are within an admin's scope, thus avoiding filtering within rules.\n\n4.  **Admin Role Management (`/roles_admin`):** This collection serves as the central hub for identifying administrators. Its design is for **Database-Backed Access Control (DBAC)**. The existence of a document at `/roles_admin/{request.auth.uid}` is sufficient to grant admin privileges across the application, entirely bypassing Firebase Custom Claims and any `get()` calls on potentially large 'users' collections.\n\n**Denormalization:**\n*   `OrderItem` documents denormalize `productName` and `productPrice` from the `Product` entity. This ensures historical accuracy of order details, as product information might change over time, without needing to `get()` the `Product` document when viewing past orders.\n*   Authorization context for admin roles is denormalized into `/roles_admin` as opposed to a field on a user profile, enabling `exists()` checks for independence."
+    ]
   }
 }

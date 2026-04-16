@@ -313,12 +313,14 @@ export default function AdminProducts() {
                     </Button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    <div className="h-9 w-9 bg-muted rounded-lg overflow-hidden shrink-0 border">
+                      {v.imageUrl && <Image src={v.imageUrl} alt="preview" width={36} height={36} className="object-cover" />}
+                    </div>
                     <Input 
                       placeholder="URL da Imagem desta cor" 
                       value={v.imageUrl || ''} 
                       onChange={(e) => updateVariation(i, 'imageUrl', e.target.value)}
-                      className="h-9 text-[10px] rounded-xl border-dashed"
+                      className="flex-1 h-9 text-[10px] rounded-xl border-dashed"
                     />
                   </div>
                 </div>
