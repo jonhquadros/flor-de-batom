@@ -506,32 +506,20 @@ export default function Storefront() {
           {/* Footer */}
           <footer className="bg-white border-t pt-16 pb-8 px-4 md:px-8">
             <div className="container mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border border-primary/10">
-                      <Image src={LOGO_URL} alt="Flor de Batom" fill className="object-cover" />
-                    </div>
-                    <span className="text-2xl font-bold text-primary tracking-tight">Flor de Batom</span>
-                  </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Sua loja online de maquiagens selecionadas para realçar sua beleza com sofisticação e delicadeza. Beleza em cada detalhe.
-                  </p>
-                </div>
-
+              <div className="flex flex-col items-center justify-center text-center space-y-6 mb-16">
                 <div className="space-y-6">
                   <h4 className="text-sm font-bold uppercase tracking-widest text-primary">Contato & Endereço</h4>
                   <ul className="space-y-4">
-                    <li className="flex items-start gap-3">
-                      <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <li className="flex items-center justify-center gap-3">
+                      <MapPin className="h-5 w-5 text-primary shrink-0" />
                       <span className="text-muted-foreground text-sm">Capanema, Pará - Brasil</span>
                     </li>
-                    <li className="flex items-start gap-3">
-                      <MessageCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <li className="flex items-center justify-center gap-3">
+                      <MessageCircle className="h-5 w-5 text-primary shrink-0" />
                       <span className="text-muted-foreground text-sm">(91) 98719-9039</span>
                     </li>
                   </ul>
-                  <div className="flex items-center gap-4 pt-2">
+                  <div className="flex items-center justify-center gap-4 pt-2">
                     <a 
                       href={INSTAGRAM_URL} 
                       target="_blank" 
