@@ -427,6 +427,25 @@ export default function Storefront() {
               <div className="absolute bottom-[-40px] left-[-40px] w-64 h-64 md:w-80 md:h-80 bg-black/10 rounded-full blur-3xl"></div>
             </div>
 
+            {/* Mobile Horizontal Category Bar */}
+            <div className="lg:hidden mb-8 overflow-x-auto no-scrollbar -mx-4 px-4 flex gap-3">
+              <button 
+                className={`flex-none px-5 py-2.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white border text-muted-foreground'}`}
+                onClick={() => setSelectedCategory('Todos')}
+              >
+                TODOS
+              </button>
+              {categories.map(cat => (
+                <button 
+                  key={cat.id} 
+                  className={`flex-none px-5 py-2.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all ${selectedCategory === cat.name ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white border text-muted-foreground'}`}
+                  onClick={() => setSelectedCategory(cat.name)}
+                >
+                  {cat.name.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl md:text-2xl font-bold text-primary">
                 {selectedCategory.toUpperCase()}
