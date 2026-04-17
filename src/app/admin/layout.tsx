@@ -16,7 +16,6 @@ import {
   ChevronRight,
   Tags,
   Boxes,
-  TrendingUp,
   BarChart3
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -42,7 +41,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!isClient || isLoginPage) return;
 
-    const authorizedBySession = sessionStorage.getItem('adminLogado') === 'true';
+    // Acesso seguro ao sessionStorage apenas no cliente
+    const authorizedBySession = typeof window !== 'undefined' && sessionStorage.getItem('adminLogado') === 'true';
     
     if (!authorizedBySession) {
       router.push('/admin/login');

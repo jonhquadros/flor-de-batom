@@ -10,7 +10,6 @@ import {
   XCircle, 
   ChevronLeft, 
   ChevronRight,
-  Calendar as CalendarIcon,
   Percent
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -18,18 +17,19 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Order, Product } from '@/lib/types';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Bar, BarChart, Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, Line, LineChart, XAxis, YAxis, Tooltip } from 'recharts';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
 export default function AdminBilling() {
   const db = useFirestore();
   const { user } = useUser();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    setCurrentDate(new Date());
   }, []);
 
   // Firestore Queries
@@ -51,16 +51,18 @@ export default function AdminBilling() {
 
   // Month navigation logic
   const handlePrevMonth = () => {
+    if (!currentDate) return;
     setCurrentDate(prev => {
-      const d = new Date(prev);
+      const d = new Date(prev!);
       d.setMonth(d.getMonth() - 1);
       return d;
     });
   };
 
   const handleNextMonth = () => {
+    if (!currentDate) return;
     setCurrentDate(prev => {
-      const d = new Date(prev);
+      const d = new Date(prev!);
       d.setMonth(d.getMonth() + 1);
       return d;
     });
@@ -69,11 +71,19 @@ export default function AdminBilling() {
   const handleCurrentMonth = () => setCurrentDate(new Date());
 
   const monthYearLabel = useMemo(() => {
+    if (!currentDate) return "...";
     return currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
   }, [currentDate]);
 
   // Data Processing
   const billingData = useMemo(() => {
+    if (!currentDate) return {
+      currentStats: { revenue: 0, count: 0, cancelledCount: 0, lostValue: 0 },
+      growth: 0,
+      chartData: [],
+      topProducts: []
+    };
+
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
     
@@ -178,7 +188,7 @@ export default function AdminBilling() {
     }
   } satisfies ChartConfig;
 
-  if (!mounted || ordersLoading || productsLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Processando análise financeira...</div>;
+  if (!mounted || ordersLoading || productsLoading || !currentDate) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Processando análise financeira...</div>;
 
   return (
     <div className="space-y-6 md:space-y-8 font-poppins">
