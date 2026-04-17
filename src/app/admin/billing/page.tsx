@@ -26,6 +26,11 @@ export default function AdminBilling() {
   const db = useFirestore();
   const { user } = useUser();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Firestore Queries
   const ordersQuery = useMemoFirebase(() => {
@@ -173,7 +178,7 @@ export default function AdminBilling() {
     }
   } satisfies ChartConfig;
 
-  if (ordersLoading || productsLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Processando análise financeira...</div>;
+  if (!mounted || ordersLoading || productsLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Processando análise financeira...</div>;
 
   return (
     <div className="space-y-6 md:space-y-8 font-poppins">

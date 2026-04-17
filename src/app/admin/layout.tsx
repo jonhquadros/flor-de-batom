@@ -30,12 +30,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, isUserLoading } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authorized, setAuthorized] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
   const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
-    if (isLoginPage) return;
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient || isLoginPage) return;
 
     const authorizedBySession = sessionStorage.getItem('adminLogado') === 'true';
     
@@ -51,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (user) {
       setAuthorized(true);
     }
-  }, [pathname, router, user, isUserLoading, auth, isLoginPage]);
+  }, [isClient, pathname, router, user, isUserLoading, auth, isLoginPage]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -59,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoginPage) return <>{children}</>;
 
-  if (!authorized) {
+  if (!isClient || !authorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-carbon text-white font-poppins p-4 text-center">
         <div className="space-y-6">
