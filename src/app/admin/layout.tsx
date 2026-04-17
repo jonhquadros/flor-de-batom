@@ -19,10 +19,13 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useAuth, useUser, initiateAnonymousSignIn } from '@/firebase';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authorized, setAuthorized] = useState(false);
 
@@ -30,14 +33,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const isLogin = pathname === '/admin/login';
-    const authorized = sessionStorage.getItem('adminLogado') === 'true';
+    const authorizedBySession = sessionStorage.getItem('adminLogado') === 'true';
     
-    if (!authorized && !isLogin) {
+    if (!authorizedBySession && !isLogin) {
       router.push('/admin/login');
-    } else {
+    } else if (authorizedBySession) {
       setAuthorized(true);
+      // Garante que o usuário esteja logado no Firebase para satisfazer as Security Rules
+      if (!isUserLoading && !user && auth) {
+        initiateAnonymousSignIn(auth);
+      }
     }
-  }, [pathname, router]);
+  }, [pathname, router, user, isUserLoading, auth]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);

@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState } from 'react';
@@ -8,17 +9,25 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, LogIn } from 'lucide-react';
+import { useAuth, initiateAnonymousSignIn } from '@/firebase';
 
 export default function AdminLogin() {
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (user === 'flordebatom' && pass === 'gestaoflor@26') {
       sessionStorage.setItem('adminLogado', 'true');
+      
+      // Garante login no Firebase de forma proativa
+      if (auth) {
+        initiateAnonymousSignIn(auth);
+      }
+      
       toast({ title: "Acesso Autorizado", description: "Bem-vinda ao painel de gestão." });
       router.push('/admin/dashboard');
     } else {

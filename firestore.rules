@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -7,6 +8,7 @@ service cloud.firestore {
      * 
      * Ajustado para protótipo: Permite leitura de pedidos para usuários logados
      * para facilitar a sincronização entre dispositivos.
+     * Atualização: Sincronização de sessão garantida no painel administrativo.
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
