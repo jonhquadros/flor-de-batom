@@ -15,17 +15,25 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus, Product, CartItem } from '@/lib/types';
 import { updateOrderStatus, updateOrder } from '@/lib/storage-utils';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
 export default function AdminOrders() {
   const db = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
 
-  const ordersQuery = useMemoFirebase(() => collection(db, 'orders'), [db]);
-  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
+  const ordersQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'orders');
+  }, [db, user]);
 
-  const { data: ordersData } = useCollection<Order>(ordersQuery);
+  const productsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'products');
+  }, [db, user]);
+
+  const { data: ordersData, isLoading: isOrdersLoading } = useCollection<Order>(ordersQuery);
   const { data: productsData } = useCollection<Product>(productsQuery);
 
   const orders = ordersData || [];
@@ -207,6 +215,8 @@ export default function AdminOrders() {
       case 'Cancelado': return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-[10px] py-0"><XCircle className="h-3 w-3 mr-1" /> {status}</Badge>;
     }
   };
+
+  if (isOrdersLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Sincronizando pedidos com segurança...</div>;
 
   return (
     <div className="space-y-6 font-poppins">

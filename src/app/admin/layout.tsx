@@ -30,28 +30,52 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [authorized, setAuthorized] = useState(false);
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
+  const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
-    const isLogin = pathname === '/admin/login';
+    if (isLoginPage) return;
+
     const authorizedBySession = sessionStorage.getItem('adminLogado') === 'true';
     
-    if (!authorizedBySession && !isLogin) {
+    if (!authorizedBySession) {
       router.push('/admin/login');
-    } else if (authorizedBySession) {
-      setAuthorized(true);
-      // Garante que o usuário esteja logado no Firebase para satisfazer as Security Rules
-      if (!isUserLoading && !user && auth) {
-        initiateAnonymousSignIn(auth);
-      }
+      return;
     }
-  }, [pathname, router, user, isUserLoading, auth]);
+
+    // Garante que o usuário esteja logado no Firebase para satisfazer as Security Rules
+    if (!isUserLoading && !user && auth) {
+      initiateAnonymousSignIn(auth);
+    }
+
+    // Só autoriza a renderização final quando houver um usuário autenticado no Firebase
+    // Isso evita erros de "Missing or insufficient permissions" nas páginas internas
+    if (user) {
+      setAuthorized(true);
+    }
+  }, [pathname, router, user, isUserLoading, auth, isLoginPage]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  if (pathname === '/admin/login') return <>{children}</>;
-  if (!authorized) return null;
+  if (isLoginPage) return <>{children}</>;
+
+  // Se estiver autorizado pela sessão mas ainda aguardando a autenticação do Firebase
+  if (!authorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-carbon text-white font-poppins p-4 text-center">
+        <div className="space-y-6">
+          <div className="relative w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-primary/30 animate-pulse">
+            <Image src={LOGO_URL} alt="Loading" fill className="object-cover" />
+          </div>
+          <div className="space-y-2">
+            <div className="w-12 h-1 bg-primary mx-auto rounded-full animate-bounce"></div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">Sincronizando Sessão Segura</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
