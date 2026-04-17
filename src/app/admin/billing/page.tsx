@@ -195,7 +195,7 @@ export default function AdminBilling() {
             <div className="p-2 rounded-xl bg-green-100"><DollarSign className="h-5 w-5 text-green-600" /></div>
             <div className="space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Receita (Mês)</p>
-              <h3 className="text-sm md:text-xl font-bold">R$ {currentStats.revenue.toFixed(2)}</h3>
+              <h3 className="text-sm md:text-xl font-poppins font-semibold">R$ {currentStats.revenue.toFixed(2)}</h3>
               <div className={`flex items-center justify-center gap-1 text-[9px] font-bold ${growth >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                 {growth >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                 {Math.abs(growth).toFixed(1)}% vs anterior
@@ -209,7 +209,7 @@ export default function AdminBilling() {
             <div className="p-2 rounded-xl bg-primary/10"><ShoppingBag className="h-5 w-5 text-primary" /></div>
             <div className="space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total de Pedidos</p>
-              <h3 className="text-sm md:text-xl font-bold">{currentStats.count}</h3>
+              <h3 className="text-sm md:text-xl font-poppins font-semibold">{currentStats.count}</h3>
               <p className="text-[9px] text-muted-foreground">Vendas finalizadas</p>
             </div>
           </CardContent>
@@ -220,7 +220,7 @@ export default function AdminBilling() {
             <div className="p-2 rounded-xl bg-purple-100"><Percent className="h-5 w-5 text-purple-600" /></div>
             <div className="space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Ticket Médio</p>
-              <h3 className="text-sm md:text-xl font-bold">R$ {(currentStats.count > 0 ? currentStats.revenue / currentStats.count : 0).toFixed(2)}</h3>
+              <h3 className="text-sm md:text-xl font-poppins font-semibold">R$ {(currentStats.count > 0 ? currentStats.revenue / currentStats.count : 0).toFixed(2)}</h3>
               <p className="text-[9px] text-muted-foreground">Valor por cliente</p>
             </div>
           </CardContent>
@@ -231,7 +231,7 @@ export default function AdminBilling() {
             <div className="p-2 rounded-xl bg-red-100"><XCircle className="h-5 w-5 text-red-600" /></div>
             <div className="space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Cancelamentos</p>
-              <h3 className="text-sm md:text-xl font-bold">{currentStats.cancelledCount}</h3>
+              <h3 className="text-sm md:text-xl font-poppins font-semibold">{currentStats.cancelledCount}</h3>
               <p className="text-[9px] text-red-500 font-bold">Perda: R$ {currentStats.lostValue.toFixed(2)}</p>
             </div>
           </CardContent>
