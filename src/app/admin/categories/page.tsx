@@ -1,7 +1,8 @@
+
 "use client"
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Tags, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,15 +10,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Category } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function AdminCategories() {
   const db = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
 
-  const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
+  const categoriesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'categories');
+  }, [db, user]);
+
   const { data: categoriesData, isLoading } = useCollection<Category>(categoriesQuery);
   
   const categories = React.useMemo(() => {

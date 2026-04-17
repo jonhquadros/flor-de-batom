@@ -8,15 +8,23 @@ import { Order, Product } from '@/lib/types';
 import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis, Tooltip } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const db = useFirestore();
+  const { user } = useUser();
   const [mounted, setMounted] = useState(false);
   
-  const ordersQuery = useMemoFirebase(() => collection(db, 'orders'), [db]);
-  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
+  const ordersQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'orders');
+  }, [db, user]);
+
+  const productsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'products');
+  }, [db, user]);
 
   const { data: ordersData, isLoading: ordersLoading } = useCollection<Order>(ordersQuery);
   const { data: productsData, isLoading: productsLoading } = useCollection<Product>(productsQuery);

@@ -1,8 +1,9 @@
+
 "use client"
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Search, AlertTriangle, Plus, Minus, Save, RefreshCcw, Boxes, ChevronDown, ChevronRight, ArrowUpDown } from 'lucide-react';
+import { Search, AlertTriangle, Plus, Minus, Boxes, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,15 +11,20 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Product } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function AdminInventory() {
   const db = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
 
-  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
+  const productsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'products');
+  }, [db, user]);
+
   const { data: productsData, isLoading } = useCollection<Product>(productsQuery);
   const products = React.useMemo(() => {
     const raw = productsData || [];

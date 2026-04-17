@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Palette, X, ImageIcon, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Palette, X, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,16 +14,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Product, Category, ProductVariation } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function AdminProducts() {
   const db = useFirestore();
+  const { user } = useUser();
   const { toast } = useToast();
 
-  const productsQuery = useMemoFirebase(() => collection(db, 'products'), [db]);
-  const categoriesQuery = useMemoFirebase(() => collection(db, 'categories'), [db]);
+  const productsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'products');
+  }, [db, user]);
+
+  const categoriesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'categories');
+  }, [db, user]);
 
   const { data: productsData, isLoading: productsLoading } = useCollection<Product>(productsQuery);
   const { data: categoriesData } = useCollection<Category>(categoriesQuery);
@@ -171,12 +179,12 @@ export default function AdminProducts() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
-                <TableHead className="w-12 text-xs">Ordem</TableHead>
-                <TableHead className="w-16 text-xs"></TableHead>
-                <TableHead className="text-xs">Nome</TableHead>
-                <TableHead className="text-xs hidden md:table-cell">Status</TableHead>
-                <TableHead className="text-xs">Preço</TableHead>
-                <TableHead className="text-right text-xs">Ações</TableHead>
+                <TableHead className="w-12">Ordem</TableHead>
+                <TableHead className="w-16"></TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead className="hidden md:table-cell">Status</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -282,7 +290,6 @@ export default function AdminProducts() {
                   required 
                   className="h-11 rounded-xl"
                 />
-                <p className="text-[10px] text-muted-foreground italic">Menores números aparecem primeiro.</p>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="stock" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Estoque Total</Label>
