@@ -41,21 +41,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!isClient || isLoginPage) return;
 
-    // Acesso seguro ao sessionStorage apenas no cliente
-    const authorizedBySession = typeof window !== 'undefined' && sessionStorage.getItem('adminLogado') === 'true';
-    
-    if (!authorizedBySession) {
-      router.push('/admin/login');
-      return;
-    }
+    // Acesso seguro ao sessionStorage apenas no cliente após montagem
+    const checkAuth = () => {
+      try {
+        const authorizedBySession = sessionStorage.getItem('adminLogado') === 'true';
+        if (!authorizedBySession) {
+          router.push('/admin/login');
+          return;
+        }
 
-    if (!isUserLoading && !user && auth) {
-      initiateAnonymousSignIn(auth);
-    }
+        if (!isUserLoading && !user && auth) {
+          initiateAnonymousSignIn(auth);
+        }
 
-    if (user) {
-      setAuthorized(true);
-    }
+        if (user) {
+          setAuthorized(true);
+        }
+      } catch (e) {
+        console.error("Erro na verificação de sessão admin:", e);
+      }
+    };
+
+    checkAuth();
   }, [isClient, pathname, router, user, isUserLoading, auth, isLoginPage]);
 
   useEffect(() => {
@@ -64,15 +71,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoginPage) return <>{children}</>;
 
+  // Tela de carregamento/bloqueio antes da hidratação e autorização
   if (!isClient || !authorized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-carbon text-white font-poppins p-4 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#1A1A1A] text-white font-poppins p-4 text-center">
         <div className="space-y-6">
-          <div className="relative w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-primary/30 animate-pulse">
+          <div className="relative w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-[#7B1C2A]/30 animate-pulse">
             <Image src={LOGO_URL} alt="Loading" fill className="object-cover" />
           </div>
           <div className="space-y-2">
-            <div className="w-12 h-1 bg-primary mx-auto rounded-full animate-bounce"></div>
+            <div className="w-12 h-1 bg-[#7B1C2A] mx-auto rounded-full animate-bounce"></div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">Sincronizando Sessão Segura</p>
           </div>
         </div>
@@ -96,7 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-muted/30 font-poppins">
-      <aside className="hidden lg:flex w-72 flex-col bg-carbon text-white shadow-xl fixed inset-y-0 left-0 z-50">
+      <aside className="hidden lg:flex w-72 flex-col bg-[#1A1A1A] text-white shadow-xl fixed inset-y-0 left-0 z-50">
         <div className="p-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative w-9 h-9 rounded-full overflow-hidden shadow-lg border border-white/20">
@@ -111,7 +119,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link key={item.path} href={item.path}>
               <Button 
                 variant="ghost" 
-                className={`w-full justify-start gap-3 h-12 rounded-xl transition-all border-none ${pathname === item.path ? 'bg-primary text-white hover:bg-primary/90' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                className={`w-full justify-start gap-3 h-12 rounded-xl transition-all border-none ${pathname === item.path ? 'bg-[#7B1C2A] text-white hover:bg-[#7B1C2A]/90' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
               >
                 <item.icon className="h-5 w-5" />
                 {item.name}
@@ -136,7 +144,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 lg:ml-72">
-        <header className="lg:hidden h-16 bg-carbon text-white flex items-center justify-between px-4 sticky top-0 z-50 shadow-md">
+        <header className="lg:hidden h-16 bg-[#1A1A1A] text-white flex items-center justify-between px-4 sticky top-0 z-50 shadow-md">
           <div className="flex items-center gap-3">
             <div className="relative w-9 h-9 rounded-full overflow-hidden border border-white/20 shrink-0">
               <Image src={LOGO_URL} alt="Logo Flor de Batom" fill className="object-cover" />
@@ -150,7 +158,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {isMobileMenuOpen && (
           <div className="fixed inset-0 z-[100] bg-black/90 lg:hidden backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsMobileMenuOpen(false)}>
-            <div className="absolute top-0 right-0 w-[85%] max-w-sm h-full bg-carbon p-6 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
+            <div className="absolute top-0 right-0 w-[85%] max-w-sm h-full bg-[#1A1A1A] p-6 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-2">
                   <div className="relative w-8 h-8 rounded-full overflow-hidden shadow-md">
@@ -165,7 +173,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <nav className="space-y-2 flex-1 overflow-y-auto">
                 {navItems.map(item => (
                   <Link key={item.path} href={item.path}>
-                    <div className={`flex items-center gap-4 p-4 rounded-xl transition-all ${pathname === item.path ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 border border-white/5'}`}>
+                    <div className={`flex items-center gap-4 p-4 rounded-xl transition-all ${pathname === item.path ? 'bg-[#7B1C2A] text-white shadow-lg shadow-[#7B1C2A]/20' : 'text-gray-400 border border-white/5'}`}>
                       <item.icon className="h-5 w-5" />
                       <span className="font-bold text-base">{item.name}</span>
                     </div>

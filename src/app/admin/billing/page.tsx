@@ -52,28 +52,28 @@ export default function AdminBilling() {
   // Month navigation logic
   const handlePrevMonth = () => {
     if (!currentDate) return;
-    setCurrentDate(prev => {
-      const d = new Date(prev!);
-      d.setMonth(d.getMonth() - 1);
-      return d;
-    });
+    const d = new Date(currentDate);
+    d.setMonth(d.getMonth() - 1);
+    setCurrentDate(d);
   };
 
   const handleNextMonth = () => {
     if (!currentDate) return;
-    setCurrentDate(prev => {
-      const d = new Date(prev!);
-      d.setMonth(d.getMonth() + 1);
-      return d;
-    });
+    const d = new Date(currentDate);
+    d.setMonth(d.getMonth() + 1);
+    setCurrentDate(d);
   };
 
   const handleCurrentMonth = () => setCurrentDate(new Date());
 
   const monthYearLabel = useMemo(() => {
-    if (!currentDate) return "...";
-    return currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  }, [currentDate]);
+    if (!mounted || !currentDate) return "...";
+    try {
+      return currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    } catch (e) {
+      return "Mês selecionado";
+    }
+  }, [currentDate, mounted]);
 
   // Data Processing
   const billingData = useMemo(() => {
@@ -90,8 +90,8 @@ export default function AdminBilling() {
     const startOfPrevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
     const endOfPrevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
 
-    const filterByDate = (orders: Order[], start: Date, end: Date) => {
-      return orders.filter(o => {
+    const filterByDate = (ordersList: Order[], start: Date, end: Date) => {
+      return ordersList.filter(o => {
         if (!o.createdAt) return false;
         const d = new Date(o.createdAt);
         return d >= start && d <= end;
@@ -104,21 +104,21 @@ export default function AdminBilling() {
     const getStats = (monthOrders: Order[]) => {
       const active = monthOrders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status));
       const cancelled = monthOrders.filter(o => o.status === 'Cancelado');
-      const revenue = active.reduce((acc, o) => acc + (o.total || 0), 0);
+      const revenueValue = active.reduce((acc, o) => acc + (o.total || 0), 0);
       const lost = cancelled.reduce((acc, o) => acc + (o.total || 0), 0);
       return { 
-        revenue, 
+        revenue: revenueValue, 
         count: active.length, 
         cancelledCount: cancelled.length,
         lostValue: lost
       };
     };
 
-    const currentStats = getStats(currentOrders);
-    const prevStats = getStats(prevOrders);
+    const currentStatsObj = getStats(currentOrders);
+    const prevStatsObj = getStats(prevOrders);
 
-    const growth = prevStats.revenue > 0 
-      ? ((currentStats.revenue - prevStats.revenue) / prevStats.revenue) * 100 
+    const growthValue = prevStatsObj.revenue > 0 
+      ? ((currentStatsObj.revenue - prevStatsObj.revenue) / prevStatsObj.revenue) * 100 
       : 0;
 
     // Charts: Revenue by day
@@ -138,7 +138,7 @@ export default function AdminBilling() {
       }
     });
 
-    const chartData = Object.values(dailyDataMap);
+    const chartDataArray = Object.values(dailyDataMap);
 
     // Top Products Analysis
     const productStatsMap: Record<string, { name: string, qty: number, revenue: number, cost: number }> = {};
@@ -158,7 +158,7 @@ export default function AdminBilling() {
       });
     });
 
-    const topProducts = Object.values(productStatsMap)
+    const topProductsList = Object.values(productStatsMap)
       .map(p => {
         const totalCost = p.cost * p.qty;
         const profit = p.revenue - totalCost;
@@ -168,10 +168,10 @@ export default function AdminBilling() {
       .sort((a, b) => b.revenue - a.revenue);
 
     return {
-      currentStats,
-      growth,
-      chartData,
-      topProducts
+      currentStats: currentStatsObj,
+      growth: growthValue,
+      chartData: chartDataArray,
+      topProducts: topProductsList
     };
   }, [orders, products, currentDate]);
 
@@ -188,7 +188,13 @@ export default function AdminBilling() {
     }
   } satisfies ChartConfig;
 
-  if (!mounted || ordersLoading || productsLoading || !currentDate) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Processando análise financeira...</div>;
+  if (!mounted || ordersLoading || productsLoading || !currentDate) {
+    return (
+      <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">
+        Sincronizando análise de faturamento...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 md:space-y-8 font-poppins">
