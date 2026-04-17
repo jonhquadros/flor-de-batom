@@ -15,7 +15,9 @@ import {
   ExternalLink,
   ChevronRight,
   Tags,
-  Boxes
+  Boxes,
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -42,13 +44,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    // Garante que o usuário esteja logado no Firebase para satisfazer as Security Rules
     if (!isUserLoading && !user && auth) {
       initiateAnonymousSignIn(auth);
     }
 
-    // Só autoriza a renderização final quando houver um usuário autenticado no Firebase
-    // Isso evita erros de "Missing or insufficient permissions" nas páginas internas
     if (user) {
       setAuthorized(true);
     }
@@ -60,7 +59,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoginPage) return <>{children}</>;
 
-  // Se estiver autorizado pela sessão mas ainda aguardando a autenticação do Firebase
   if (!authorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-carbon text-white font-poppins p-4 text-center">
@@ -79,6 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Faturamento', path: '/admin/billing', icon: BarChart3 },
     { name: 'Estoque', path: '/admin/inventory', icon: Boxes },
     { name: 'Produtos', path: '/admin/products', icon: Package },
     { name: 'Categorias', path: '/admin/categories', icon: Tags },
@@ -92,7 +91,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-muted/30 font-poppins">
-      {/* Sidebar Carbon - Desktop */}
       <aside className="hidden lg:flex w-72 flex-col bg-carbon text-white shadow-xl fixed inset-y-0 left-0 z-50">
         <div className="p-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -132,9 +130,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 lg:ml-72">
-        {/* Mobile Header */}
         <header className="lg:hidden h-16 bg-carbon text-white flex items-center justify-between px-4 sticky top-0 z-50 shadow-md">
           <div className="flex items-center gap-3">
             <div className="relative w-9 h-9 rounded-full overflow-hidden border border-white/20 shrink-0">
@@ -147,7 +143,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Button>
         </header>
 
-        {/* Mobile Sidebar Overlay */}
         {isMobileMenuOpen && (
           <div className="fixed inset-0 z-[100] bg-black/90 lg:hidden backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsMobileMenuOpen(false)}>
             <div className="absolute top-0 right-0 w-[85%] max-w-sm h-full bg-carbon p-6 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300" onClick={e => e.stopPropagation()}>
