@@ -42,7 +42,6 @@ import {
   runTransaction,
   serverTimestamp 
 } from 'firebase/firestore';
-import { saveOrderToFirestore } from '@/lib/storage-utils';
 
 export default function AdminSales() {
   const db = useFirestore();
@@ -102,7 +101,7 @@ export default function AdminSales() {
     const variationName = selectedVariations[product.id] || (product.variations?.[0]?.name);
     const hasVariations = product.variations && product.variations.length > 0;
     
-    // Verificação de estoque em tempo real
+    // Verificação de estoque em tempo real antes de colocar no carrinho (UX rápida)
     try {
       const productDoc = await getDoc(doc(db, 'products', product.id));
       if (!productDoc.exists()) throw new Error("Produto não encontrado.");
@@ -163,7 +162,6 @@ export default function AdminSales() {
       const itemKey = `${item.id}-${item.selectedColor || 'default'}`;
       if (itemKey === cartId) {
         const newQty = Math.max(0, item.quantity + delta);
-        // Verificação de estoque para o botão "+"
         if (delta > 0) {
           let stockLimit = product.stock;
           if (variation && product.variations) {
@@ -190,41 +188,54 @@ export default function AdminSales() {
 
     try {
       await runTransaction(db, async (transaction) => {
-        // 1. Verificar estoque de todos os itens na transação
-        const productUpdates: Array<{ ref: any, data: any }> = [];
+        // --- 1. PRIMEIRO: TODAS AS LEITURAS (READS) ---
+        // Coletamos IDs únicos de produtos para buscar uma única vez cada documento
+        const uniqueProductIds = Array.from(new Set(cart.map(i => i.id)));
+        const productSnapshots = new Map<string, Product>();
+
+        for (const pid of uniqueProductIds) {
+          const productRef = doc(db, 'products', pid);
+          const productSnap = await transaction.get(productRef);
+          if (!productSnap.exists()) throw new Error(`Produto não encontrado.`);
+          productSnapshots.set(pid, productSnap.data() as Product);
+        }
+
+        // --- 2. SEGUNDO: TODAS AS VALIDAÇÕES E ESCRITAS (WRITES) ---
+        // Trabalhamos com uma cópia local para gerenciar múltiplas variações do mesmo produto no carrinho
+        const localUpdates = new Map<string, Product>();
+        productSnapshots.forEach((data, id) => localUpdates.set(id, { ...data }));
 
         for (const item of cart) {
-          const productRef = doc(db, 'products', item.id);
-          const productSnap = await transaction.get(productRef);
+          const productData = localUpdates.get(item.id)!;
           
-          if (!productSnap.exists()) throw new Error(`Produto ${item.name} não encontrado.`);
-          
-          const productData = productSnap.data() as Product;
-          let newTotalStock = productData.stock;
-          let updatedVariations = productData.variations || [];
-
-          if (item.selectedColor && updatedVariations.length > 0) {
-            const varIndex = updatedVariations.findIndex(v => v.name === item.selectedColor);
-            if (varIndex === -1 || updatedVariations[varIndex].stock < item.quantity) {
+          if (item.selectedColor && productData.variations && productData.variations.length > 0) {
+            const varIndex = productData.variations.findIndex(v => v.name === item.selectedColor);
+            if (varIndex === -1 || productData.variations[varIndex].stock < item.quantity) {
               throw new Error(`Estoque insuficiente para ${item.name} (${item.selectedColor})`);
             }
-            updatedVariations[varIndex].stock -= item.quantity;
-            newTotalStock = updatedVariations.reduce((sum, v) => sum + v.stock, 0);
+            // Decrementa na cópia local
+            productData.variations[varIndex].stock -= item.quantity;
+            // Atualiza o estoque total na cópia local
+            productData.stock = productData.variations.reduce((sum, v) => sum + v.stock, 0);
           } else {
             if (productData.stock < item.quantity) {
               throw new Error(`Estoque insuficiente para ${item.name}`);
             }
-            newTotalStock -= item.quantity;
+            productData.stock -= item.quantity;
           }
-
-          transaction.update(productRef, { 
-            stock: newTotalStock, 
-            variations: updatedVariations,
-            updatedAt: serverTimestamp()
-          });
         }
 
-        // 2. Criar objeto do pedido
+        // Agora aplicamos os updates de estoque no Firestore
+        localUpdates.forEach((data, id) => {
+          const productRef = doc(db, 'products', id);
+          transaction.update(productRef, { 
+            stock: data.stock, 
+            variations: data.variations || [],
+            updatedAt: serverTimestamp()
+          });
+        });
+
+        // Criar o objeto do pedido
         const orderNumber = Math.floor(10000 + Math.random() * 90000).toString();
         const orderId = `ORD-${Date.now()}-${orderNumber}`;
         
