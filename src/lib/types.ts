@@ -5,6 +5,12 @@ export interface ProductVariation {
   imageUrl?: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  order?: number;
+}
+
 export interface Product {
   id: string;
   name: string;

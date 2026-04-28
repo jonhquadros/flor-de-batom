@@ -51,9 +51,11 @@ export default function Storefront() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    setCurrentYear(new Date().getFullYear());
   }, []);
 
   const productsQuery = useMemoFirebase(() => {
@@ -575,7 +577,7 @@ export default function Storefront() {
 
               <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
                 <p className="text-[10px] text-muted-foreground font-medium font-poppins">
-                  © {new Date().getFullYear()} Flor de Batom Makeup. Todos os direitos reservados.
+                  © {currentYear || '...'} Flor de Batom Makeup. Todos os direitos reservados.
                 </p>
                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-poppins">
                    Feito com <Heart className="h-3 w-3 text-red-400 fill-red-400" /> para realçar sua beleza.
