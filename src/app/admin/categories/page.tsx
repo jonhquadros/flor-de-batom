@@ -51,6 +51,7 @@ export default function AdminCategories() {
   };
 
   const handleDelete = (id: string) => {
+    if (!db) return;
     if (confirm('Excluir categoria? Isso afetará todos os dispositivos.')) {
       deleteDocumentNonBlocking(doc(db, 'categories', id));
       toast({ title: "Removida" });
@@ -59,7 +60,7 @@ export default function AdminCategories() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!catName.trim()) return;
+    if (!db || !catName.trim()) return;
 
     const id = editingCategory?.id || Math.random().toString(36).substr(2, 9);
     setDocumentNonBlocking(doc(db, 'categories', id), { 

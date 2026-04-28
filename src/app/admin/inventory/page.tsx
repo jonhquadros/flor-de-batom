@@ -43,6 +43,7 @@ export default function AdminInventory() {
   [products, searchTerm]);
 
   const handleUpdateStock = (productId: string, newStock: number, variationName?: string) => {
+    if (!db) return;
     const product = products.find(p => p.id === productId);
     if (!product) return;
 

@@ -86,6 +86,7 @@ export default function AdminProducts() {
   };
 
   const handleDelete = (id: string) => {
+    if (!db) return;
     if (confirm('Excluir este produto permanentemente em todos os dispositivos?')) {
       const productRef = doc(db, 'products', id);
       deleteDocumentNonBlocking(productRef);
@@ -126,6 +127,7 @@ export default function AdminProducts() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!db) return;
     
     const id = editingProduct?.id || Math.random().toString(36).substr(2, 9);
     const productData: Product = {
