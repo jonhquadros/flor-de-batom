@@ -189,7 +189,6 @@ export default function AdminSales() {
     try {
       await runTransaction(db, async (transaction) => {
         // --- 1. PRIMEIRO: TODAS AS LEITURAS (READS) ---
-        // Coletamos IDs únicos de produtos para buscar uma única vez cada documento
         const uniqueProductIds = Array.from(new Set(cart.map(i => i.id)));
         const productSnapshots = new Map<string, Product>();
 
@@ -201,7 +200,6 @@ export default function AdminSales() {
         }
 
         // --- 2. SEGUNDO: TODAS AS VALIDAÇÕES E ESCRITAS (WRITES) ---
-        // Trabalhamos com uma cópia local para gerenciar múltiplas variações do mesmo produto no carrinho
         const localUpdates = new Map<string, Product>();
         productSnapshots.forEach((data, id) => localUpdates.set(id, { ...data }));
 
@@ -213,9 +211,7 @@ export default function AdminSales() {
             if (varIndex === -1 || productData.variations[varIndex].stock < item.quantity) {
               throw new Error(`Estoque insuficiente para ${item.name} (${item.selectedColor})`);
             }
-            // Decrementa na cópia local
             productData.variations[varIndex].stock -= item.quantity;
-            // Atualiza o estoque total na cópia local
             productData.stock = productData.variations.reduce((sum, v) => sum + v.stock, 0);
           } else {
             if (productData.stock < item.quantity) {
@@ -225,7 +221,7 @@ export default function AdminSales() {
           }
         }
 
-        // Agora aplicamos os updates de estoque no Firestore
+        // Atualizar estoque no Firestore
         localUpdates.forEach((data, id) => {
           const productRef = doc(db, 'products', id);
           transaction.update(productRef, { 
@@ -235,7 +231,7 @@ export default function AdminSales() {
           });
         });
 
-        // Criar o objeto do pedido
+        // Criar o objeto do pedido com status 'Entregue' para fins de faturamento imediato
         const orderNumber = Math.floor(10000 + Math.random() * 90000).toString();
         const orderId = `ORD-${Date.now()}-${orderNumber}`;
         
@@ -248,7 +244,7 @@ export default function AdminSales() {
           items: cart,
           total: total,
           paymentMethod: paymentMethod,
-          status: 'Confirmado',
+          status: 'Entregue', // Alterado de 'Confirmado' para 'Entregue'
           createdAt: new Date().toISOString(),
           source: 'manual',
           discount: discount
@@ -258,7 +254,7 @@ export default function AdminSales() {
         transaction.set(orderRef, orderData);
       });
 
-      toast({ title: "Venda registrada com sucesso!", className: "bg-green-600 text-white" });
+      toast({ title: "Venda registrada com sucesso!", className: "bg-green-600 text-white shadow-xl" });
       setCart([]);
       setCustomerName('');
       setCustomerPhone('');
@@ -295,22 +291,20 @@ export default function AdminSales() {
 
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex gap-2 pb-2">
-            <Button 
-              variant={selectedCategory === 'Todos' ? 'default' : 'outline'}
-              className="rounded-full h-9 px-6 text-xs font-bold uppercase tracking-wider"
+            <button 
+              className={`rounded-full h-9 px-6 text-[10px] font-bold uppercase tracking-wider transition-all border ${selectedCategory === 'Todos' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-muted-foreground border-muted-foreground/20 hover:border-primary/50'}`}
               onClick={() => setSelectedCategory('Todos')}
             >
               Todos
-            </Button>
+            </button>
             {categories.map(cat => (
-              <Button 
+              <button 
                 key={cat.id}
-                variant={selectedCategory === cat.name ? 'default' : 'outline'}
-                className="rounded-full h-9 px-6 text-xs font-bold uppercase tracking-wider"
+                className={`rounded-full h-9 px-6 text-[10px] font-bold uppercase tracking-wider transition-all border ${selectedCategory === cat.name ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-muted-foreground border-muted-foreground/20 hover:border-primary/50'}`}
                 onClick={() => setSelectedCategory(cat.name)}
               >
                 {cat.name}
-              </Button>
+              </button>
             ))}
           </div>
         </ScrollArea>
@@ -326,7 +320,7 @@ export default function AdminSales() {
             return (
               <Card 
                 key={product.id} 
-                className={`border-none shadow-sm overflow-hidden flex flex-col transition-all ${isOutOfStock ? 'opacity-40 grayscale pointer-events-none' : 'hover:shadow-md'}`}
+                className={`border-none shadow-sm overflow-hidden flex flex-col transition-all ${isOutOfStock ? 'opacity-40 grayscale' : 'hover:shadow-md'}`}
               >
                 <div className="relative aspect-square">
                   <Image src={currentVar?.imageUrl || product.imageUrl} alt={product.name} fill className="object-cover" />
@@ -337,7 +331,7 @@ export default function AdminSales() {
                     <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">{product.category}</p>
                     <h4 className="text-[11px] font-bold line-clamp-2 leading-tight text-primary min-h-[2.4em]">{product.name}</h4>
                     <p className="text-sm font-bold text-primary mt-1">R$ {product.price.toFixed(2)}</p>
-                    <p className="text-[9px] font-medium text-muted-foreground mt-0.5">Estoque: {stock} un.</p>
+                    <p className={`text-[9px] font-bold mt-0.5 ${stock <= 12 ? 'text-red-500' : 'text-muted-foreground'}`}>Estoque: {stock} un.</p>
                   </div>
 
                   {hasVars && (
@@ -373,7 +367,7 @@ export default function AdminSales() {
         <Card className="border-none shadow-xl h-full flex flex-col rounded-[2rem] overflow-hidden sticky top-6">
           <CardHeader className="bg-primary text-white p-6 pb-4">
             <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" /> Carrinho de Venda
+              <ShoppingCart className="h-5 w-5" /> PDV Manual
             </CardTitle>
           </CardHeader>
           
@@ -382,7 +376,7 @@ export default function AdminSales() {
               {cart.length === 0 ? (
                 <div className="h-40 flex flex-col items-center justify-center text-center opacity-30 gap-2">
                   <ShoppingCart className="h-10 w-10" />
-                  <p className="text-xs font-bold uppercase tracking-widest">Carrinho Vazio</p>
+                  <p className="text-xs font-bold uppercase tracking-widest">Aguardando Produtos</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -463,7 +457,7 @@ export default function AdminSales() {
                   <span>R$ {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-[11px] font-bold text-red-500">
-                  <span className="flex items-center gap-1"><Tag className="h-3 w-3" /> DESCONTO</span>
+                  <span className="flex items-center gap-1 uppercase"><Tag className="h-3 w-3" /> Desconto</span>
                   <div className="flex items-center gap-1">
                     <span>R$</span>
                     <input 
@@ -485,7 +479,7 @@ export default function AdminSales() {
                 disabled={cart.length === 0 || isProcessing}
                 onClick={handleConfirmSale}
               >
-                {isProcessing ? 'Processando...' : <><CheckCircle2 className="h-5 w-5" /> CONFIRMAR VENDA</>}
+                {isProcessing ? 'Sincronizando...' : <><CheckCircle2 className="h-5 w-5" /> CONCLUIR E ENTREGAR</>}
               </Button>
             </div>
           </CardContent>
