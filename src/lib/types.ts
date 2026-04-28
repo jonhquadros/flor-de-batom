@@ -26,7 +26,7 @@ export interface CartItem extends Product {
   selectedColor?: string; 
 }
 
-export type OrderStatus = 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado';
+export type OrderStatus = 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Confirmado';
 
 export interface Order {
   id: string;
@@ -36,10 +36,12 @@ export interface Order {
   customerAddress: string;
   items: CartItem[];
   total: number;
-  paymentMethod: 'Pix' | 'Dinheiro';
+  paymentMethod: 'Pix' | 'Dinheiro' | 'Cartão';
   change?: number;
   status: OrderStatus;
   createdAt: string;
+  source?: 'manual' | 'catalog';
+  discount?: number;
 }
 
 export const INITIAL_CATEGORIES: string[] = [

@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Tags,
   Boxes,
-  BarChart3
+  BarChart3,
+  PlusCircle
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -41,7 +42,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!isClient || isLoginPage) return;
 
-    // Acesso seguro ao sessionStorage apenas no cliente após montagem
     const checkAuth = () => {
       try {
         const authorizedBySession = sessionStorage.getItem('adminLogado') === 'true';
@@ -71,7 +71,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoginPage) return <>{children}</>;
 
-  // Tela de carregamento/bloqueio antes da hidratação e autorização
   if (!isClient || !authorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#1A1A1A] text-white font-poppins p-4 text-center">
@@ -90,6 +89,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Vendas', path: '/admin/sales', icon: PlusCircle },
     { name: 'Faturamento', path: '/admin/billing', icon: BarChart3 },
     { name: 'Estoque', path: '/admin/inventory', icon: Boxes },
     { name: 'Produtos', path: '/admin/products', icon: Package },
