@@ -227,7 +227,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 2. ALERTAS CRÍTICOS (🚨 Topo) */}
+      {/* 2. ALERTAS CRÍTICOS */}
       {(stats?.outOfStockCount! > 0 || stats?.lowStockCount! > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
           {stats?.outOfStockCount! > 0 && (
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* 3. MÉTRICAS PRINCIPAIS (💰 Contexto) */}
+      {/* 3. MÉTRICAS PRINCIPAIS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-none shadow-sm hover:shadow-md transition-all group overflow-hidden">
           <CardContent className="p-6 relative">
@@ -278,7 +278,6 @@ export default function AdminDashboard() {
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Receita Mensal</p>
               <h3 className="text-xl md:text-2xl font-poppins font-semibold text-foreground">R$ {stats?.currentRevenue.toFixed(2)}</h3>
             </div>
-            <div className="absolute top-0 right-0 w-24 h-24 bg-green-50/20 rounded-full -translate-y-1/2 translate-x-1/2 -z-10" />
           </CardContent>
         </Card>
 
@@ -323,7 +322,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 4. GRÁFICO DE RECEITA (📈 Performance) */}
+        {/* 4. GRÁFICO DE RECEITA */}
         <Card className="lg:col-span-2 border-none shadow-sm p-6 overflow-hidden">
           <CardHeader className="p-0 mb-6">
             <div className="flex justify-between items-center">
@@ -366,7 +365,7 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
-        {/* 5. CARDS ESTRATÉGICOS & AÇÕES (🧠 Inteligência) */}
+        {/* 5. CARDS ESTRATÉGICOS & AÇÕES */}
         <div className="space-y-6">
           <Card className="border-none shadow-sm bg-primary text-white p-6 relative overflow-hidden group">
             <CardHeader className="p-0 mb-4">
@@ -383,14 +382,6 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 <p className="text-xs opacity-70 italic">Aguardando primeiras vendas do mês...</p>
-              )}
-
-              {stats?.topEarner && stats.topEarner.id !== stats.topSeller?.id && (
-                <div className="space-y-1 pt-2 border-t border-white/10">
-                  <p className="text-[10px] uppercase font-black opacity-70">Maior Faturamento</p>
-                  <p className="text-sm font-bold">{stats.topEarner.name}</p>
-                  <p className="text-xs opacity-90">R$ {stats.topEarner.revenue.toFixed(2)}</p>
-                </div>
               )}
               
               <div className="pt-4">
@@ -425,21 +416,12 @@ export default function AdminDashboard() {
                   <ChevronRight className="h-3 w-3" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="justify-between h-12 rounded-xl border-primary/10 hover:bg-primary/5 hover:text-primary transition-all">
-                <Link href="/admin/orders">
-                  <div className="flex items-center gap-3">
-                    <ShoppingBag className="h-4 w-4" />
-                    <span className="text-xs font-bold">Ver Pedidos</span>
-                  </div>
-                  <ChevronRight className="h-3 w-3" />
-                </Link>
-              </Button>
             </div>
           </Card>
         </div>
       </div>
 
-      {/* 6. PEDIDOS RECENTES MELHORADOS (📦 Logística) */}
+      {/* 6. PEDIDOS RECENTES MELHORADOS */}
       <Card className="border-none shadow-sm overflow-hidden">
         <CardHeader className="p-6 border-b flex flex-row items-center justify-between">
           <div>
@@ -457,7 +439,8 @@ export default function AdminDashboard() {
             <div className="divide-y">
               {orders.slice(-6).reverse().map((order) => (
                 <div key={order.id} className="p-4 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-muted/10 transition-colors gap-4">
-                  <div className="flex gap-4 items-center">
+                  {/* Informações do Pedido */}
+                  <div className="flex gap-4 items-center w-full md:w-auto">
                     <div className={`p-3 rounded-full shrink-0 ${
                       order.status === 'Entregue' ? 'bg-green-100' : 
                       order.status === 'Cancelado' ? 'bg-red-100' : 
@@ -468,13 +451,13 @@ export default function AdminDashboard() {
                        <Clock className="h-5 w-5 text-orange-600" />}
                     </div>
                     <div className="space-y-0.5 min-w-0">
-                      <p className="font-black text-primary text-sm">
+                      <p className="font-bold text-primary text-sm md:text-base">
                         {order.orderNumber ? `#${order.orderNumber}` : `#${order.id.substr(0, 6)}`}
                       </p>
-                      <p className="font-bold text-xs truncate max-w-[200px]">{order.customerName}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
-                        <Badge className={`text-[8px] font-black uppercase tracking-tighter h-4 px-1.5 ${
+                      <p className="font-semibold text-xs md:text-sm truncate max-w-[150px] md:max-w-[200px]">{order.customerName}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <Badge className={`text-[9px] font-bold uppercase h-5 px-2 tracking-tighter ${
                           order.status === 'Entregue' ? 'bg-green-500 hover:bg-green-600' : 
                           order.status === 'Cancelado' ? 'bg-red-500 hover:bg-red-600' : 
                           'bg-orange-500 hover:bg-orange-600'
@@ -485,16 +468,17 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between w-full md:w-auto gap-6 md:gap-10">
-                    <div className="text-right">
+                  {/* Valor e Ações */}
+                  <div className="flex items-center justify-between w-full md:w-auto gap-4 md:gap-8 pt-2 md:pt-0 border-t md:border-none border-muted/50">
+                    <div className="text-left md:text-right">
                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Valor</p>
-                      <p className="font-black text-primary text-sm md:text-base">R$ {(order.total || 0).toFixed(2)}</p>
+                      <p className="font-semibold text-primary text-sm md:text-lg">R$ {(order.total || 0).toFixed(2)}</p>
                     </div>
                     <div className="flex gap-2">
                       <Button 
                         size="icon" 
                         variant="ghost" 
-                        className="h-10 w-10 rounded-xl bg-green-50 text-green-600 hover:bg-green-100"
+                        className="h-10 w-10 md:h-11 md:w-11 rounded-2xl bg-green-50 text-green-600 hover:bg-green-100 border border-green-100/50"
                         onClick={() => handleWhatsAppAction(order)}
                         title="Falar no WhatsApp"
                       >
@@ -504,7 +488,7 @@ export default function AdminDashboard() {
                         asChild 
                         size="icon" 
                         variant="ghost" 
-                        className="h-10 w-10 rounded-xl bg-muted/50 text-primary hover:bg-muted"
+                        className="h-10 w-10 md:h-11 md:w-11 rounded-2xl bg-muted/50 text-primary hover:bg-muted border border-muted"
                         title="Ver Pedido"
                       >
                         <Link href={`/admin/orders`}>
