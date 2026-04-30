@@ -276,7 +276,7 @@ export default function AdminDashboard() {
             </div>
             <div className="mt-4 space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Receita Mensal</p>
-              <h3 className="text-xl md:text-2xl font-black text-foreground">R$ {stats?.currentRevenue.toFixed(2)}</h3>
+              <h3 className="text-xl md:text-2xl font-semibold text-foreground">R$ {stats?.currentRevenue.toFixed(2)}</h3>
             </div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-green-50/20 rounded-full -translate-y-1/2 translate-x-1/2 -z-10" />
           </CardContent>
@@ -289,7 +289,7 @@ export default function AdminDashboard() {
             </div>
             <div className="mt-4 space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Vendas Concluídas</p>
-              <h3 className="text-xl md:text-2xl font-black text-foreground">{stats?.orderCount} <span className="text-[10px] font-normal text-muted-foreground ml-1">pedidos</span></h3>
+              <h3 className="text-xl md:text-2xl font-semibold text-foreground">{stats?.orderCount} <span className="text-[10px] font-normal text-muted-foreground ml-1">pedidos</span></h3>
               <p className="text-[10px] text-primary font-bold">Hoje: {stats?.ordersToday} novos</p>
             </div>
           </CardContent>
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
             </div>
             <div className="mt-4 space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Saída de Itens</p>
-              <h3 className="text-xl md:text-2xl font-black text-foreground">{stats?.itemsSoldToday} <span className="text-[10px] font-normal text-muted-foreground ml-1">hoje</span></h3>
+              <h3 className="text-xl md:text-2xl font-semibold text-foreground">{stats?.itemsSoldToday} <span className="text-[10px] font-normal text-muted-foreground ml-1">hoje</span></h3>
               <p className="text-[10px] text-purple-600 font-bold">Volume total: {orders.reduce((acc, o) => acc + (o.items?.length || 0), 0)}</p>
             </div>
           </CardContent>
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
             </div>
             <div className="mt-4 space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Ticket Médio</p>
-              <h3 className="text-xl md:text-2xl font-black text-foreground">R$ {(stats?.orderCount! > 0 ? stats?.currentRevenue! / stats?.orderCount! : 0).toFixed(2)}</h3>
+              <h3 className="text-xl md:text-2xl font-semibold text-foreground">R$ {(stats?.orderCount! > 0 ? stats?.currentRevenue! / stats?.orderCount! : 0).toFixed(2)}</h3>
               <p className="text-[10px] text-blue-600 font-bold">Fidelidade alta</p>
             </div>
           </CardContent>
