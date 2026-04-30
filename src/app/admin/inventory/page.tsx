@@ -115,7 +115,7 @@ export default function AdminInventory() {
           <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
             <div className="p-2 rounded-xl bg-primary/10"><Package className="h-5 w-5 text-primary" /></div>
             <div className="space-y-0.5">
-              <h3 className="text-xl font-bold text-foreground">{stats.total}</h3>
+              <h3 className="text-xl font-semibold text-foreground">{stats.total}</h3>
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Produtos</p>
             </div>
           </CardContent>
@@ -125,7 +125,7 @@ export default function AdminInventory() {
           <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
             <div className="p-2 rounded-xl bg-green-100"><CheckCircle2 className="h-5 w-5 text-green-600" /></div>
             <div className="space-y-0.5">
-              <h3 className="text-xl font-bold text-green-600">{stats.ok}</h3>
+              <h3 className="text-xl font-semibold text-green-600">{stats.ok}</h3>
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Estoque OK</p>
             </div>
           </CardContent>
@@ -135,7 +135,7 @@ export default function AdminInventory() {
           <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
             <div className="p-2 rounded-xl bg-yellow-100"><AlertTriangle className="h-5 w-5 text-yellow-600" /></div>
             <div className="space-y-0.5">
-              <h3 className="text-xl font-bold text-yellow-600">{stats.low}</h3>
+              <h3 className="text-xl font-semibold text-yellow-600">{stats.low}</h3>
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Estoque Baixo</p>
             </div>
           </CardContent>
@@ -145,7 +145,7 @@ export default function AdminInventory() {
           <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
             <div className="p-2 rounded-xl bg-red-100"><XCircle className="h-5 w-5 text-red-600" /></div>
             <div className="space-y-0.5">
-              <h3 className="text-xl font-bold text-red-600">{stats.out}</h3>
+              <h3 className="text-xl font-semibold text-red-600">{stats.out}</h3>
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Esgotado</p>
             </div>
           </CardContent>
