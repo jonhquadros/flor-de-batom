@@ -16,15 +16,15 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  cost?: number; // Custo de aquisição para relatórios futuros
+  cost?: number;
   category: string;
   imageUrl: string;
   isFeatured: boolean;
-  stock: number; // Representa o estoque total (soma das variações)
-  colors?: string[]; // Mantido para compatibilidade
-  variations?: ProductVariation[]; // Estoque detalhado por cor
+  stock: number;
+  colors?: string[];
+  variations?: ProductVariation[];
   isActive?: boolean;
-  order?: number; // Campo para ordenação personalizada no catálogo
+  order?: number;
 }
 
 export interface CartItem extends Product {
