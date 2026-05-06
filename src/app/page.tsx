@@ -88,7 +88,7 @@ export default function Storefront() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro'>('Pix');
+  const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito'>('Pix');
   const [changeAmount, setChangeAmount] = useState('');
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
@@ -246,9 +246,16 @@ export default function Storefront() {
       `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
     ).join('\n');
 
-    const linhaPagamento = paymentMethod === 'Dinheiro'
-      ? `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`
-      : `📱 Pix — comprovante a enviar`;
+    let linhaPagamento = "";
+    if (paymentMethod === 'Dinheiro') {
+      linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`;
+    } else if (paymentMethod === 'Pix') {
+      linhaPagamento = `📱 Pix — comprovante a enviar`;
+    } else if (paymentMethod === 'Cartão Débito') {
+      linhaPagamento = `💳 Cartão de Débito`;
+    } else {
+      linhaPagamento = `💳 Cartão de Crédito`;
+    }
 
     const totalFormatado = cartTotal.toFixed(2).replace('.', ',');
 
@@ -710,6 +717,14 @@ export default function Storefront() {
                   <div className={`flex items-center gap-2 p-2.5 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Dinheiro' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Dinheiro')}>
                     <RadioGroupItem value="Dinheiro" id="cash" className="text-primary border-primary" />
                     <Label htmlFor="cash" className="font-bold text-xs cursor-pointer font-poppins">DINHEIRO</Label>
+                  </div>
+                  <div className={`flex items-center gap-2 p-2.5 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Cartão Débito' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Cartão Débito')}>
+                    <RadioGroupItem value="Cartão Débito" id="card-debit" className="text-primary border-primary" />
+                    <Label htmlFor="card-debit" className="font-bold text-[10px] cursor-pointer font-poppins">CARTÃO DÉBITO</Label>
+                  </div>
+                  <div className={`flex items-center gap-2 p-2.5 rounded-2xl border-2 transition-all cursor-pointer ${paymentMethod === 'Cartão Crédito' ? 'border-primary bg-primary/5' : 'border-muted'}`} onClick={() => setPaymentMethod('Cartão Crédito')}>
+                    <RadioGroupItem value="Cartão Crédito" id="card-credit" className="text-primary border-primary" />
+                    <Label htmlFor="card-credit" className="font-bold text-[10px] cursor-pointer font-poppins">CARTÃO CRÉDITO</Label>
                   </div>
                 </RadioGroup>
               </div>

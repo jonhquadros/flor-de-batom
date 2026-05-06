@@ -42,7 +42,7 @@ export interface Order {
   customerAddress: string;
   items: CartItem[];
   total: number;
-  paymentMethod: 'Pix' | 'Dinheiro' | 'Cartão';
+  paymentMethod: 'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito';
   change?: number;
   status: OrderStatus;
   createdAt: string;

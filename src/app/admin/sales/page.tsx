@@ -76,7 +76,7 @@ export default function AdminSales() {
   
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro' | 'Cartão'>('Pix');
+  const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito'>('Pix');
   const [discount, setDiscount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -428,15 +428,16 @@ export default function AdminSales() {
 
               <div className="space-y-1.5">
                 <p className="text-[8px] font-bold uppercase text-muted-foreground tracking-widest">Pagamento</p>
-                <div className="flex gap-1">
+                <div className="grid grid-cols-2 gap-1">
                   {[
                     { id: 'Pix', label: 'Pix' },
                     { id: 'Dinheiro', label: 'Dinheiro' },
-                    { id: 'Cartão', label: 'Cartão' }
+                    { id: 'Cartão Débito', label: 'C. Débito' },
+                    { id: 'Cartão Crédito', label: 'C. Crédito' }
                   ].map(m => (
                     <button
                       key={m.id}
-                      className={`flex-1 h-9 rounded-xl border-2 transition-all text-[8px] font-bold uppercase ${paymentMethod === m.id ? 'border-primary bg-primary text-white shadow-md' : 'border-muted text-muted-foreground hover:border-primary/20'}`}
+                      className={`h-9 rounded-xl border-2 transition-all text-[8px] font-bold uppercase ${paymentMethod === m.id ? 'border-primary bg-primary text-white shadow-md' : 'border-muted text-muted-foreground hover:border-primary/20'}`}
                       onClick={() => setPaymentMethod(m.id as any)}
                     >
                       {m.label}

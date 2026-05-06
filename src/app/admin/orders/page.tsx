@@ -195,7 +195,16 @@ export default function AdminOrders() {
     const rawPhone = selectedOrder.customerPhone.replace(/\D/g, '');
     const finalPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
     const linhasProdutos = selectedOrder.items.map(i => `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`).join('\n');
-    const linhaPagamento = selectedOrder.paymentMethod === 'Dinheiro' ? `💵 Dinheiro${selectedOrder.change ? ` (troco para R$ ${selectedOrder.change})` : ' (sem troco)'}` : `📱 Pix — comprovante a enviar`;
+    
+    let linhaPagamento = "";
+    if (selectedOrder.paymentMethod === 'Dinheiro') {
+      linhaPagamento = `💵 Dinheiro${selectedOrder.change ? ` (troco para R$ ${selectedOrder.change})` : ' (sem troco)'}`;
+    } else if (selectedOrder.paymentMethod === 'Pix') {
+      linhaPagamento = `📱 Pix — comprovante a enviar`;
+    } else {
+      linhaPagamento = `💳 ${selectedOrder.paymentMethod}`;
+    }
+
     const msg = encodeURIComponent(`🌸 *PEDIDO ATUALIZADO #${selectedOrder.orderNumber}*\n\n👤 *Cliente:* ${selectedOrder.customerName}\n🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n💰 *TOTAL: R$ ${selectedOrder.total.toFixed(2).replace('.', ',')}*\n💳 *Pagamento:* ${linhaPagamento}`);
     window.open(`https://wa.me/${finalPhone}?text=${msg}`, '_blank');
   };
@@ -290,9 +299,11 @@ export default function AdminOrders() {
                 <div className="space-y-3">
                   <Label className="text-[9px] font-bold uppercase text-muted-foreground">Forma de Pagamento</Label>
                   {selectedOrder.status === 'Pendente' ? (
-                    <RadioGroup value={selectedOrder.paymentMethod} onValueChange={(v: 'Pix' | 'Dinheiro') => setSelectedOrder({...selectedOrder, paymentMethod: v})} className="grid grid-cols-2 gap-2">
+                    <RadioGroup value={selectedOrder.paymentMethod} onValueChange={(v: any) => setSelectedOrder({...selectedOrder, paymentMethod: v})} className="grid grid-cols-2 gap-2">
                       <div className="flex items-center space-x-2"><RadioGroupItem value="Pix" id="pix-admin" /><Label htmlFor="pix-admin">Pix</Label></div>
                       <div className="flex items-center space-x-2"><RadioGroupItem value="Dinheiro" id="cash-admin" /><Label htmlFor="cash-admin">Dinheiro</Label></div>
+                      <div className="flex items-center space-x-2"><RadioGroupItem value="Cartão Débito" id="card-debit-admin" /><Label htmlFor="card-debit-admin">C. Débito</Label></div>
+                      <div className="flex items-center space-x-2"><RadioGroupItem value="Cartão Crédito" id="card-credit-admin" /><Label htmlFor="card-credit-admin">C. Crédito</Label></div>
                       {selectedOrder.paymentMethod === 'Dinheiro' && <Input type="number" placeholder="Troco p/" value={selectedOrder.change || ''} onChange={(e) => setSelectedOrder({...selectedOrder, change: parseFloat(e.target.value) || 0})} className="h-7 w-20 bg-white" />}
                     </RadioGroup>
                   ) : <p className="font-bold">{selectedOrder.paymentMethod} {selectedOrder.change ? `(Troco p/ R$ ${selectedOrder.change})` : ''}</p>}
