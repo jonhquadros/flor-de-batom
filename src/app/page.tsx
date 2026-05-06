@@ -82,6 +82,7 @@ export default function Storefront() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<'relevance' | 'price-asc' | 'price-desc' | 'az'>('relevance');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -107,6 +108,27 @@ export default function Storefront() {
       }
     }
   }, [mounted]);
+
+  // Gestão do botão voltar do celular para fechar modais/carrinho
+  useEffect(() => {
+    if (!mounted) return;
+
+    const anyOverlayOpen = isCartOpen || isCheckoutOpen || isMobileMenuOpen || !!selectedProduct;
+
+    if (anyOverlayOpen) {
+      window.history.pushState({ overlay: true }, '');
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      if (isCartOpen) setIsCartOpen(false);
+      if (isCheckoutOpen) setIsCheckoutOpen(false);
+      if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+      if (selectedProduct) setSelectedProduct(null);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isCartOpen, isCheckoutOpen, isMobileMenuOpen, selectedProduct, mounted]);
 
   useEffect(() => {
     if (!mounted || isUserLoading || !auth || !db) return;
@@ -275,6 +297,7 @@ export default function Storefront() {
     
     setCart([]);
     setIsCheckoutOpen(false);
+    setIsCartOpen(false);
     setCustomerName('');
     setCustomerPhone('');
     setCustomerAddress('');
@@ -351,7 +374,7 @@ export default function Storefront() {
             </div>
 
             <div className="flex items-center gap-1">
-              <Sheet>
+              <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative text-primary h-12 w-12 hover:bg-primary/5 rounded-2xl">
                     <ShoppingCart className="h-8 w-8" />
