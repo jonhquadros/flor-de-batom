@@ -7,23 +7,26 @@ Este projeto é uma aplicação Next.js dinâmica que utiliza Firebase para banc
 
 Siga estes passos para subir seu código pela primeira vez:
 
-1. **Crie um repositório vazio** no [GitHub](https://github.com/new).
-2. **Abra o terminal** na pasta do seu projeto e execute:
+1. **Abra o terminal** na pasta do seu projeto e execute:
    ```bash
-   # Inicializa o Git
+   # Inicializa o Git (se ainda não fez)
    git init
 
-   # Adiciona todos os arquivos (exceto os ignorados no .gitignore)
+   # Adiciona todos os arquivos
    git add .
 
-   # Cria o primeiro registro das alterações
-   git commit -m "Primeiro commit: Estrutura completa com Faturamento e Genkit"
+   # Cria o registro das alterações
+   git commit -m "Commit: Estrutura completa Flor de Batom"
 
-   # Define o nome da branch principal
+   # Define a branch principal
    git branch -M main
 
-   # Conecta ao seu repositório remoto (Substitua pela sua URL)
-   git remote add origin https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git
+   # CONECTAR AO SEU REPOSITÓRIO
+   # Se aparecer o erro "remote origin already exists", use este comando:
+   git remote set-url origin https://github.com/jonhquadros/flor-de-batom.git
+   
+   # Se for a primeira vez e não houver remote, use:
+   # git remote add origin https://github.com/jonhquadros/flor-de-batom.git
 
    # Envia os arquivos
    git push -u origin main
@@ -36,7 +39,7 @@ Após subir para o Git, siga os passos abaixo:
 ### 1. Configuração na Netlify
 1. Faça login na [Netlify](https://app.netlify.com/).
 2. Clique em **"Add new site"** > **"Import an existing project"**.
-3. Conecte seu provedor Git e selecione o repositório deste projeto.
+3. Conecte seu provedor Git e selecione o repositório `jonhquadros/flor-de-batom`.
 4. Nas configurações de Build, a Netlify detectará automaticamente via `netlify.toml`:
    - **Build command:** `npm run build`
    - **Publish directory:** `.next`
@@ -56,6 +59,6 @@ Sua aplicação precisa de chaves para funcionar. Adicione-as em **Site configur
 - A Netlify gerenciará o servidor dinâmico automaticamente.
 
 ## 🛠️ Notas Técnicas
-- **SSR & Server Actions:** Removido o `output: 'export'` para permitir funções de servidor (IA e Estoque).
-- **Segurança:** O painel administrativo exige login (flordebatom / gestaoflor@26) e sincroniza a sessão com o Firebase antes de liberar o acesso aos dados.# flor-de-batom
-# flor-de-batom
+- **SSR & Server Actions:** Mantido para permitir funções de servidor (IA e Estoque).
+- **Segurança:** O painel administrativo exige login (flordebatom / gestaoflor@26).
+- **Sincronização:** Utiliza transações do Firestore para garantir que o estoque nunca fique negativo em vendas simultâneas.
