@@ -58,3 +58,4 @@ Sua aplicação precisa de chaves para funcionar. Adicione-as em **Site configur
 ## 🛠️ Notas Técnicas
 - **SSR & Server Actions:** Removido o `output: 'export'` para permitir funções de servidor (IA e Estoque).
 - **Segurança:** O painel administrativo exige login (flordebatom / gestaoflor@26) e sincroniza a sessão com o Firebase antes de liberar o acesso aos dados.# flor-de-batom
+# flor-de-batom
