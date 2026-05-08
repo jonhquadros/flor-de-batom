@@ -9,6 +9,7 @@ import { BotaoWhatsApp } from './BotaoWhatsApp';
 import { Product, CartItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { ProdutosRelacionados } from './ProdutosRelacionados';
 
 interface Props {
   produto: Product;
@@ -204,6 +205,12 @@ export function ProdutoDetalhe({ produto }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Seção de Relacionados */}
+        <ProdutosRelacionados 
+          categoriaAtual={produto.category} 
+          idAtual={produto.id} 
+        />
       </div>
     </div>
   );
