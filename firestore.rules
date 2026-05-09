@@ -51,6 +51,12 @@ service cloud.firestore {
       }
     }
 
+    match /stockMovements/{movementId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false; // Histórico não deve ser modificado
+    }
+
     match /roles_admin/{adminId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
