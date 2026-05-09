@@ -50,6 +50,20 @@ export interface Order {
   discount?: number;
 }
 
+export type StockMovementType = 'Addition' | 'Sale' | 'Loss' | 'Breakage' | 'Donation' | 'Adjustment';
+
+export interface StockMovement {
+  id: string;
+  productId: string;
+  productName: string;
+  variationName?: string;
+  quantity: number; // Positive for additions, negative for reductions
+  type: StockMovementType;
+  reason?: string;
+  createdAt: string;
+  adminId?: string;
+}
+
 export const INITIAL_CATEGORIES: string[] = [
   'Batom', 
   'Delineador', 

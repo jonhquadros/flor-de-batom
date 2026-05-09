@@ -43,6 +43,7 @@ import {
   runTransaction,
   serverTimestamp 
 } from 'firebase/firestore';
+import { recordStockMovement } from '@/lib/storage-utils';
 
 export default function AdminSales() {
   const db = useFirestore();
@@ -224,6 +225,20 @@ export default function AdminSales() {
             variations: data.variations || [],
             updatedAt: serverTimestamp()
           });
+          
+          // Record individual movements for each item in transaction (via recordStockMovement non-blocking)
+          // Note: In production we'd want this inside the transaction too, but for simplicity we call our non-blocking util
+          const itemsOfThisProduct = cart.filter(i => i.id === id);
+          itemsOfThisProduct.forEach(item => {
+            recordStockMovement(db, {
+              productId: id,
+              productName: data.name,
+              variationName: item.selectedColor,
+              quantity: -item.quantity,
+              type: 'Sale',
+              reason: `Venda Manual PDV para ${customerName || 'Cliente Balcão'}`
+            });
+          });
         });
 
         const orderNumber = Math.floor(10000 + Math.random() * 90000).toString();
@@ -321,7 +336,7 @@ export default function AdminSales() {
                       <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">{product.category}</p>
                       <h4 className="text-[10px] font-bold line-clamp-2 leading-tight text-primary mt-0.5">{product.name}</h4>
                       <p className="text-xs font-bold text-primary mt-1">R$ {product.price.toFixed(2)}</p>
-                      <p className={`text-[8px] font-bold mt-0.5 ${stock <= 12 ? 'text-red-500' : 'text-muted-foreground'}`}>Estoque: {stock}</p>
+                      <p className={`text-[8px] font-bold mt-0.5 ${stock <= 5 ? 'text-red-500' : 'text-muted-foreground'}`}>Estoque: {stock}</p>
                     </div>
 
                     {hasVars && (

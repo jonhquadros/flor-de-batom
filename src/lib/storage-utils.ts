@@ -1,11 +1,13 @@
 
-import { Product, Order, Category, OrderStatus } from './types';
+import { Product, Order, Category, OrderStatus, StockMovement, StockMovementType } from './types';
 import { 
   collection, 
   doc, 
   getDocs, 
   getDoc,
-  Firestore
+  Firestore,
+  serverTimestamp,
+  runTransaction
 } from 'firebase/firestore';
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
@@ -18,6 +20,22 @@ const sanitizeData = (data: any) => {
     }
   });
   return sanitized;
+};
+
+export const recordStockMovement = async (
+  db: Firestore, 
+  movement: Omit<StockMovement, 'id' | 'createdAt'>
+) => {
+  const movementsRef = collection(db, 'stockMovements');
+  const movementId = `MOV-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+  
+  const newMovement: StockMovement = {
+    ...movement,
+    id: movementId,
+    createdAt: new Date().toISOString()
+  };
+
+  setDocumentNonBlocking(doc(movementsRef, movementId), sanitizeData(newMovement), { merge: true });
 };
 
 export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
@@ -77,7 +95,18 @@ export const adjustInventoryForOrder = async (db: Firestore, order: Order, type:
 
       updateDocumentNonBlocking(productRef, {
         stock: newTotalStock,
-        variations: updatedVariations
+        variations: updatedVariations,
+        updatedAt: serverTimestamp()
+      });
+
+      // Record movement
+      recordStockMovement(db, {
+        productId: item.id,
+        productName: item.name,
+        variationName: item.selectedColor,
+        quantity: quantityChange,
+        type: multiplier < 0 ? 'Sale' : 'Adjustment',
+        reason: multiplier < 0 ? `Venda Pedido #${order.orderNumber}` : `Estorno Pedido #${order.orderNumber}`
       });
     }
   }
