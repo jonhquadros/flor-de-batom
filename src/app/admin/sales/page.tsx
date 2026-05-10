@@ -187,6 +187,17 @@ export default function AdminSales() {
 
     try {
       await runTransaction(db, async (transaction) => {
+        // 1. Obter e incrementar o contador sequencial
+        const counterRef = doc(db, 'metadata', 'counters');
+        const counterSnap = await transaction.get(counterRef);
+        let nextOrderNum = 1;
+        if (counterSnap.exists()) {
+          nextOrderNum = (counterSnap.data().orderCount || 0) + 1;
+        }
+        transaction.set(counterRef, { orderCount: nextOrderNum }, { merge: true });
+        const formattedOrderNumber = nextOrderNum.toString().padStart(6, '0');
+
+        // 2. Processar estoque
         const uniqueProductIds = Array.from(new Set(cart.map(i => i.id)));
         const productSnapshots = new Map<string, Product>();
 
@@ -226,8 +237,6 @@ export default function AdminSales() {
             updatedAt: serverTimestamp()
           });
           
-          // Record individual movements for each item in transaction (via recordStockMovement non-blocking)
-          // Note: In production we'd want this inside the transaction too, but for simplicity we call our non-blocking util
           const itemsOfThisProduct = cart.filter(i => i.id === id);
           itemsOfThisProduct.forEach(item => {
             recordStockMovement(db, {
@@ -241,12 +250,11 @@ export default function AdminSales() {
           });
         });
 
-        const orderNumber = Math.floor(10000 + Math.random() * 90000).toString();
-        const orderId = `ORD-${Date.now()}-${orderNumber}`;
-        
+        // 3. Gravar Pedido com número sequencial
+        const orderId = `ORD-${Date.now()}-${formattedOrderNumber}`;
         const orderData: Order = {
           id: orderId,
-          orderNumber,
+          orderNumber: formattedOrderNumber,
           customerName: customerName || 'Venda Manual',
           customerPhone: customerPhone || '',
           customerAddress: '',

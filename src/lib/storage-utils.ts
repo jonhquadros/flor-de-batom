@@ -22,6 +22,30 @@ const sanitizeData = (data: any) => {
   return sanitized;
 };
 
+/** 
+ * Gera o próximo número de pedido sequencial (000001) 
+ */
+export const getNextOrderNumber = async (db: Firestore): Promise<string> => {
+  const counterRef = doc(db, 'metadata', 'counters');
+  let nextNum = 1;
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(counterRef);
+      if (snap.exists()) {
+        nextNum = (snap.data().orderCount || 0) + 1;
+      }
+      transaction.set(counterRef, { orderCount: nextNum }, { merge: true });
+    });
+  } catch (e) {
+    console.error("Erro ao gerar número sequencial:", e);
+    // Fallback seguro em caso de erro extremo na transação
+    nextNum = Math.floor(100000 + Math.random() * 900000);
+  }
+
+  return nextNum.toString().padStart(6, '0');
+};
+
 export const recordStockMovement = async (
   db: Firestore, 
   movement: Omit<StockMovement, 'id' | 'createdAt'>

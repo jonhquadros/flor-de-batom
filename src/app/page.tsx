@@ -40,7 +40,7 @@ import {
 } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
-import { saveOrderToFirestore, seedInitialDataToFirestore } from '@/lib/storage-utils';
+import { saveOrderToFirestore, seedInitialDataToFirestore, getNextOrderNumber } from '@/lib/storage-utils';
 
 export default function Storefront() {
   const firebaseCtx = React.useContext(FirebaseContext);
@@ -87,6 +87,7 @@ export default function Storefront() {
   const [customerAddress, setCustomerAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito'>('Pix');
   const [changeAmount, setChangeAmount] = useState('');
+  const [isFinalizing, setIsProcessing] = useState(false);
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
   const WHATSAPP_LOJA = "5591987199039";
@@ -187,59 +188,75 @@ export default function Storefront() {
       toast({ variant: "destructive", title: "Erro", description: "Preencha nome, telefone e endereço." });
       return;
     }
-    const orderNum = Math.floor(10000 + Math.random() * 90000).toString();
-    const orderData: any = {
-      id: `ORD-${Date.now()}-${orderNum}`,
-      orderNumber: orderNum,
-      customerName,
-      customerPhone,
-      customerAddress,
-      items: cart,
-      total: cartTotal,
-      paymentMethod,
-      status: 'Pendente',
-      createdAt: new Date().toISOString(),
-    };
-    if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount) || 0;
-    await saveOrderToFirestore(db, orderData as Order);
-    const NUMERO_LOJA_MSG = "5591987199039";
-    
-    const linhasProdutos = cart.map(i => {
-      const temVariacoes = i.variations && i.variations.length > 0;
-      const labelCor = (temVariacoes && i.selectedColor) ? ` [${i.selectedColor}]` : '';
-      return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`;
-    }).join('\n');
 
-    let linhaPagamento = "";
-    if (paymentMethod === 'Dinheiro') {
-      linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`;
-    } else if (paymentMethod === 'Pix') {
-      linhaPagamento = `📱 Pix — comprovante a enviar`;
-    } else if (paymentMethod === 'Cartão Débito') {
-      linhaPagamento = `💳 Cartão de Débito`;
-    } else {
-      linhaPagamento = `💳 Cartão de Crédito`;
+    setIsProcessing(true);
+    try {
+      // Obtém o próximo número sequencial real
+      const orderNum = await getNextOrderNumber(db);
+      
+      const orderData: any = {
+        id: `ORD-${Date.now()}-${orderNum}`,
+        orderNumber: orderNum,
+        customerName,
+        customerPhone,
+        customerAddress,
+        items: cart,
+        total: cartTotal,
+        paymentMethod,
+        status: 'Pendente',
+        createdAt: new Date().toISOString(),
+      };
+      
+      if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount) || 0;
+      
+      await saveOrderToFirestore(db, orderData as Order);
+      
+      const NUMERO_LOJA_MSG = "5591987199039";
+      
+      const linhasProdutos = cart.map(i => {
+        const temVariacoes = i.variations && i.variations.length > 0;
+        const labelCor = (temVariacoes && i.selectedColor) ? ` [${i.selectedColor}]` : '';
+        return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`;
+      }).join('\n');
+
+      let linhaPagamento = "";
+      if (paymentMethod === 'Dinheiro') {
+        linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`;
+      } else if (paymentMethod === 'Pix') {
+        linhaPagamento = `📱 Pix — comprovante a enviar`;
+      } else if (paymentMethod === 'Cartão Débito') {
+        linhaPagamento = `💳 Cartão de Débito`;
+      } else {
+        linhaPagamento = `💳 Cartão de Crédito`;
+      }
+
+      const totalFormatado = cartTotal.toFixed(2).replace('.', ',');
+      const msg = encodeURIComponent(
+        `🌸 *NOVO PEDIDO #${orderNum} - Flor de Batom Makeup*\n\n` +
+        `👤 *Cliente:* ${customerName}\n` +
+        `📱 *Telefone:* ${customerPhone}\n` +
+        `📍 *Endereço:* ${customerAddress}\n\n` +
+        `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
+        `💰 *TOTAL: R$ ${totalFormatado}*\n` +
+        `💳 *Pagamento:* ${linhaPagamento}\n\n` +
+        `_Pedido enviado pelo catálogo online_`
+      );
+      
+      window.open(`https://wa.me/${NUMERO_LOJA_MSG}?text=${msg}`, '_blank');
+      
+      setCart([]);
+      setIsCheckoutOpen(false);
+      setIsCartOpen(false);
+      setCustomerName('');
+      setCustomerPhone('');
+      setCustomerAddress('');
+      setPaymentMethod('Pix');
+      setChangeAmount('');
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao processar pedido." });
+    } finally {
+      setIsProcessing(false);
     }
-    const totalFormatado = cartTotal.toFixed(2).replace('.', ',');
-    const msg = encodeURIComponent(
-      `🌸 *NOVO PEDIDO #${orderNum} - Flor de Batom Makeup*\n\n` +
-      `👤 *Cliente:* ${customerName}\n` +
-      `📱 *Telefone:* ${customerPhone}\n` +
-      `📍 *Endereço:* ${customerAddress}\n\n` +
-      `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
-      `💰 *TOTAL: R$ ${totalFormatado}*\n` +
-      `💳 *Pagamento:* ${linhaPagamento}\n\n` +
-      `_Pedido enviado pelo catálogo online_`
-    );
-    window.open(`https://wa.me/${NUMERO_LOJA_MSG}?text=${msg}`, '_blank');
-    setCart([]);
-    setIsCheckoutOpen(false);
-    setIsCartOpen(false);
-    setCustomerName('');
-    setCustomerPhone('');
-    setCustomerAddress('');
-    setPaymentMethod('Pix');
-    setChangeAmount('');
   };
 
   const copyPixKey = () => {
@@ -478,7 +495,13 @@ export default function Storefront() {
               )}
               {paymentMethod === 'Dinheiro' && (<div className="space-y-1.5 animate-in slide-in-from-top-2 font-poppins"><Label htmlFor="change" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Precisa de troco para quanto?</Label><Input id="change" type="number" placeholder="Ex: 50" className="h-11 rounded-2xl bg-muted/30 border-none font-poppins text-sm" value={changeAmount} onChange={e => setChangeAmount(e.target.value)} /></div>)}
             </div>
-            <Button className="w-full h-14 rounded-2xl bg-primary text-base font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform font-poppins" onClick={handleCheckout}>Enviar para o WhatsApp</Button>
+            <Button 
+              className="w-full h-14 rounded-2xl bg-primary text-base font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform font-poppins" 
+              onClick={handleCheckout}
+              disabled={isFinalizing}
+            >
+              {isFinalizing ? 'Processando...' : 'Enviar para o WhatsApp'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
