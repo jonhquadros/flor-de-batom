@@ -28,6 +28,8 @@ export function ProdutoDetalhe({ produto }: Props) {
   useEffect(() => {
     if (produto.variations && produto.variations.length > 0) {
       setSelectedColor(produto.variations[0].name);
+    } else {
+      setSelectedColor('');
     }
   }, [produto]);
 

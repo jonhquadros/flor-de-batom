@@ -194,7 +194,12 @@ export default function AdminOrders() {
     if (!selectedOrder) return;
     const rawPhone = selectedOrder.customerPhone.replace(/\D/g, '');
     const finalPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
-    const linhasProdutos = selectedOrder.items.map(i => `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`).join('\n');
+    
+    const linhasProdutos = selectedOrder.items.map(i => {
+      const temVariacoes = i.variations && i.variations.length > 0;
+      const labelCor = (temVariacoes && i.selectedColor) ? ` [${i.selectedColor}]` : '';
+      return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`;
+    }).join('\n');
     
     let linhaPagamento = "";
     if (selectedOrder.paymentMethod === 'Dinheiro') {

@@ -203,9 +203,13 @@ export default function Storefront() {
     if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount) || 0;
     await saveOrderToFirestore(db, orderData as Order);
     const NUMERO_LOJA_MSG = "5591987199039";
-    const linhasProdutos = cart.map(i =>
-      `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`
-    ).join('\n');
+    
+    const linhasProdutos = cart.map(i => {
+      const temVariacoes = i.variations && i.variations.length > 0;
+      const labelCor = (temVariacoes && i.selectedColor) ? ` [${i.selectedColor}]` : '';
+      return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`;
+    }).join('\n');
+
     let linhaPagamento = "";
     if (paymentMethod === 'Dinheiro') {
       linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`;
