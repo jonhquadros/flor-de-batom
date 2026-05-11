@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -31,7 +30,6 @@ export function PassoProdutos({
   const [busca, setBusca] = useState('');
   const [catSelecionada, setCatSelecionada] = useState('Todos');
 
-  // Consulta ampla para garantir que todos os produtos sejam carregados e filtrados no cliente
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, 'products');
@@ -41,13 +39,16 @@ export function PassoProdutos({
 
   const produtos = useMemo(() => {
     if (!allProducts) return [];
-    return allProducts.filter(p => p.category !== 'Monte seu Presente' && p.stock > 0 && p.isActive !== false);
+    return allProducts.filter(p => {
+      const cat = (p.category || '').trim().toLowerCase();
+      return cat !== 'monte seu presente' && p.stock > 0 && p.isActive !== false;
+    });
   }, [allProducts]);
 
   const filtrados = useMemo(() => {
     return produtos.filter(p => {
       const matchCat = catSelecionada === 'Todos' || p.category === catSelecionada;
-      const matchBusca = p.name.toLowerCase().includes(busca.toLowerCase());
+      const matchBusca = (p.name || '').toLowerCase().includes(busca.toLowerCase());
       return matchCat && matchBusca;
     }).sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   }, [produtos, busca, catSelecionada]);
@@ -60,7 +61,6 @@ export function PassoProdutos({
 
   return (
     <div className="space-y-6">
-      {/* Status da Embalagem */}
       <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-primary/5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -86,7 +86,6 @@ export function PassoProdutos({
         {limiteAtingido && <p className="text-center text-[10px] font-bold text-red-500 uppercase tracking-widest animate-pulse">Capacidade máxima atingida!</p>}
       </div>
 
-      {/* Busca e Filtros */}
       <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -119,7 +118,6 @@ export function PassoProdutos({
         </ScrollArea>
       </div>
 
-      {/* Grid de Produtos */}
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="aspect-[3/4] rounded-3xl bg-muted animate-pulse" />)}
@@ -175,7 +173,6 @@ export function PassoProdutos({
         </div>
       )}
 
-      {/* Botões Mobile Navegação */}
       <div className="lg:hidden flex gap-3 pt-6">
         <Button variant="outline" className="flex-1 h-14 rounded-2xl text-[10px] font-black uppercase" onClick={onVoltar}>← Voltar</Button>
         <Button 

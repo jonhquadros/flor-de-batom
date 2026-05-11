@@ -1,11 +1,10 @@
-
 'use client';
 
 import React from 'react';
 import Image from 'next/image';
 import { Embalagem } from '@/types/presente';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, PackageSearch } from 'lucide-react';
 
 interface Props {
   embalagens: Embalagem[];
@@ -20,6 +19,22 @@ export function PassoEmbalagem({ embalagens, carregando, onSelecionar }: Props) 
         {[1, 2].map(i => (
           <div key={i} className="aspect-square rounded-[2rem] bg-muted animate-pulse" />
         ))}
+      </div>
+    );
+  }
+
+  if (embalagens.length === 0) {
+    return (
+      <div className="text-center py-20 bg-white rounded-[3rem] border border-dashed border-primary/20 max-w-2xl mx-auto space-y-6">
+        <div className="mx-auto w-16 h-16 bg-muted rounded-2xl flex items-center justify-center text-muted-foreground">
+          <PackageSearch className="h-8 w-8" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-xl font-bold text-primary">Nenhuma embalagem encontrada</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+            Certifique-se de que existem produtos cadastrados na categoria <span className="font-bold">"Monte seu Presente"</span> e que estão como <span className="font-bold">Ativos</span> no painel admin.
+          </p>
+        </div>
       </div>
     );
   }

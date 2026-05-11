@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -9,17 +8,16 @@ import { PassoProdutos } from './PassoProdutos';
 import { PreviewPresente } from './PreviewPresente';
 import { PassoFinalizacao } from './PassoFinalizacao';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Product } from '@/lib/types';
 import { Embalagem, ItemPresente, Presente } from '@/types/presente';
 
 type Passo = 1 | 2 | 3;
 
 function inferirMaxItens(produto: Product): number {
-  // Tenta pegar do campo maxItens, se não existir infere pelo nome
   if ((produto as any).maxItens) return Number((produto as any).maxItens);
   
-  const nome = produto.name.toLowerCase();
+  const nome = (produto.name || '').toLowerCase();
   if (nome.includes('cesta')) return 15;
   if (nome.includes('copo')) return 4;
   return 10;
@@ -31,7 +29,6 @@ export function MontadorPresente() {
   const [embalagem, setEmbalagem] = useState<Embalagem | null>(null);
   const [itens, setItens] = useState<ItemPresente[]>([]);
 
-  // Query mais ampla para evitar problemas com índices ou campos ausentes no Firestore
   const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return collection(db, 'products');
@@ -39,18 +36,20 @@ export function MontadorPresente() {
 
   const { data: allProducts, isLoading: isProductsLoading } = useCollection<Product>(productsQuery);
 
-  // Filtra as embalagens no cliente para maior robustez
   const embalagens = useMemo(() => {
     if (!allProducts) return [];
+    // Busca insensível a maiúsculas/minúsculas e espaços extras
     return allProducts
-      .filter(p => p.category === 'Monte seu Presente' && p.isActive !== false)
+      .filter(p => {
+        const cat = (p.category || '').trim().toLowerCase();
+        return cat === 'monte seu presente' && p.isActive !== false;
+      })
       .map(p => ({
         ...p,
         maxItens: (p as any).maxItens || inferirMaxItens(p)
       })) as Embalagem[];
   }, [allProducts]);
 
-  // Helpers
   const totalItens = itens.reduce((s, i) => s + i.quantidade, 0);
   const totalProdutos = itens.reduce((s, i) => s + i.preco * i.quantidade, 0);
   const totalFinal = (embalagem?.price ?? 0) + totalProdutos;
@@ -112,7 +111,6 @@ export function MontadorPresente() {
 
   return (
     <div className="font-poppins pb-20">
-      {/* Header Fixo */}
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b px-4 h-16 flex items-center justify-between">
         <Link href="/" className="h-10 w-10 flex items-center justify-center rounded-full bg-muted/50 text-primary">
           <ChevronLeft className="h-6 w-6" />
@@ -122,7 +120,6 @@ export function MontadorPresente() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Progress Tracker */}
         <div className="flex items-center justify-center mb-12">
           {[
             { n: 1, label: 'Embalagem', icon: '🎀' },
@@ -149,7 +146,6 @@ export function MontadorPresente() {
           ))}
         </div>
 
-        {/* Etapas */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           {passoAtual === 1 && (
             <PassoEmbalagem
