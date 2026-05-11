@@ -2,18 +2,18 @@
 "use client"
 
 import React, { useState, useMemo } from 'react';
-import { Download, Search, CheckCircle2, Package, Truck, Clock, Eye, MessageCircle, Save, Trash2, Plus, Minus, XCircle, ChevronLeft } from 'lucide-react';
+import { Search, CheckCircle2, Package, Truck, Clock, Eye, MessageCircle, Save, Trash2, Plus, Minus, XCircle, ChevronLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Order, OrderStatus, Product, CartItem } from '@/lib/types';
+import { Order, OrderStatus, Product } from '@/lib/types';
 import { updateOrderStatus, updateOrder } from '@/lib/storage-utils';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
@@ -44,14 +44,12 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   
-  // Adição de Produto no Pedido
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [addingProductSearch, setAddingProductSearch] = useState('');
   const [selectedProductToAdd, setSelectedProductToAdd] = useState<Product | null>(null);
   const [selectedColorToAdd, setSelectedColorToAdd] = useState<string>('');
   const [quantityToAdd, setQuantityToAdd] = useState(1);
   
-  // Confirmação de Status
   const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
   const [statusToUpdate, setStatusToUpdate] = useState<{id: string, status: OrderStatus} | null>(null);
 
@@ -91,43 +89,30 @@ export default function AdminOrders() {
   const handleStatusChangeExecution = (sendNotification: boolean) => {
     if (!statusToUpdate) return;
     const { id, status } = statusToUpdate;
-    
-    // Busca o objeto completo do pedido para gerenciar o estoque
     const order = orders.find(o => o.id === id);
     
     if (db && order) {
       updateOrderStatus(db, order, status);
+      if (sendNotification) sendWhatsAppStatusUpdate({ ...order, status });
     }
     
-    if (sendNotification && order) {
-      sendWhatsAppStatusUpdate({ ...order, status });
-    }
-
     setIsStatusConfirmOpen(false);
     setStatusToUpdate(null);
     if (selectedOrder && selectedOrder.id === id) setSelectedOrder(prev => prev ? { ...prev, status } : null);
-    toast({ title: "Status Atualizado", description: "O estoque foi ajustado automaticamente." });
+    toast({ title: "Status Atualizado" });
   };
 
   const openDetails = (order: Order) => {
     setSelectedOrder({ ...order });
     setIsDetailsOpen(true);
     setIsAddingProduct(false);
-    setSelectedProductToAdd(null);
-    setSelectedColorToAdd('');
-    setQuantityToAdd(1);
   };
 
   const handleUpdateItemQuantity = (id: string, delta: number, color?: string) => {
     if (!selectedOrder || selectedOrder.status !== 'Pendente') return;
-
-    const product = products.find(p => p.id === id);
-    if (!product) return;
-
     const updatedItems = selectedOrder.items.map(item => {
       if (item.id === id && item.selectedColor === color) {
-        const newQty = Math.max(0, item.quantity + delta);
-        return { ...item, quantity: newQty };
+        return { ...item, quantity: Math.max(0, item.quantity + delta) };
       }
       return item;
     }).filter(item => item.quantity > 0);
@@ -145,42 +130,20 @@ export default function AdminOrders() {
 
   const handleAddProductToOrder = () => {
     if (!selectedOrder || !selectedProductToAdd) return;
-    
-    const needsColor = selectedProductToAdd.variations && selectedProductToAdd.variations.length > 0;
-    if (needsColor && !selectedColorToAdd) {
-      toast({ variant: "destructive", title: "Selecione uma cor" });
-      return;
-    }
-
-    // Procura se já existe o mesmo item com a mesma cor no pedido
     const existingItemIdx = selectedOrder.items.findIndex(
       item => item.id === selectedProductToAdd.id && item.selectedColor === selectedColorToAdd
     );
 
-    let updatedItems;
+    let updatedItems = [...selectedOrder.items];
     if (existingItemIdx > -1) {
-      updatedItems = [...selectedOrder.items];
-      updatedItems[existingItemIdx] = {
-        ...updatedItems[existingItemIdx],
-        quantity: updatedItems[existingItemIdx].quantity + quantityToAdd
-      };
+      updatedItems[existingItemIdx] = { ...updatedItems[existingItemIdx], quantity: updatedItems[existingItemIdx].quantity + quantityToAdd };
     } else {
-      updatedItems = [...selectedOrder.items, { 
-        ...selectedProductToAdd, 
-        quantity: quantityToAdd, 
-        selectedColor: selectedColorToAdd 
-      }];
+      updatedItems.push({ ...selectedProductToAdd, quantity: quantityToAdd, selectedColor: selectedColorToAdd } as any);
     }
 
     const newTotal = updatedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     setSelectedOrder({ ...selectedOrder, items: updatedItems, total: newTotal });
-    
-    // Reset states
     setIsAddingProduct(false);
-    setSelectedProductToAdd(null);
-    setSelectedColorToAdd('');
-    setQuantityToAdd(1);
-    toast({ title: "Produto Adicionado" });
   };
 
   const saveOrderChanges = () => {
@@ -194,28 +157,14 @@ export default function AdminOrders() {
     if (!selectedOrder) return;
     const rawPhone = selectedOrder.customerPhone.replace(/\D/g, '');
     const finalPhone = rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`;
-    
-    const linhasProdutos = selectedOrder.items.map(i => {
-      const temVariacoes = i.variations && i.variations.length > 0;
-      const labelCor = (temVariacoes && i.selectedColor) ? ` [${i.selectedColor}]` : '';
-      return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`;
-    }).join('\n');
-    
-    let linhaPagamento = "";
-    if (selectedOrder.paymentMethod === 'Dinheiro') {
-      linhaPagamento = `💵 Dinheiro${selectedOrder.change ? ` (troco para R$ ${selectedOrder.change})` : ' (sem troco)'}`;
-    } else if (selectedOrder.paymentMethod === 'Pix') {
-      linhaPagamento = `📱 Pix — comprovante a enviar`;
-    } else {
-      linhaPagamento = `💳 ${selectedOrder.paymentMethod}`;
-    }
-
-    const msg = encodeURIComponent(`🌸 *PEDIDO ATUALIZADO #${selectedOrder.orderNumber}*\n\n👤 *Cliente:* ${selectedOrder.customerName}\n🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n💰 *TOTAL: R$ ${selectedOrder.total.toFixed(2).replace('.', ',')}*\n💳 *Pagamento:* ${linhaPagamento}`);
+    const lista = selectedOrder.items.map(i => `• ${i.name}${i.selectedColor ? ` [${i.selectedColor}]` : ''} x${i.quantity}`).join('\n');
+    const msg = encodeURIComponent(`🌸 *DETALHES DO PEDIDO #${selectedOrder.orderNumber}*\n\n👤 *Cliente:* ${selectedOrder.customerName}\n🛍️ *PRODUTOS:*\n${lista}\n\n💰 *TOTAL: R$ ${selectedOrder.total.toFixed(2)}*\n💳 *Pagamento:* ${selectedOrder.paymentMethod}`);
     window.open(`https://wa.me/${finalPhone}?text=${msg}`, '_blank');
   };
 
   const filteredOrders = useMemo(() => orders.filter(o => {
-    const matchesSearch = o.customerName.toLowerCase().includes(searchTerm.toLowerCase()) || (o.orderNumber && o.orderNumber.includes(searchTerm));
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = o.customerName?.toLowerCase().includes(term) || (o.orderNumber && String(o.orderNumber).includes(term));
     const matchesStatus = statusFilter === 'Todos' || o.status === statusFilter;
     return matchesSearch && matchesStatus;
   }), [orders, searchTerm, statusFilter]);
@@ -227,24 +176,25 @@ export default function AdminOrders() {
       case 'Enviado': return <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 text-[10px] py-0"><Truck className="h-3 w-3 mr-1" /> {status}</Badge>;
       case 'Entregue': return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 text-[10px] py-0"><CheckCircle2 className="h-3 w-3 mr-1" /> {status}</Badge>;
       case 'Cancelado': return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-[10px] py-0"><XCircle className="h-3 w-3 mr-1" /> {status}</Badge>;
+      default: return <Badge>{status}</Badge>;
     }
   };
 
-  if (isOrdersLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Sincronizando pedidos com segurança...</div>;
+  if (isOrdersLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Sincronizando pedidos...</div>;
 
   return (
     <div className="space-y-6 font-poppins">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Pedidos</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Acompanhe suas vendas em tempo real.</p>
+          <p className="text-xs md:text-sm text-muted-foreground">Gestão unificada de vendas e presentes.</p>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Pesquisar cliente ou pedido..." className="pl-10 h-12 text-sm rounded-xl border-none bg-white shadow-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <Input placeholder="Pesquisar cliente ou número..." className="pl-10 h-12 text-sm rounded-xl border-none bg-white shadow-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
         <div className="w-full md:w-48">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -260,17 +210,21 @@ export default function AdminOrders() {
       <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader><TableRow className="bg-muted/30"><TableHead>Pedido</TableHead><TableHead>Cliente</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow className="bg-muted/30"><TableHead>Número</TableHead><TableHead>Cliente</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
             <TableBody>
-              {filteredOrders.slice().reverse().map(order => (
-                <TableRow key={order.id} className="hover:bg-muted/10 h-20">
-                  <TableCell className="font-bold text-xs text-primary">#{order.orderNumber || order.id.substr(0,4)}</TableCell>
-                  <TableCell><span className="font-bold text-xs">{order.customerName}</span></TableCell>
-                  <TableCell className="font-bold text-primary text-xs">R$ {order.total.toFixed(2)}</TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => openDetails(order)}><Eye className="h-5 w-5 text-primary" /></Button></TableCell>
-                </TableRow>
-              ))}
+              {filteredOrders.length === 0 ? (
+                <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic">Nenhum pedido encontrado.</TableCell></TableRow>
+              ) : (
+                filteredOrders.slice().reverse().map(order => (
+                  <TableRow key={order.id} className="hover:bg-muted/10 h-20">
+                    <TableCell className="font-bold text-xs text-primary">#{order.orderNumber || order.id.substr(0,6)}</TableCell>
+                    <TableCell><span className="font-bold text-xs truncate max-w-[120px] inline-block">{order.customerName}</span></TableCell>
+                    <TableCell className="font-bold text-primary text-xs">R$ {(order.total || 0).toFixed(2)}</TableCell>
+                    <TableCell>{getStatusBadge(order.status)}</TableCell>
+                    <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => openDetails(order)}><Eye className="h-5 w-5 text-primary" /></Button></TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
@@ -281,7 +235,7 @@ export default function AdminOrders() {
           <AlertDialogHeader><AlertDialogTitle>Alterar Status?</AlertDialogTitle></AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setIsStatusConfirmOpen(false)}>Cancelar</AlertDialogCancel>
-            <Button variant="outline" onClick={() => handleStatusChangeExecution(false)}>Alterar</Button>
+            <Button variant="outline" onClick={() => handleStatusChangeExecution(false)}>Alterar Apenas</Button>
             <AlertDialogAction onClick={() => handleStatusChangeExecution(true)}>Alterar e Notificar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -294,111 +248,45 @@ export default function AdminOrders() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/20 p-6 rounded-2xl text-xs">
                 <div className="space-y-1">
-                  <Label className="text-[9px] font-bold uppercase text-muted-foreground">Cliente</Label>
-                  {selectedOrder.status === 'Pendente' ? <Input value={selectedOrder.customerName} onChange={(e) => setSelectedOrder({...selectedOrder, customerName: e.target.value})} className="h-8 bg-white" /> : <p className="font-bold">{selectedOrder.customerName}</p>}
+                  <Label className="text-[9px] font-bold uppercase text-muted-foreground">Cliente / WhatsApp</Label>
+                  <p className="font-bold text-sm">{selectedOrder.customerName}</p>
+                  <p className="text-muted-foreground">{selectedOrder.customerPhone}</p>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[9px] font-bold uppercase text-muted-foreground">Telefone</Label>
-                  {selectedOrder.status === 'Pendente' ? <Input value={selectedOrder.customerPhone} onChange={(e) => setSelectedOrder({...selectedOrder, customerPhone: e.target.value})} className="h-8 bg-white" /> : <p className="font-bold">{selectedOrder.customerPhone}</p>}
-                </div>
-                <div className="space-y-3">
-                  <Label className="text-[9px] font-bold uppercase text-muted-foreground">Forma de Pagamento</Label>
-                  {selectedOrder.status === 'Pendente' ? (
-                    <RadioGroup value={selectedOrder.paymentMethod} onValueChange={(v: any) => setSelectedOrder({...selectedOrder, paymentMethod: v})} className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center space-x-2"><RadioGroupItem value="Pix" id="pix-admin" /><Label htmlFor="pix-admin">Pix</Label></div>
-                      <div className="flex items-center space-x-2"><RadioGroupItem value="Dinheiro" id="cash-admin" /><Label htmlFor="cash-admin">Dinheiro</Label></div>
-                      <div className="flex items-center space-x-2"><RadioGroupItem value="Cartão Débito" id="card-debit-admin" /><Label htmlFor="card-debit-admin">C. Débito</Label></div>
-                      <div className="flex items-center space-x-2"><RadioGroupItem value="Cartão Crédito" id="card-credit-admin" /><Label htmlFor="card-credit-admin">C. Crédito</Label></div>
-                      {selectedOrder.paymentMethod === 'Dinheiro' && <Input type="number" placeholder="Troco p/" value={selectedOrder.change || ''} onChange={(e) => setSelectedOrder({...selectedOrder, change: parseFloat(e.target.value) || 0})} className="h-7 w-20 bg-white" />}
-                    </RadioGroup>
-                  ) : <p className="font-bold">{selectedOrder.paymentMethod} {selectedOrder.change ? `(Troco p/ R$ ${selectedOrder.change})` : ''}</p>}
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[9px] font-bold uppercase text-muted-foreground">Status</Label>
+                  <Label className="text-[9px] font-bold uppercase text-muted-foreground">Status do Pedido</Label>
                   <Select value={selectedOrder.status} onValueChange={(v: OrderStatus) => initiateStatusChange(selectedOrder.id, v)}>
                     <SelectTrigger className="h-10 rounded-xl"><SelectValue /></SelectTrigger>
                     <SelectContent>{['Pendente', 'Pago', 'Enviado', 'Entregue', 'Cancelado'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-[9px] font-bold uppercase text-muted-foreground">Endereço de Entrega</Label>
+                  <p className="bg-white p-3 rounded-xl border border-muted-foreground/10">{selectedOrder.customerAddress || 'Endereço não informado'}</p>
+                </div>
               </div>
 
               <div className="space-y-4">
-                <div className="flex justify-between items-center"><Label className="text-[11px] font-bold uppercase text-primary">Itens</Label>{selectedOrder.status === 'Pendente' && <Button variant="outline" size="sm" onClick={() => { setIsAddingProduct(!isAddingProduct); setSelectedProductToAdd(null); }} className="rounded-full h-8 text-[10px]">{isAddingProduct ? 'Fechar' : '+ Adicionar'}</Button>}</div>
-                
-                {isAddingProduct && (
-                  <div className="bg-primary/5 p-4 rounded-xl space-y-3 animate-in fade-in duration-200">
-                    {!selectedProductToAdd ? (
-                      <>
-                        <Input placeholder="Buscar produto..." value={addingProductSearch} onChange={(e) => setAddingProductSearch(e.target.value)} className="h-9 bg-white" />
-                        <div className="max-h-32 overflow-y-auto space-y-1">
-                          {products.filter(p => p.name.toLowerCase().includes(addingProductSearch.toLowerCase())).map(p => (
-                            <div key={p.id} onClick={() => setSelectedProductToAdd(p)} className="p-2 bg-white hover:bg-primary/5 cursor-pointer rounded-lg text-xs flex justify-between">
-                              <span>{p.name}</span>
-                              <span className="font-bold text-primary">R$ {p.price.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => { setSelectedProductToAdd(null); setSelectedColorToAdd(''); }} className="h-7 w-7"><ChevronLeft className="h-4 w-4" /></Button>
-                          <span className="text-xs font-bold text-primary uppercase">{selectedProductToAdd.name}</span>
-                        </div>
-                        
-                        {selectedProductToAdd.variations && selectedProductToAdd.variations.length > 0 && (
-                          <div className="space-y-2">
-                            <Label className="text-[9px] font-bold uppercase">Escolha a Cor</Label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {selectedProductToAdd.variations.map(v => (
-                                <button
-                                  key={v.name}
-                                  onClick={() => setSelectedColorToAdd(v.name)}
-                                  className={`px-3 py-1.5 rounded-lg text-[9px] font-bold border-2 transition-all ${
-                                    selectedColorToAdd === v.name ? 'border-primary bg-primary text-white' : 'border-muted bg-white'
-                                  }`}
-                                >
-                                  {v.name.toUpperCase()}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center border rounded-xl px-2 bg-white h-10">
-                            <button onClick={() => setQuantityToAdd(Math.max(1, quantityToAdd - 1))} className="p-1"><Minus className="h-3 w-3" /></button>
-                            <span className="w-10 text-center font-bold text-xs">{quantityToAdd}</span>
-                            <button onClick={() => setQuantityToAdd(quantityToAdd + 1)} className="p-1"><Plus className="h-3 w-3" /></button>
-                          </div>
-                          <Button onClick={handleAddProductToOrder} className="flex-1 h-10 font-bold rounded-xl shadow-lg shadow-primary/20">Confirmar Item</Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
+                <div className="flex justify-between items-center"><Label className="text-[11px] font-bold uppercase text-primary">Produtos Selecionados</Label></div>
                 <div className="border rounded-2xl divide-y bg-white overflow-hidden shadow-sm">
-                  {selectedOrder.items.map(item => (
-                    <div key={item.id + (item.selectedColor || '')} className="p-4 flex items-center justify-between">
-                      <div className="flex-1 min-w-0"><p className="text-[11px] font-bold truncate text-primary">{item.name}</p><p className="text-[9px] text-muted-foreground">{item.selectedColor ? `COR: ${item.selectedColor} • ` : ''}R$ {item.price.toFixed(2)} un.</p></div>
-                      <div className="flex items-center gap-3">
-                        {selectedOrder.status === 'Pendente' ? (
-                          <><div className="flex items-center border rounded-lg px-1 bg-muted/20"><button onClick={() => handleUpdateItemQuantity(item.id, -1, item.selectedColor)}><Minus className="h-3 w-3" /></button><span className="w-6 text-center text-xs">{item.quantity}</span><button onClick={() => handleUpdateItemQuantity(item.id, 1, item.selectedColor)}><Plus className="h-3 w-3" /></button></div><Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleRemoveItem(item.id, item.selectedColor)}><Trash2 className="h-4 w-4" /></Button></>
-                        ) : <span className="text-xs font-bold text-primary">{item.quantity}x</span>}
+                  {selectedOrder.items?.map((item, idx) => (
+                    <div key={(item.id || idx) + (item.selectedColor || '')} className="p-4 flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-bold truncate text-primary uppercase">{item.name}</p>
+                        <p className="text-[9px] text-muted-foreground">{item.selectedColor ? `COR: ${item.selectedColor} • ` : ''}R$ {(item.price || 0).toFixed(2)} cada</p>
                       </div>
+                      <span className="text-xs font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg">{item.quantity}x</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div className="flex justify-between items-center bg-primary p-6 rounded-[1.5rem] text-white">
-                <span className="font-bold uppercase text-[10px]">Total</span>
-                <span className="text-3xl font-bold">R$ {selectedOrder.total.toFixed(2)}</span>
+                <span className="font-bold uppercase text-[10px]">Total do Pedido</span>
+                <span className="text-3xl font-bold">R$ {(selectedOrder.total || 0).toFixed(2)}</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4">
-                <Button variant="outline" className="h-14 font-bold" onClick={resendToWhatsApp}><MessageCircle className="h-5 w-5 mr-2" /> Notificar Cliente</Button>
+                <Button variant="outline" className="h-14 font-bold" onClick={resendToWhatsApp}><MessageCircle className="h-5 w-5 mr-2" /> Reenviar no WhatsApp</Button>
                 {selectedOrder.status === 'Pendente' && <Button className="h-14 font-bold" onClick={saveOrderChanges}><Save className="h-5 w-5 mr-2" /> Salvar Alterações</Button>}
               </div>
             </div>

@@ -5,11 +5,12 @@ import {
   doc, 
   getDocs, 
   getDoc,
+  setDoc,
   Firestore,
   serverTimestamp,
   runTransaction
 } from 'firebase/firestore';
-import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -19,6 +20,10 @@ const sanitizeData = (data: any) => {
   Object.keys(sanitized).forEach(key => {
     if (sanitized[key] === undefined) {
       delete sanitized[key];
+    }
+    // Deep sanitize for items array if present
+    if (key === 'items' && Array.isArray(sanitized[key])) {
+      sanitized[key] = sanitized[key].map((item: any) => sanitizeData(item));
     }
   });
   return sanitized;
@@ -40,16 +45,13 @@ export const getNextOrderNumber = async (db: Firestore): Promise<string> => {
       transaction.set(counterRef, { orderCount: nextNum }, { merge: true });
     });
   } catch (e: any) {
-    // Se for erro de permissão, emitir para o listener global
     if (e.code === 'permission-denied' || e.message?.includes('permissions')) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: counterRef.path,
         operation: 'write',
       }));
     }
-    
-    // Fallback seguro em caso de erro na transação para não travar o checkout
-    nextNum = Math.floor(100000 + Math.random() * 900000);
+    nextNum = Math.floor(100000 + Math.random() * 899999);
   }
 
   return nextNum.toString().padStart(6, '0');
@@ -68,23 +70,28 @@ export const recordStockMovement = async (
     createdAt: new Date().toISOString()
   };
 
-  setDocumentNonBlocking(doc(movementsRef, movementId), sanitizeData(newMovement), { merge: true });
+  const movementDocRef = doc(movementsRef, movementId);
+  await setDoc(movementDocRef, sanitizeData(newMovement), { merge: true });
 };
 
 export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
   const ordersRef = collection(db, 'orders');
   const orderDocRef = doc(ordersRef, order.id);
   
-  setDocumentNonBlocking(orderDocRef, sanitizeData({
+  const cleanedOrder = sanitizeData({
     ...order,
-    status: 'Pendente',
+    status: order.status || 'Pendente',
     createdAt: order.createdAt || new Date().toISOString()
-  }), { merge: true });
+  });
 
+  // Salva o pedido principal (aguarda conclusão para garantir visibilidade no admin)
+  await setDoc(orderDocRef, cleanedOrder, { merge: true });
+
+  // Salva itens em sub-coleção para redundância e relatórios complexos
   const itemsRef = collection(orderDocRef, 'orderItems');
-  order.items.forEach(item => {
+  for (const item of order.items) {
     const itemRef = doc(itemsRef);
-    setDocumentNonBlocking(itemRef, sanitizeData({
+    await setDoc(itemRef, sanitizeData({
       ...item,
       orderId: order.id,
       productId: item.id,
@@ -92,7 +99,7 @@ export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
       productPrice: item.price,
       subtotal: item.price * item.quantity
     }), { merge: true });
-  });
+  }
 };
 
 export const updateOrder = (db: Firestore, order: Order) => {
@@ -102,7 +109,6 @@ export const updateOrder = (db: Firestore, order: Order) => {
 
 /** 
  * Ajusta o inventário baseado nos itens de um pedido.
- * @param type 'decrement' para baixar estoque, 'increment' para estornar.
  */
 export const adjustInventoryForOrder = async (db: Firestore, order: Order, type: 'decrement' | 'increment') => {
   for (const item of order.items) {
@@ -132,10 +138,9 @@ export const adjustInventoryForOrder = async (db: Firestore, order: Order, type:
         updatedAt: serverTimestamp()
       });
 
-      // Record movement
       recordStockMovement(db, {
         productId: item.id,
-        productName: item.name,
+        productName: product.name,
         variationName: item.selectedColor,
         quantity: quantityChange,
         type: multiplier < 0 ? 'Sale' : 'Adjustment',
@@ -145,20 +150,14 @@ export const adjustInventoryForOrder = async (db: Firestore, order: Order, type:
   }
 };
 
-/**
- * Atualiza o status do pedido e gerencia o estoque automaticamente.
- */
 export const updateOrderStatus = async (db: Firestore, order: Order, newStatus: OrderStatus) => {
   const oldStatus = order.status;
-  
   const isPaidState = (s: OrderStatus) => ['Pago', 'Enviado', 'Entregue'].includes(s);
   const isUnpaidState = (s: OrderStatus) => ['Pendente', 'Cancelado'].includes(s);
 
-  // Lógica de Baixa: Sai de Pendente/Cancelado e entra em Pago/Enviado/Entregue
   if (isUnpaidState(oldStatus) && isPaidState(newStatus)) {
     await adjustInventoryForOrder(db, order, 'decrement');
   } 
-  // Lógica de Estorno: Sai de Pago/Enviado/Entregue e volta para Pendente/Cancelado
   else if (isPaidState(oldStatus) && isUnpaidState(newStatus)) {
     await adjustInventoryForOrder(db, order, 'increment');
   }
@@ -177,17 +176,18 @@ export const seedInitialDataToFirestore = async (db: Firestore) => {
       { id:"p006", name:"Base Líquida Cobertura Total",  category:"Base",             description:"Alta cobertura, acabamento matte.", price:45.90, stock:20, imageUrl:"https://picsum.photos/seed/face1/400/400", isFeatured:true, isActive: true, variations: [{name: "Bege 01", stock: 10}, {name: "Bege 02", stock: 10}] },
     ];
 
-    initialProducts.forEach(p => {
-      setDocumentNonBlocking(doc(db, 'products', p.id), sanitizeData(p), { merge: true });
-    });
+    for (const p of initialProducts) {
+      const pRef = doc(db, 'products', p.id);
+      await setDoc(pRef, sanitizeData(p), { merge: true });
+    }
   }
 
   const categoriesCheck = await getDocs(collection(db, 'categories'));
   if (categoriesCheck.empty) {
     const initialCats = ['Batom', 'Delineador', 'Base', 'Sombra', 'Blush'];
-    initialCats.forEach(name => {
+    for (const name of initialCats) {
       const id = Math.random().toString(36).substr(2, 9);
-      setDocumentNonBlocking(doc(db, 'categories', id), { id, name }, { merge: true });
-    });
+      await setDoc(doc(db, 'categories', id), { id, name }, { merge: true });
+    }
   }
 };

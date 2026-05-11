@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MessageCircle, CheckCircle2, Copy, ArrowLeft, RefreshCw, MapPin } from 'lucide-react';
+import { MessageCircle, CheckCircle2, Copy, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Presente } from '@/types/presente';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +42,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       toast({ 
         variant: "destructive", 
         title: "Dados incompletos", 
-        description: "Por favor, informe seu nome, WhatsApp e endereço para entrega." 
+        description: "Por favor, preencha seu nome, WhatsApp e endereço." 
       });
       return;
     }
@@ -51,17 +51,23 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
 
     setIsProcessing(true);
     try {
-      // 1. Gerar número sequencial
+      // 1. Obter número sequencial global
       const orderNum = await getNextOrderNumber(db);
-      const orderId = `GIFT-${Date.now()}-${orderNum}`;
+      const orderId = `ORD-${Date.now()}-${orderNum}`;
 
       // 2. Mapear itens para o formato do pedido
-      // Incluímos a embalagem como o primeiro item do pedido
       const orderItems = [
         {
-          ...embalagem,
+          id: embalagem.id,
+          name: embalagem.name,
+          price: embalagem.price,
+          imageUrl: embalagem.imageUrl,
+          category: embalagem.category,
           quantity: 1,
-          selectedColor: ''
+          selectedColor: '',
+          isFeatured: false,
+          description: embalagem.description || '',
+          stock: 0
         },
         ...itens.map(i => ({
           id: i.produtoId,
@@ -88,16 +94,16 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         paymentMethod: pagamento,
         status: 'Pendente',
         createdAt: new Date().toISOString(),
-        source: 'catalog' as any
+        source: 'catalog'
       };
 
-      // 3. Salvar no Firestore para aparecer no Admin
+      // 3. Salvar no Firestore e aguardar conclusão antes de abrir o WhatsApp
       await saveOrderToFirestore(db, orderData);
 
       // 4. Preparar mensagem do WhatsApp
       const listaItens = itens.map(i => {
         const labelCor = i.corSelecionada ? ` [${i.corSelecionada}]` : '';
-        return `  • ${i.nome}${labelCor} (x${i.quantidade}) — R$ ${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`;
+        return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.preco * i.quantity).toFixed(2).replace('.', ',')}`;
       }).join('\n');
       
       const linhaPagamento = pagamento === 'Pix' 
@@ -105,16 +111,17 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         : pagamento === 'Dinheiro' ? '💵 Dinheiro' : `💳 ${pagamento}`;
 
       const msg = encodeURIComponent(
-        `🎁 *PEDIDO DE PRESENTE #${orderNum}*\n\n` +
+        `🌸 *NOVO PEDIDO #${orderNum} - Flor de Batom Makeup*\n\n` +
         `👤 *Cliente:* ${nome}\n` +
         `📱 *WhatsApp:* ${whatsapp}\n` +
         `📍 *Endereço:* ${endereco}\n\n` +
-        `📦 *EMBALAGEM:* ${embalagem.name} (R$ ${embalagem.price.toFixed(2).replace('.', ',')})\n` +
-        `🛍️ *PRODUTOS SELECIONADOS:*\n${listaItens}\n\n` +
-        `💌 *MENSAGEM NO CARTÃO:*\n${mensagem || '_Nenhuma mensagem enviada_'}\n\n` +
-        `💳 *FORMA DE PAGAMENTO:* ${linhaPagamento}\n` +
-        `💰 *TOTAL DO PRESENTE: R$ ${totalFinal.toFixed(2).replace('.', ',')}*\n\n` +
-        `_Pedido enviado pelo montador de presentes online_`
+        `🎁 *PRESENTE PERSONALIZADO:*\n` +
+        `📦 *Embalagem:* ${embalagem.name} (R$ ${embalagem.price.toFixed(2).replace('.', ',')})\n` +
+        `🛍️ *Produtos:*\n${listaItens}\n\n` +
+        `💰 *TOTAL: R$ ${totalFinal.toFixed(2).replace('.', ',')}*\n` +
+        `💳 *Pagamento:* ${linhaPagamento}\n` +
+        (mensagem.trim() ? `\n💌 *Mensagem no Cartão:* "${mensagem.trim()}"` : '') +
+        `\n\n_Enviado pelo montador de presentes online_`
       );
 
       window.open(`https://wa.me/${WHATSAPP_LOJA}?text=${msg}`, '_blank');
@@ -122,7 +129,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       toast({ title: "Pedido Registrado!", description: "Seu presente foi salvo e enviado para o WhatsApp." });
     } catch (error) {
       console.error("Erro ao finalizar presente:", error);
-      toast({ variant: "destructive", title: "Erro no processamento", description: "Não foi possível salvar seu pedido. Tente novamente." });
+      toast({ variant: "destructive", title: "Erro no processamento", description: "Não foi possível salvar seu pedido." });
     } finally {
       setIsProcessing(false);
     }
@@ -136,7 +143,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         </div>
         <div className="space-y-2">
           <h2 className="text-3xl font-bold text-primary">Pedido Enviado!</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed">Seu presente foi registrado no sistema e enviado para o nosso WhatsApp. Em breve entraremos em contato 🌸</p>
+          <p className="text-muted-foreground text-sm leading-relaxed">Seu presente foi registrado e enviado para o nosso WhatsApp. Em breve entraremos em contato 🌸</p>
         </div>
         <div className="flex flex-col gap-3">
           <Button className="h-14 rounded-2xl bg-primary text-xs font-black uppercase" onClick={onReiniciar}>
@@ -152,7 +159,6 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-      {/* Coluna Dados */}
       <div className="space-y-6">
         <div className="space-y-2">
           <h3 className="font-headline text-3xl text-primary">Finalize seu Kit</h3>
@@ -162,11 +168,11 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Seu Nome *</Label>
-            <Input className="h-12 rounded-2xl bg-white border-none shadow-sm" value={nome} onChange={e => setNome(e.target.value)} placeholder="Como podemos te chamar?" />
+            <Input className="h-12 rounded-2xl bg-white border-none shadow-sm" value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Maria Silva" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Seu WhatsApp *</Label>
-            <Input className="h-12 rounded-2xl bg-white border-none shadow-sm" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="(00) 00000-0000" />
+            <Input className="h-12 rounded-2xl bg-white border-none shadow-sm" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="(91) 98888-8888" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Endereço de Entrega *</Label>
@@ -223,12 +229,11 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         )}
       </div>
 
-      {/* Coluna Resumo Final */}
       <div className="space-y-6">
         <div className="bg-white rounded-[2.5rem] shadow-xl border border-primary/5 p-8 space-y-6">
           <div className="flex justify-between items-center pb-4 border-b">
             <h4 className="font-bold text-primary text-base uppercase tracking-widest">Resumo do Presente</h4>
-            <span className="text-[10px] font-black text-primary/40 uppercase bg-primary/5 px-3 py-1 rounded-full">{itens.length} produtos</span>
+            <span className="text-[10px] font-black text-primary/40 uppercase bg-primary/5 px-3 py-1 rounded-full">{itens.length + 1} itens</span>
           </div>
 
           <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
@@ -247,7 +252,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-bold text-primary truncate uppercase">{item.nome}</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-[9px] font-bold text-muted-foreground uppercase">{item.quantidade}x unidades</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase">{item.quantidade}x un.</p>
                     {item.corSelecionada && <span className="text-[8px] font-black text-primary/60 uppercase">{item.corSelecionada}</span>}
                   </div>
                 </div>
@@ -258,7 +263,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
 
           <div className="pt-6 border-t space-y-4">
             <div className="flex justify-between items-center text-2xl font-bold text-primary">
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Total do Pedido</span>
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Total</span>
               <span>R$ {totalFinal.toFixed(2)}</span>
             </div>
 
@@ -272,7 +277,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
                   <RefreshCw className="h-6 w-6 animate-spin" />
                 ) : (
                   <>
-                    <MessageCircle className="h-6 w-6" /> Finalizar e Enviar
+                    <MessageCircle className="h-6 w-6" /> Finalizar Pedido
                   </>
                 )}
               </Button>
