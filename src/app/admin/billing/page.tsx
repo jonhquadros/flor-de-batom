@@ -121,24 +121,22 @@ export default function AdminBilling() {
       ? ((currentStatsObj.revenue - prevStatsObj.revenue) / prevStatsObj.revenue) * 100 
       : 0;
 
-    // Charts: Revenue by day
-    const dailyDataMap: Record<string, { date: string, revenue: number, orders: number }> = {};
-    for (let i = 1; i <= endOfMonth.getDate(); i++) {
-      const dayStr = i.toString().padStart(2, '0');
-      dailyDataMap[dayStr] = { date: dayStr, revenue: 0, orders: 0 };
-    }
+    // Charts: Revenue by day - Utilizando Array para garantir ordem numérica (01, 02... 31)
+    const daysInMonth = endOfMonth.getDate();
+    const chartDataArray = Array.from({ length: daysInMonth }, (_, i) => {
+      const dayStr = (i + 1).toString().padStart(2, '0');
+      return { date: dayStr, revenue: 0, orders: 0 };
+    });
 
     currentOrders.forEach(o => {
       if (!o.createdAt || !['Pago', 'Enviado', 'Entregue'].includes(o.status)) return;
       const d = new Date(o.createdAt);
-      const day = d.getDate().toString().padStart(2, '0');
-      if (dailyDataMap[day]) {
-        dailyDataMap[day].revenue += (o.total || 0);
-        dailyDataMap[day].orders += 1;
+      const dayIndex = d.getDate() - 1;
+      if (chartDataArray[dayIndex]) {
+        chartDataArray[dayIndex].revenue += (o.total || 0);
+        chartDataArray[dayIndex].orders += 1;
       }
     });
-
-    const chartDataArray = Object.values(dailyDataMap);
 
     // Top Products Analysis
     const productStatsMap: Record<string, { name: string, qty: number, revenue: number, cost: number }> = {};

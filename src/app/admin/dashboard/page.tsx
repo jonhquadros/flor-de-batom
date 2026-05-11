@@ -49,7 +49,6 @@ export default function AdminDashboard() {
   // Firestore Queries
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    // Ordena por data de criação para consistência visual
     return query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
   }, [db, user]);
 
@@ -145,21 +144,20 @@ export default function AdminDashboard() {
     const topSeller = sortedPerformance[0] || null;
     const topEarner = Object.values(productPerformance).sort((a, b) => b.revenue - a.revenue)[0] || null;
 
-    // Daily Revenue Chart Data
-    const dailyData: Record<string, number> = {};
-    for (let i = 1; i <= endDate.getDate(); i++) {
-      dailyData[i.toString().padStart(2, '0')] = 0;
-    }
+    // Daily Revenue Chart Data - Utilizando Array para garantir ordem numérica correta (01..31)
+    const daysInMonth = endDate.getDate();
+    const chartData = Array.from({ length: daysInMonth }, (_, i) => {
+      const dayStr = (i + 1).toString().padStart(2, '0');
+      return { day: dayStr, revenue: 0 };
+    });
 
     currentOrders.forEach(o => {
       const d = new Date(o.createdAt);
-      const day = d.getDate().toString().padStart(2, '0');
-      if (dailyData[day] !== undefined) {
-        dailyData[day] += (o.total || 0);
+      const dayIndex = d.getDate() - 1;
+      if (chartData[dayIndex]) {
+        chartData[dayIndex].revenue += (o.total || 0);
       }
     });
-
-    const chartData = Object.entries(dailyData).map(([day, revenue]) => ({ day, revenue }));
 
     return {
       currentRevenue,
