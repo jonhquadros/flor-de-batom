@@ -15,14 +15,22 @@ import { Embalagem, ItemPresente, Presente } from '@/types/presente';
 
 type Passo = 1 | 2 | 3;
 
+/**
+ * Função para definir o limite de itens baseado no nome do produto,
+ * caso não haja um valor específico definido no banco.
+ */
 function inferirMaxItens(produto: Product): number {
   if ((produto as any).maxItens) return Number((produto as any).maxItens);
   
   const nome = (produto.name || '').toLowerCase();
-  if (nome.includes('cesta')) return 15;
-  if (nome.includes('copo')) return 4;
+  
+  // Regras de negócio solicitadas
+  if (nome.includes('buquê') || nome.includes('buque')) return 3; // Mini Buquê
+  if (nome.includes('copo')) return 5; // CopoMake
   if (nome.includes('sacola')) return 7;
-  return 10;
+  if (nome.includes('cesta')) return 15;
+  
+  return 10; // Padrão
 }
 
 export function MontadorPresente() {
@@ -40,16 +48,19 @@ export function MontadorPresente() {
 
   const embalagens = useMemo(() => {
     if (!allProducts) return [];
-    return allProducts
+    const list = allProducts
       .filter(p => {
         const cat = (p.category || '').trim().toLowerCase();
-        // Filtro resiliente para a categoria
+        // Filtra apenas produtos da categoria de presentes que estão ativos
         return cat === 'monte seu presente' && p.isActive !== false;
       })
       .map(p => ({
         ...p,
         maxItens: (p as any).maxItens || inferirMaxItens(p)
       })) as Embalagem[];
+
+    // Ordenação: Do item com menor capacidade para o de maior capacidade
+    return [...list].sort((a, b) => a.maxItens - b.maxItens);
   }, [allProducts]);
 
   const totalItens = itens.reduce((s, i) => s + i.quantidade, 0);
@@ -67,7 +78,7 @@ export function MontadorPresente() {
       const existente = prev.find(i => i.produtoId === produto.id && i.corSelecionada === corSelecionada);
       if (existente) {
         return prev.map(i =>
-          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantity: (i.quantidade + 1) as any, quantidade: i.quantidade + 1 } : i
+          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade + 1 } : i
         );
       }
       
