@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -372,7 +371,7 @@ export default function Storefront() {
                     <Gift className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-primary text-sm sm:text-base">Monte seu Presente Personalizado 🎀</h4>
+                    <h4 className="font-poppins font-bold text-primary text-sm sm:text-base">Monte seu Presente Personalizado 🎀</h4>
                     <p className="text-muted-foreground text-[10px] sm:text-xs">Escolha a embalagem e seus produtinhos favoritos.</p>
                   </div>
                 </div>
