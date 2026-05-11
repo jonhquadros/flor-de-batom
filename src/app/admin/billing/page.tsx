@@ -102,7 +102,8 @@ export default function AdminBilling() {
     const prevOrders = filterByDate(orders, startOfPrevMonth, endOfPrevMonth);
 
     const getStats = (monthOrders: Order[]) => {
-      const active = monthOrders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status));
+      // Padronização: Considera todos exceto Cancelados como receita (igual à dashboard)
+      const active = monthOrders.filter(o => o.status !== 'Cancelado');
       const cancelled = monthOrders.filter(o => o.status === 'Cancelado');
       const revenueValue = active.reduce((acc, o) => acc + (o.total || 0), 0);
       const lost = cancelled.reduce((acc, o) => acc + (o.total || 0), 0);
@@ -121,7 +122,7 @@ export default function AdminBilling() {
       ? ((currentStatsObj.revenue - prevStatsObj.revenue) / prevStatsObj.revenue) * 100 
       : 0;
 
-    // Charts: Revenue by day - Utilizando Array para garantir ordem numérica (01, 02... 31)
+    // Charts: Revenue by day
     const daysInMonth = endOfMonth.getDate();
     const chartDataArray = Array.from({ length: daysInMonth }, (_, i) => {
       const dayStr = (i + 1).toString().padStart(2, '0');
@@ -129,7 +130,7 @@ export default function AdminBilling() {
     });
 
     currentOrders.forEach(o => {
-      if (!o.createdAt || !['Pago', 'Enviado', 'Entregue'].includes(o.status)) return;
+      if (!o.createdAt || o.status === 'Cancelado') return;
       const d = new Date(o.createdAt);
       const dayIndex = d.getDate() - 1;
       if (chartDataArray[dayIndex]) {
@@ -140,7 +141,7 @@ export default function AdminBilling() {
 
     // Top Products Analysis
     const productStatsMap: Record<string, { name: string, qty: number, revenue: number, cost: number }> = {};
-    currentOrders.filter(o => ['Pago', 'Enviado', 'Entregue'].includes(o.status)).forEach(o => {
+    currentOrders.filter(o => o.status !== 'Cancelado').forEach(o => {
       o.items?.forEach(item => {
         if (!productStatsMap[item.id]) {
           const originalProduct = products.find(p => p.id === item.id);
@@ -229,7 +230,7 @@ export default function AdminBilling() {
             <div className="space-y-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total de Pedidos</p>
               <h3 className="text-sm md:text-xl font-poppins font-semibold">{currentStats.count}</h3>
-              <p className="text-[9px] text-muted-foreground">Vendas finalizadas</p>
+              <p className="text-[9px] text-muted-foreground">Pedidos Ativos</p>
             </div>
           </CardContent>
         </Card>
