@@ -24,8 +24,9 @@ function inferirMaxItens(produto: Product): number {
   
   const nome = (produto.name || '').toLowerCase();
   
-  // Regras de negócio solicitadas
-  if (nome.includes('buquê') || nome.includes('buque')) return 3; // Mini Buquê
+  // Regras de negócio solicitadas - Ordem de verificação é importante
+  if (nome.includes('mini buquê') || nome.includes('mini buque')) return 3; // Mini Buquê específico
+  if (nome.includes('buquê') || nome.includes('buque')) return 10; // Buquê padrão/grande
   if (nome.includes('copo')) return 5; // CopoMake
   if (nome.includes('sacola')) return 7;
   if (nome.includes('cesta')) return 15;
@@ -78,7 +79,7 @@ export function MontadorPresente() {
       const existente = prev.find(i => i.produtoId === produto.id && i.corSelecionada === corSelecionada);
       if (existente) {
         return prev.map(i =>
-          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade + 1 } : i
+          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantity: i.quantidade + 1 } : i
         );
       }
       
@@ -106,7 +107,7 @@ export function MontadorPresente() {
       if (!item) return prev;
       if (item.quantidade > 1)
         return prev.map(i =>
-          (i.produtoId === produtoId && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade - 1 } : i
+          (i.produtoId === produtoId && i.corSelecionada === corSelecionada) ? { ...i, quantity: i.quantidade - 1 } : i
         );
       return prev.filter(i => !(i.produtoId === produtoId && i.corSelecionada === corSelecionada));
     });
