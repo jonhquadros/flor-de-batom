@@ -19,7 +19,8 @@ import {
   MapPin,
   Heart,
   Copy,
-  Share2
+  Share2,
+  Gift
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -191,7 +192,6 @@ export default function Storefront() {
 
     setIsProcessing(true);
     try {
-      // Obtém o próximo número sequencial real
       const orderNum = await getNextOrderNumber(db);
       
       const orderData: any = {
@@ -288,6 +288,13 @@ export default function Storefront() {
           </div>
           <h1 className="text-xl font-bold text-primary leading-tight">Flor de Batom</h1>
         </div>
+
+        <Link href="/presente">
+          <Button className="w-full h-12 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+            <Gift className="h-4 w-4" /> Monte seu Presente
+          </Button>
+        </Link>
+
         <nav className="space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">Categorias</p>
           <button className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`} onClick={() => setSelectedCategory('Todos')}>TODOS OS PRODUTOS</button>
@@ -308,6 +315,11 @@ export default function Storefront() {
               <Input placeholder="Pesquisar..." className="pl-11 h-11 bg-muted/40 border-none rounded-2xl" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <div className="flex items-center gap-1">
+              <Link href="/presente" className="hidden sm:flex">
+                <Button variant="ghost" size="icon" className="text-primary h-12 w-12 hover:bg-primary/5 rounded-2xl" title="Monte seu Presente">
+                  <Gift className="h-7 w-7" />
+                </Button>
+              </Link>
               <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative text-primary h-12 w-12 hover:bg-primary/5 rounded-2xl">
@@ -352,6 +364,25 @@ export default function Storefront() {
 
         <main className="flex-1">
           <div className="container mx-auto px-4 mt-8 pb-10">
+            {/* Promo Presentes Banner */}
+            <Link href="/presente">
+              <div className="mb-6 group bg-white border border-primary/10 rounded-[2rem] p-4 flex items-center justify-between shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-500 cursor-pointer overflow-hidden relative">
+                <div className="flex items-center gap-4 z-10">
+                  <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    <Gift className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-primary text-sm sm:text-base">Monte seu Presente Personalizado 🎀</h4>
+                    <p className="text-muted-foreground text-[10px] sm:text-xs">Escolha a embalagem e seus produtinhos favoritos.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 font-black text-[10px] text-primary uppercase tracking-widest z-10 bg-primary/5 px-4 py-2 rounded-full group-hover:bg-primary group-hover:text-white transition-colors">
+                  Começar <ChevronRight className="h-3 w-3" />
+                </div>
+                <Gift className="absolute -bottom-6 -right-6 h-24 w-24 text-primary/5 rotate-12 group-hover:rotate-0 transition-transform" />
+              </div>
+            </Link>
+
             <div className="mb-6 md:mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#7B1C2A] to-[#A02C3D] p-6 md:p-12 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="space-y-4 md:max-w-[60%] z-10 text-center md:text-left">
                 <div className="inline-flex items-center bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10">Coleção Exclusiva</div>
@@ -459,11 +490,21 @@ export default function Storefront() {
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
         <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[110]">
           <div className="h-full flex flex-col bg-white">
-            <SheetHeader className="p-8 border-b flex flex-row items-center gap-3 bg-primary/5 text-left"><SheetTitle className="text-2xl font-bold text-primary font-poppins">Categorias</SheetTitle></SheetHeader>
+            <SheetHeader className="p-8 border-b flex flex-row items-center gap-3 bg-primary/5 text-left"><SheetTitle className="text-2xl font-bold text-primary font-poppins">Menu</SheetTitle></SheetHeader>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
-              <button className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === 'Todos' ? 'bg-primary text-white' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}>TODOS {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}</button>
+              <Link href="/presente" onClick={() => setIsMobileMenuOpen(false)}>
+                <div className="flex items-center justify-between p-4 mb-4 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20">
+                  <div className="flex items-center gap-3">
+                    <Gift className="h-6 w-6" />
+                    <span className="font-black uppercase tracking-widest text-sm">Monte seu Presente</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5" />
+                </div>
+              </Link>
+
+              <button className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === 'Todos' ? 'bg-primary/5 text-primary border border-primary/20' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}>TODOS {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}</button>
               {categories.map(cat => (
-                <button key={cat.id} className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === cat.name ? 'bg-primary text-white' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}>{cat.name.toUpperCase()} {selectedCategory === cat.name && <ChevronRight className="h-5 w-5" />}</button>
+                <button key={cat.id} className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === cat.name ? 'bg-primary/5 text-primary border border-primary/20' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}>{cat.name.toUpperCase()} {selectedCategory === cat.name && <ChevronRight className="h-5 w-5" />}</button>
               ))}
             </div>
           </div>

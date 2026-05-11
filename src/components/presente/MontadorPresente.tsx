@@ -1,0 +1,194 @@
+
+'use client';
+
+import React, { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
+import { PassoEmbalagem } from './PassoEmbalagem';
+import { PassoProdutos } from './PassoProdutos';
+import { PreviewPresente } from './PreviewPresente';
+import { PassoFinalizacao } from './PassoFinalizacao';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { Product } from '@/lib/types';
+import { Embalagem, ItemPresente, Presente } from '@/types/presente';
+
+type Passo = 1 | 2 | 3;
+
+function inferirMaxItens(produto: Product): number {
+  // Fallback se não houver campo maxItens no Firestore
+  const nome = produto.name.toLowerCase();
+  if (nome.includes('cesta')) return 15;
+  if (nome.includes('copo')) return 4;
+  return 10;
+}
+
+export function MontadorPresente() {
+  const db = useFirestore();
+  const [passoAtual, setPassoAtual] = useState<Passo>(1);
+  const [embalagem, setEmbalagem] = useState<Embalagem | null>(null);
+  const [itens, setItens] = useState<ItemPresente[]>([]);
+
+  // Query Embalagens
+  const embalagensQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'products'), where('category', '==', 'Monte seu Presente'), where('isActive', '==', true));
+  }, [db]);
+
+  const { data: embalagensRaw, isLoading: carregandoEmb } = useCollection<Product>(embalagensQuery);
+
+  const embalagens = useMemo(() => {
+    if (!embalagensRaw) return [];
+    return embalagensRaw.map(p => ({
+      ...p,
+      maxItens: (p as any).maxItens || inferirMaxItens(p)
+    })) as Embalagem[];
+  }, [embalagensRaw]);
+
+  // Helpers
+  const totalItens = itens.reduce((s, i) => s + i.quantidade, 0);
+  const totalProdutos = itens.reduce((s, i) => s + i.preco * i.quantidade, 0);
+  const totalFinal = (embalagem?.price ?? 0) + totalProdutos;
+  const limiteAtingido = embalagem ? totalItens >= embalagem.maxItens : false;
+
+  const presente: Presente | null = embalagem
+    ? { embalagem, itens, totalItens, totalProdutos, totalFinal }
+    : null;
+
+  function adicionarProduto(produto: Product) {
+    if (!embalagem || totalItens >= embalagem.maxItens) return;
+    setItens(prev => {
+      const existente = prev.find(i => i.produtoId === produto.id);
+      if (existente) {
+        return prev.map(i =>
+          i.produtoId === produto.id ? { ...i, quantity: i.quantidade + 1 } : i
+        ) as any;
+      }
+      return [...prev, {
+        produtoId: produto.id,
+        nome: produto.name,
+        preco: produto.price,
+        imagem: produto.imageUrl,
+        categoria: produto.category,
+        quantidade: 1,
+      }];
+    });
+  }
+
+  function decrementarProduto(produtoId: string) {
+    setItens(prev => {
+      const item = prev.find(i => i.produtoId === produtoId);
+      if (!item) return prev;
+      if (item.quantidade > 1)
+        return prev.map(i =>
+          i.produtoId === produtoId ? { ...i, quantidade: i.quantidade - 1 } : i
+        );
+      return prev.filter(i => i.produtoId !== produtoId);
+    });
+  }
+
+  function removerItemCompleto(produtoId: string) {
+    setItens(prev => prev.filter(i => i.produtoId !== produtoId));
+  }
+
+  function selecionarEmbalagem(e: Embalagem) {
+    setEmbalagem(e);
+    setItens([]);
+    setPassoAtual(2);
+    window.scrollTo(0, 0);
+  }
+
+  function reiniciar() {
+    setPassoAtual(1);
+    setEmbalagem(null);
+    setItens([]);
+    window.scrollTo(0, 0);
+  }
+
+  return (
+    <div className="font-poppins pb-20">
+      {/* Header Fixo */}
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b px-4 h-16 flex items-center justify-between">
+        <Link href="/" className="h-10 w-10 flex items-center justify-center rounded-full bg-muted/50 text-primary">
+          <ChevronLeft className="h-6 w-6" />
+        </Link>
+        <span className="font-bold text-primary text-xs uppercase tracking-widest">Monte seu Presente</span>
+        <div className="w-10" />
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Progress Tracker */}
+        <div className="flex items-center justify-center mb-12">
+          {[
+            { n: 1, label: 'Embalagem', icon: '🎀' },
+            { n: 2, label: 'Produtos', icon: '🛍️' },
+            { n: 3, label: 'Finalizar', icon: '💌' }
+          ].map((p, i) => (
+            <React.Fragment key={p.n}>
+              <div className="flex flex-col items-center gap-2">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm transition-all duration-500 ${
+                  passoAtual >= p.n ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-muted text-muted-foreground'
+                }`}>
+                  {passoAtual > p.n ? '✓' : p.icon}
+                </div>
+                <span className={`text-[9px] font-bold uppercase tracking-widest ${passoAtual >= p.n ? 'text-primary' : 'text-muted-foreground'}`}>
+                  {p.label}
+                </span>
+              </div>
+              {i < 2 && (
+                <div className={`w-12 sm:w-20 h-0.5 mx-2 mb-6 rounded-full transition-all duration-700 ${
+                  passoAtual > p.n ? 'bg-primary' : 'bg-muted'
+                }`} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Etapas */}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {passoAtual === 1 && (
+            <PassoEmbalagem
+              embalagens={embalagens}
+              carregando={carregandoEmb}
+              onSelecionar={selecionarEmbalagem}
+            />
+          )}
+
+          {passoAtual === 2 && embalagem && (
+            <div className="flex flex-col lg:flex-row gap-8">
+              <div className="flex-1">
+                <PassoProdutos
+                  embalagem={embalagem}
+                  itens={itens}
+                  limiteAtingido={limiteAtingido}
+                  totalItens={totalItens}
+                  onAdicionar={adicionarProduto}
+                  onDecrementar={decrementarProduto}
+                  onVoltar={() => setPassoAtual(1)}
+                  onAvancar={() => setPassoAtual(3)}
+                />
+              </div>
+              <aside className="lg:w-80 shrink-0 hidden lg:block">
+                <div className="sticky top-24">
+                  <PreviewPresente
+                    presente={presente}
+                    onRemoverItem={removerItemCompleto}
+                    onAvancar={() => setPassoAtual(3)}
+                  />
+                </div>
+              </aside>
+            </div>
+          )}
+
+          {passoAtual === 3 && presente && (
+            <PassoFinalizacao
+              presente={presente}
+              onVoltar={() => setPassoAtual(2)}
+              onReiniciar={reiniciar}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
