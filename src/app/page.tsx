@@ -371,7 +371,7 @@ export default function Storefront() {
                     <Gift className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="font-poppins font-bold text-primary text-sm sm:text-base">Monte seu Presente Personalizado 🎀</h4>
+                    <h4 className="font-poppins font-semibold text-primary text-sm sm:text-base">Monte seu Presente Personalizado 🎀</h4>
                     <p className="text-muted-foreground text-[10px] sm:text-xs">Escolha a embalagem e seus produtinhos favoritos.</p>
                   </div>
                 </div>
@@ -503,7 +503,7 @@ export default function Storefront() {
 
               <button className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === 'Todos' ? 'bg-primary/5 text-primary border border-primary/20' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}>TODOS {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}</button>
               {categories.map(cat => (
-                <button key={cat.id} className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === cat.name ? 'bg-primary/5 text-primary border border-primary/20' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}>{cat.name.toUpperCase()} {selectedCategory === cat.name && <ChevronRight className="h-5 w-5" />}</button>
+                <button key={cat.id} className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === cat.name ? 'bg-primary/5 text-primary border border-primary/20' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}>{cat.name.toUpperCase()}</button>
               ))}
             </div>
           </div>
