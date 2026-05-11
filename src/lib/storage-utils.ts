@@ -10,6 +10,8 @@ import {
   runTransaction
 } from 'firebase/firestore';
 import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 /** Remove undefined properties from an object for Firestore */
 const sanitizeData = (data: any) => {
@@ -37,9 +39,16 @@ export const getNextOrderNumber = async (db: Firestore): Promise<string> => {
       }
       transaction.set(counterRef, { orderCount: nextNum }, { merge: true });
     });
-  } catch (e) {
-    console.error("Erro ao gerar número sequencial:", e);
-    // Fallback seguro em caso de erro extremo na transação
+  } catch (e: any) {
+    // Se for erro de permissão, emitir para o listener global
+    if (e.code === 'permission-denied' || e.message?.includes('permissions')) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: counterRef.path,
+        operation: 'write',
+      }));
+    }
+    
+    // Fallback seguro em caso de erro na transação para não travar o checkout
     nextNum = Math.floor(100000 + Math.random() * 900000);
   }
 

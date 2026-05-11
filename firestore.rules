@@ -62,5 +62,11 @@ service cloud.firestore {
       allow list: if isSignedIn();
       allow create, update, delete: if false; 
     }
+
+    // Regras para metadados (contadores de pedidos)
+    match /metadata/{docId} {
+      allow get: if true;
+      allow write: if isSignedIn();
+    }
   }
 }
