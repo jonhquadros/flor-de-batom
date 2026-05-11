@@ -71,7 +71,10 @@ export default function Storefront() {
 
   const categories = useMemo(() => {
     if (!mounted || !categoriesRaw) return [];
-    return [...categoriesRaw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+    // Filtra a categoria "Monte seu Presente" para não aparecer no menu principal
+    return [...categoriesRaw]
+      .filter(cat => cat.name.toLowerCase().trim() !== 'monte seu presente')
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   }, [categoriesRaw, mounted]);
 
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -371,7 +374,7 @@ export default function Storefront() {
                     <Gift className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="font-poppins font-semibold text-primary text-[13px] sm:text-base">Monte seu Presente Personalizado 🎀</h4>
+                    <h4 className="font-poppins font-semibold text-primary text-[11px] sm:text-base">Monte seu Presente Personalizado 🎀</h4>
                     <p className="text-muted-foreground text-[10px] sm:text-xs">Escolha a embalagem e seus produtinhos favoritos.</p>
                   </div>
                 </div>
