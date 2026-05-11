@@ -4,9 +4,9 @@
 /**
  * @fileOverview An AI agent that generates product descriptions for the admin panel.
  *
- * - generateProductDescription - A function that generates a detailed product description.
- * - GenerateProductDescriptionInput - The input type for the generateProductDescription function.
- * - GenerateProductDescriptionOutput - The return type for the generateProductDescription function.
+ * - generateProductDescription - A function that handles the generation process.
+ * - GenerateProductDescriptionInput - The input type for the function.
+ * - GenerateProductDescriptionOutput - The return type for the function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -20,23 +20,36 @@ export type GenerateProductDescriptionInput = z.infer<
   typeof GenerateProductDescriptionInputSchema
 >;
 
-const GenerateProductDescriptionOutputSchema = z
-  .string()
-  .describe('A detailed product description.');
+const GenerateProductDescriptionOutputSchema = z.object({
+  description: z.string().describe('A detailed and engaging product description.'),
+});
 export type GenerateProductDescriptionOutput = z.infer<
   typeof GenerateProductDescriptionOutputSchema
 >;
 
+/**
+ * Generates a detailed product description using AI.
+ * Returns the description as a string.
+ */
 export async function generateProductDescription(
   input: GenerateProductDescriptionInput
-): Promise<GenerateProductDescriptionOutput> {
-  return generateProductDescriptionFlow(input);
+): Promise<string> {
+  const result = await generateProductDescriptionFlow(input);
+  return result.description;
 }
 
 const prompt = ai.definePrompt({
   name: 'generateProductDescriptionPrompt',
   input: {schema: GenerateProductDescriptionInputSchema},
   output: {schema: GenerateProductDescriptionOutputSchema},
+  config: {
+    safetySettings: [
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE',
+      },
+    ],
+  },
   prompt: `You are an expert copywriter for a high-end beauty brand called 'Flor de Batom'.
 Your task is to create an engaging, detailed, and luxurious product description for a new product.
 
@@ -54,6 +67,11 @@ const generateProductDescriptionFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    
+    if (!output || !output.description) {
+      throw new Error('A IA não conseguiu gerar uma descrição para este produto. Por favor, tente novamente ou verifique se o nome do produto é apropriado.');
+    }
+    
+    return output;
   }
 );
