@@ -43,6 +43,7 @@ import {
   runTransaction,
   serverTimestamp 
 } from 'firebase/firestore';
+import { sanitizeData } from '@/lib/storage-utils';
 
 export default function AdminSales() {
   const db = useFirestore();
@@ -236,26 +237,26 @@ export default function AdminSales() {
         // Gravar Produtos e Movimentações
         localUpdates.forEach((data, id) => {
           const productRef = doc(db, 'products', id);
-          transaction.update(productRef, { 
+          transaction.update(productRef, sanitizeData({ 
             stock: data.stock, 
             variations: data.variations || [],
             updatedAt: serverTimestamp()
-          });
+          }));
           
           const itemsOfThisProduct = cart.filter(i => i.id === id);
           itemsOfThisProduct.forEach(item => {
             const movementId = `MOV-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
             const movementRef = doc(db, 'stockMovements', movementId);
-            transaction.set(movementRef, {
+            transaction.set(movementRef, sanitizeData({
               id: movementId,
               productId: id,
               productName: data.name,
-              variationName: item.selectedColor,
+              variationName: item.selectedColor || null,
               quantity: -item.quantity,
               type: 'Sale',
               reason: `Venda Manual PDV para ${customerName || 'Cliente Balcão'}`,
               createdAt: new Date().toISOString()
-            });
+            }));
           });
         });
 
@@ -277,7 +278,7 @@ export default function AdminSales() {
         };
 
         const orderRef = doc(db, 'orders', orderId);
-        transaction.set(orderRef, orderData);
+        transaction.set(orderRef, sanitizeData(orderData));
       });
 
       toast({ title: "Venda registrada com sucesso!" });

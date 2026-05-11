@@ -15,15 +15,17 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 /** Remove undefined properties from an object for Firestore */
-const sanitizeData = (data: any) => {
+export const sanitizeData = (data: any): any => {
+  if (data === null || typeof data !== 'object') return data;
+  
   const sanitized = { ...data };
   Object.keys(sanitized).forEach(key => {
     if (sanitized[key] === undefined) {
       delete sanitized[key];
-    }
-    // Deep sanitize for items array if present
-    if (key === 'items' && Array.isArray(sanitized[key])) {
+    } else if (Array.isArray(sanitized[key])) {
       sanitized[key] = sanitized[key].map((item: any) => sanitizeData(item));
+    } else if (typeof sanitized[key] === 'object') {
+      sanitized[key] = sanitizeData(sanitized[key]);
     }
   });
   return sanitized;
