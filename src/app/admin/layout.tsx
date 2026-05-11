@@ -87,14 +87,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  // Itens do menu ordenados: Dashboard fixo em 1º, os demais em ordem alfabética
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'Vendas', path: '/admin/sales', icon: PlusCircle },
-    { name: 'Faturamento', path: '/admin/billing', icon: BarChart3 },
-    { name: 'Estoque', path: '/admin/inventory', icon: Boxes },
-    { name: 'Produtos', path: '/admin/products', icon: Package },
     { name: 'Categorias', path: '/admin/categories', icon: Tags },
+    { name: 'Estoque', path: '/admin/inventory', icon: Boxes },
+    { name: 'Faturamento', path: '/admin/billing', icon: BarChart3 },
     { name: 'Pedidos', path: '/admin/orders', icon: ShoppingBag },
+    { name: 'Produtos', path: '/admin/products', icon: Package },
+    { name: 'Vendas', path: '/admin/sales', icon: PlusCircle },
   ];
 
   const handleLogout = () => {
