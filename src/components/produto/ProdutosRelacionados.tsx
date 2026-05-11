@@ -21,6 +21,7 @@ export function ProdutosRelacionados({ categoriaAtual, idAtual }: Props) {
   const [produtos, setProdutos] = useState<Product[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [adicionados, setAdicionados] = useState<Record<string, boolean>>({});
+  const [selectedVariations, setSelectedVariations] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!db || !categoriaAtual || !idAtual) return;
@@ -62,8 +63,20 @@ export function ProdutosRelacionados({ categoriaAtual, idAtual }: Props) {
       try { cart = JSON.parse(savedCart); } catch (e) { cart = []; }
     }
 
-    const color = p.variations && p.variations.length > 0 ? p.variations[0].name : undefined;
-    const img = p.variations && p.variations.length > 0 && p.variations[0].imageUrl ? p.variations[0].imageUrl : p.imageUrl;
+    const hasVars = p.variations && p.variations.length > 0;
+    const color = selectedVariations[p.id] || (hasVars ? p.variations![0].name : undefined);
+    
+    let img = p.imageUrl;
+    if (hasVars) {
+      const v = p.variations!.find(v => v.name === color);
+      if (v?.imageUrl) img = v.imageUrl;
+      
+      // Verifica estoque da variação selecionada
+      if (v && v.stock <= 0) {
+        toast({ variant: "destructive", title: "Ops!", description: "Esta cor está esgotada." });
+        return;
+      }
+    }
 
     const itemExistente = cart.find(i => i.id === p.id && i.selectedColor === color);
     
@@ -111,48 +124,90 @@ export function ProdutosRelacionados({ categoriaAtual, idAtual }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-          {produtos.map(p => (
-            <Link key={p.id} href={`/produto/${p.id}`} className="group flex flex-col h-full bg-white p-2 rounded-[1.8rem] shadow-sm hover:shadow-xl transition-all duration-500">
-              <div className="relative aspect-square rounded-[1.4rem] overflow-hidden bg-muted mb-3 border border-black/[0.03]">
-                <Image
-                  src={p.imageUrl}
-                  alt={p.name}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                
-                {/* Botão Adicionar Rápido Desktop */}
-                <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden md:block">
-                  <button
-                    onClick={(e) => handleAdicionar(e, p)}
-                    className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg transition-all ${
-                      adicionados[p.id] 
-                        ? 'bg-green-500 text-white' 
-                        : 'bg-primary/90 hover:bg-primary text-white backdrop-blur-sm'
-                    }`}
-                  >
-                    {adicionados[p.id] ? '✓ No Carrinho' : '+ Adicionar'}
-                  </button>
-                </div>
-                
-                {/* Mobile: Botão + compacto */}
-                <button
-                  onClick={(e) => handleAdicionar(e, p)}
-                  className="absolute bottom-2 right-2 md:hidden h-8 w-8 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"
-                >
-                  <span className="text-lg font-bold">+</span>
-                </button>
-              </div>
+          {produtos.map(p => {
+            const hasVars = p.variations && p.variations.length > 0;
+            const currentVarName = selectedVariations[p.id] || (hasVars ? p.variations![0].name : undefined);
+            const currentVar = hasVars ? p.variations!.find(v => v.name === currentVarName) : undefined;
+            const displayImg = currentVar?.imageUrl || p.imageUrl;
+            const isOutOfStock = hasVars ? (currentVar?.stock || 0) <= 0 : p.stock <= 0;
 
-              <div className="flex-1 space-y-1 px-1 pb-1">
-                <p className="text-[8px] font-bold text-primary/30 uppercase tracking-[0.15em]">{p.category}</p>
-                <h3 className="font-poppins font-normal text-[11px] md:text-xs text-primary leading-tight line-clamp-2 min-h-[2.4em] group-hover:text-primary/70 transition-colors">
-                  {p.name}
-                </h3>
-                <p className="text-sm font-bold text-primary">R$ {p.price.toFixed(2).replace('.', ',')}</p>
+            return (
+              <div key={p.id} className="group flex flex-col h-full bg-white p-2 rounded-[1.8rem] shadow-sm hover:shadow-xl transition-all duration-500">
+                <Link href={`/produto/${p.id}`} className="relative aspect-square rounded-[1.4rem] overflow-hidden bg-muted mb-3 border border-black/[0.03] block">
+                  <Image
+                    src={displayImg}
+                    alt={p.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  
+                  {isOutOfStock && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
+                      <span className="text-[8px] font-black text-white uppercase tracking-widest bg-black/40 px-2 py-1 rounded-full">Esgotado</span>
+                    </div>
+                  )}
+
+                  {/* Botão Adicionar Rápido Desktop */}
+                  {!isOutOfStock && (
+                    <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-500 hidden md:block">
+                      <button
+                        onClick={(e) => handleAdicionar(e, p)}
+                        className={`w-full py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg transition-all ${
+                          adicionados[p.id] 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-primary/90 hover:bg-primary text-white backdrop-blur-sm'
+                        }`}
+                      >
+                        {adicionados[p.id] ? '✓ No Carrinho' : '+ Adicionar'}
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Mobile: Botão + compacto */}
+                  {!isOutOfStock && (
+                    <button
+                      onClick={(e) => handleAdicionar(e, p)}
+                      className="absolute bottom-2 right-2 md:hidden h-8 w-8 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+                    >
+                      <span className="text-lg font-bold">+</span>
+                    </button>
+                  )}
+                </Link>
+
+                <div className="flex-1 space-y-1 px-1 pb-1">
+                  <p className="text-[8px] font-bold text-primary/30 uppercase tracking-[0.15em]">{p.category}</p>
+                  <Link href={`/produto/${p.id}`}>
+                    <h3 className="font-poppins font-normal text-[11px] md:text-xs text-primary leading-tight line-clamp-2 min-h-[2.4em] group-hover:text-primary/70 transition-colors">
+                      {p.name}
+                    </h3>
+                  </Link>
+                  <p className="text-sm font-bold text-primary">R$ {p.price.toFixed(2).replace('.', ',')}</p>
+
+                  {hasVars && (
+                    <div className="flex flex-wrap gap-1 mt-2 pt-1 border-t border-primary/5">
+                      {p.variations!.map(v => (
+                        <button
+                          key={v.name}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setSelectedVariations(prev => ({ ...prev, [p.id]: v.name }));
+                          }}
+                          className={`px-1.5 py-0.5 rounded-md text-[7px] font-bold border transition-all ${
+                            currentVarName === v.name 
+                              ? 'bg-primary text-white border-primary shadow-sm' 
+                              : 'bg-muted/50 border-transparent text-muted-foreground hover:border-primary/20'
+                          } ${v.stock <= 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                        >
+                          {v.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>
