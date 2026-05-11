@@ -43,7 +43,6 @@ import {
   runTransaction,
   serverTimestamp 
 } from 'firebase/firestore';
-import { recordStockMovement } from '@/lib/storage-utils';
 
 export default function AdminSales() {
   const db = useFirestore();
@@ -187,17 +186,10 @@ export default function AdminSales() {
 
     try {
       await runTransaction(db, async (transaction) => {
-        // 1. Obter e incrementar o contador sequencial
+        // 1. TODAS AS LEITURAS (READS) PRIMEIRO - Regra do Firestore
         const counterRef = doc(db, 'metadata', 'counters');
         const counterSnap = await transaction.get(counterRef);
-        let nextOrderNum = 1;
-        if (counterSnap.exists()) {
-          nextOrderNum = (counterSnap.data().orderCount || 0) + 1;
-        }
-        transaction.set(counterRef, { orderCount: nextOrderNum }, { merge: true });
-        const formattedOrderNumber = nextOrderNum.toString().padStart(6, '0');
 
-        // 2. Processar estoque
         const uniqueProductIds = Array.from(new Set(cart.map(i => i.id)));
         const productSnapshots = new Map<string, Product>();
 
@@ -207,6 +199,13 @@ export default function AdminSales() {
           if (!productSnap.exists()) throw new Error(`Produto não encontrado.`);
           productSnapshots.set(pid, productSnap.data() as Product);
         }
+
+        // 2. LÓGICA DE NEGÓCIO E CÁLCULOS (SEM ALTERAR O DB AQUI)
+        let nextOrderNum = 1;
+        if (counterSnap.exists()) {
+          nextOrderNum = (counterSnap.data().orderCount || 0) + 1;
+        }
+        const formattedOrderNumber = nextOrderNum.toString().padStart(6, '0');
 
         const localUpdates = new Map<string, Product>();
         productSnapshots.forEach((data, id) => localUpdates.set(id, { ...data }));
@@ -229,6 +228,12 @@ export default function AdminSales() {
           }
         }
 
+        // 3. TODAS AS GRAVAÇÕES (WRITES) NO FINAL
+        
+        // Gravar Contador
+        transaction.set(counterRef, { orderCount: nextOrderNum }, { merge: true });
+
+        // Gravar Produtos e Movimentações
         localUpdates.forEach((data, id) => {
           const productRef = doc(db, 'products', id);
           transaction.update(productRef, { 
@@ -239,18 +244,22 @@ export default function AdminSales() {
           
           const itemsOfThisProduct = cart.filter(i => i.id === id);
           itemsOfThisProduct.forEach(item => {
-            recordStockMovement(db, {
+            const movementId = `MOV-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+            const movementRef = doc(db, 'stockMovements', movementId);
+            transaction.set(movementRef, {
+              id: movementId,
               productId: id,
               productName: data.name,
               variationName: item.selectedColor,
               quantity: -item.quantity,
               type: 'Sale',
-              reason: `Venda Manual PDV para ${customerName || 'Cliente Balcão'}`
+              reason: `Venda Manual PDV para ${customerName || 'Cliente Balcão'}`,
+              createdAt: new Date().toISOString()
             });
           });
         });
 
-        // 3. Gravar Pedido com número sequencial
+        // Gravar Pedido Principal
         const orderId = `ORD-${Date.now()}-${formattedOrderNumber}`;
         const orderData: Order = {
           id: orderId,
@@ -278,6 +287,7 @@ export default function AdminSales() {
       setDiscount(0);
       setPaymentMethod('Pix');
     } catch (error: any) {
+      console.error("Erro na transação:", error);
       toast({ variant: "destructive", title: "Falha ao registrar venda", description: error.message });
     } finally {
       setIsProcessing(false);
