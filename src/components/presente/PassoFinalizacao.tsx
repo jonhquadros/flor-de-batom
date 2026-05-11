@@ -11,6 +11,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
+import { useFirestore } from '@/firebase';
+import { getNextOrderNumber, saveOrderToFirestore } from '@/lib/storage-utils';
+import { Order } from '@/lib/types';
 
 const WHATSAPP_LOJA = '5591987199039';
 const PIX_KEY = '91987199039';
@@ -22,6 +25,7 @@ interface Props {
 }
 
 export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
+  const db = useFirestore();
   const { toast } = useToast();
   const [nome, setNome] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
@@ -29,10 +33,11 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
   const [mensagem, setMensagem] = useState('');
   const [pagamento, setPagamento] = useState<'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito'>('Pix');
   const [enviado, setEnviado] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const { embalagem, itens, totalFinal } = presente;
 
-  const handleEnviar = () => {
+  const handleEnviar = async () => {
     if (!nome || !whatsapp || !endereco) {
       toast({ 
         variant: "destructive", 
@@ -42,26 +47,85 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       return;
     }
 
-    const listaItens = itens.map(i => {
-      const labelCor = i.corSelecionada ? ` [${i.corSelecionada}]` : '';
-      return `  • ${i.nome}${labelCor} (x${i.quantidade}) — R$ ${(i.preco * i.quantidade).toFixed(2)}`;
-    }).join('\n');
-    
-    const msg = encodeURIComponent(
-      `🎁 *PRESENTE PERSONALIZADO - Flor de Batom Makeup*\n\n` +
-      `👤 *Cliente:* ${nome}\n` +
-      `📱 *WhatsApp:* ${whatsapp}\n` +
-      `📍 *Endereço:* ${endereco}\n\n` +
-      `📦 *EMBALAGEM:* ${embalagem.name} (R$ ${embalagem.price.toFixed(2)})\n` +
-      `🛍️ *PRODUTOS SELECIONADOS:*\n${listaItens}\n\n` +
-      `💌 *MENSAGEM NO CARTÃO:*\n${mensagem || '_Nenhuma mensagem enviada_'}\n\n` +
-      `💳 *FORMA DE PAGAMENTO:* ${pagamento}\n` +
-      `💰 *TOTAL DO PRESENTE: R$ ${totalFinal.toFixed(2)}*\n\n` +
-      `_Pedido gerado pelo montador de presentes online_`
-    );
+    if (!db) return;
 
-    window.open(`https://wa.me/${WHATSAPP_LOJA}?text=${msg}`, '_blank');
-    setEnviado(true);
+    setIsProcessing(true);
+    try {
+      // 1. Gerar número sequencial
+      const orderNum = await getNextOrderNumber(db);
+      const orderId = `GIFT-${Date.now()}-${orderNum}`;
+
+      // 2. Mapear itens para o formato do pedido
+      // Incluímos a embalagem como o primeiro item do pedido
+      const orderItems = [
+        {
+          ...embalagem,
+          quantity: 1,
+          selectedColor: ''
+        },
+        ...itens.map(i => ({
+          id: i.produtoId,
+          name: i.nome,
+          price: i.preco,
+          imageUrl: i.imagem,
+          category: i.categoria,
+          quantity: i.quantidade,
+          selectedColor: i.corSelecionada || '',
+          isFeatured: false,
+          description: '',
+          stock: 0
+        }))
+      ];
+
+      const orderData: Order = {
+        id: orderId,
+        orderNumber: orderNum,
+        customerName: nome,
+        customerPhone: whatsapp,
+        customerAddress: endereco,
+        items: orderItems as any,
+        total: totalFinal,
+        paymentMethod: pagamento,
+        status: 'Pendente',
+        createdAt: new Date().toISOString(),
+        source: 'catalog' as any
+      };
+
+      // 3. Salvar no Firestore para aparecer no Admin
+      await saveOrderToFirestore(db, orderData);
+
+      // 4. Preparar mensagem do WhatsApp
+      const listaItens = itens.map(i => {
+        const labelCor = i.corSelecionada ? ` [${i.corSelecionada}]` : '';
+        return `  • ${i.nome}${labelCor} (x${i.quantidade}) — R$ ${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`;
+      }).join('\n');
+      
+      const linhaPagamento = pagamento === 'Pix' 
+        ? '📱 Pix — comprovante a enviar' 
+        : pagamento === 'Dinheiro' ? '💵 Dinheiro' : `💳 ${pagamento}`;
+
+      const msg = encodeURIComponent(
+        `🎁 *PEDIDO DE PRESENTE #${orderNum}*\n\n` +
+        `👤 *Cliente:* ${nome}\n` +
+        `📱 *WhatsApp:* ${whatsapp}\n` +
+        `📍 *Endereço:* ${endereco}\n\n` +
+        `📦 *EMBALAGEM:* ${embalagem.name} (R$ ${embalagem.price.toFixed(2).replace('.', ',')})\n` +
+        `🛍️ *PRODUTOS SELECIONADOS:*\n${listaItens}\n\n` +
+        `💌 *MENSAGEM NO CARTÃO:*\n${mensagem || '_Nenhuma mensagem enviada_'}\n\n` +
+        `💳 *FORMA DE PAGAMENTO:* ${linhaPagamento}\n` +
+        `💰 *TOTAL DO PRESENTE: R$ ${totalFinal.toFixed(2).replace('.', ',')}*\n\n` +
+        `_Pedido enviado pelo montador de presentes online_`
+      );
+
+      window.open(`https://wa.me/${WHATSAPP_LOJA}?text=${msg}`, '_blank');
+      setEnviado(true);
+      toast({ title: "Pedido Registrado!", description: "Seu presente foi salvo e enviado para o WhatsApp." });
+    } catch (error) {
+      console.error("Erro ao finalizar presente:", error);
+      toast({ variant: "destructive", title: "Erro no processamento", description: "Não foi possível salvar seu pedido. Tente novamente." });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   if (enviado) {
@@ -72,7 +136,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         </div>
         <div className="space-y-2">
           <h2 className="text-3xl font-bold text-primary">Pedido Enviado!</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed">Seu presente foi enviado para o nosso WhatsApp. Em breve entraremos em contato para confirmar a entrega 🌸</p>
+          <p className="text-muted-foreground text-sm leading-relaxed">Seu presente foi registrado no sistema e enviado para o nosso WhatsApp. Em breve entraremos em contato 🌸</p>
         </div>
         <div className="flex flex-col gap-3">
           <Button className="h-14 rounded-2xl bg-primary text-xs font-black uppercase" onClick={onReiniciar}>
@@ -91,7 +155,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       {/* Coluna Dados */}
       <div className="space-y-6">
         <div className="space-y-2">
-          <h3 className="font-headline text-3xl text-primary">Finalize seu Pedido</h3>
+          <h3 className="font-headline text-3xl text-primary">Finalize seu Kit</h3>
           <p className="text-muted-foreground text-sm">Falta pouco para criarmos este presente especial ✨</p>
         </div>
 
@@ -163,7 +227,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       <div className="space-y-6">
         <div className="bg-white rounded-[2.5rem] shadow-xl border border-primary/5 p-8 space-y-6">
           <div className="flex justify-between items-center pb-4 border-b">
-            <h4 className="font-bold text-primary text-base uppercase tracking-widest">Seu Presente</h4>
+            <h4 className="font-bold text-primary text-base uppercase tracking-widest">Resumo do Presente</h4>
             <span className="text-[10px] font-black text-primary/40 uppercase bg-primary/5 px-3 py-1 rounded-full">{itens.length} produtos</span>
           </div>
 
@@ -199,10 +263,20 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <Button className="h-16 rounded-2xl bg-primary text-sm font-black uppercase shadow-xl shadow-primary/20 gap-3" onClick={handleEnviar}>
-                <MessageCircle className="h-6 w-6" /> Enviar para WhatsApp
+              <Button 
+                className="h-16 rounded-2xl bg-primary text-sm font-black uppercase shadow-xl shadow-primary/20 gap-3" 
+                onClick={handleEnviar}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <RefreshCw className="h-6 w-6 animate-spin" />
+                ) : (
+                  <>
+                    <MessageCircle className="h-6 w-6" /> Finalizar e Enviar
+                  </>
+                )}
               </Button>
-              <Button variant="ghost" className="h-12 text-[10px] font-black uppercase text-primary/60" onClick={onVoltar}>
+              <Button variant="ghost" className="h-12 text-[10px] font-black uppercase text-primary/60" onClick={onVoltar} disabled={isProcessing}>
                 <ArrowLeft className="h-3 w-3 mr-2" /> Editar Presente
               </Button>
             </div>
