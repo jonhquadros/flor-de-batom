@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Order, OrderStatus, Product } from '@/lib/types';
 import { updateOrderStatus, updateOrder } from '@/lib/storage-utils';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 export default function AdminOrders() {
   const db = useFirestore();
@@ -25,7 +25,8 @@ export default function AdminOrders() {
 
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return collection(db, 'orders');
+    // Ordena por data de criação decrescente para que os mais novos apareçam primeiro
+    return query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
   }, [db, user]);
 
   const productsQuery = useMemoFirebase(() => {
@@ -215,7 +216,7 @@ export default function AdminOrders() {
               {filteredOrders.length === 0 ? (
                 <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic">Nenhum pedido encontrado.</TableCell></TableRow>
               ) : (
-                filteredOrders.slice().reverse().map(order => (
+                filteredOrders.map(order => (
                   <TableRow key={order.id} className="hover:bg-muted/10 h-20">
                     <TableCell className="font-bold text-xs text-primary">#{order.orderNumber || order.id.substr(0,6)}</TableCell>
                     <TableCell><span className="font-bold text-xs truncate max-w-[120px] inline-block">{order.customerName}</span></TableCell>

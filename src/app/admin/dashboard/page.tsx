@@ -32,7 +32,7 @@ import { ChartContainer, ChartConfig, ChartTooltip, ChartTooltipContent } from '
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer, Line, LineChart, CartesianGrid } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const db = useFirestore();
@@ -49,7 +49,8 @@ export default function AdminDashboard() {
   // Firestore Queries
   const ordersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return collection(db, 'orders');
+    // Ordena por data de criação para consistência visual
+    return query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
   }, [db, user]);
 
   const productsQuery = useMemoFirebase(() => {
@@ -437,7 +438,7 @@ export default function AdminDashboard() {
             <div className="p-10 text-center text-muted-foreground italic text-sm">Nenhum pedido registrado ainda.</div>
           ) : (
             <div className="divide-y">
-              {orders.slice(-6).reverse().map((order) => (
+              {orders.slice(0, 6).map((order) => (
                 <div key={order.id} className="p-4 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-muted/10 transition-colors gap-4">
                   {/* Informações do Pedido */}
                   <div className="flex gap-4 items-center w-full md:w-auto">
@@ -456,7 +457,7 @@ export default function AdminDashboard() {
                       </p>
                       <p className="font-semibold text-xs md:text-sm truncate max-w-[150px] md:max-w-[200px]">{order.customerName}</p>
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground">{new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+                        <span className="text-[10px] text-muted-foreground">{order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR') : '-'}</span>
                         <Badge className={`text-[9px] font-bold uppercase h-5 px-2 tracking-tighter ${
                           order.status === 'Entregue' ? 'bg-green-500 hover:bg-green-600' : 
                           order.status === 'Cancelado' ? 'bg-red-500 hover:bg-red-600' : 
