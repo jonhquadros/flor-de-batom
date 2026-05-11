@@ -56,7 +56,14 @@ export default async function ProdutoPage({ params }: Props) {
     const snap = await getDoc(doc(db, 'products', id));
     if (!snap.exists()) notFound();
     
-    const produto = { ...snap.data(), id: snap.id } as Product;
+    const data = snap.data();
+    
+    // Serializa o objeto para garantir que campos como Timestamp do Firestore
+    // sejam convertidos em tipos primitivos antes de passar para o Client Component
+    const produto = JSON.parse(JSON.stringify({ 
+      ...data, 
+      id: snap.id 
+    })) as Product;
     
     return <ProdutoDetalhe produto={produto} />;
   } catch (e) {
