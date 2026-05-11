@@ -55,7 +55,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       const orderNum = await getNextOrderNumber(db);
       const orderId = `ORD-${Date.now()}-${orderNum}`;
 
-      // 2. Mapear itens para o formato do pedido
+      // 2. Mapear itens para o formato do pedido (usando chaves em inglês para o banco)
       const orderItems = [
         {
           id: embalagem.id,
@@ -100,10 +100,11 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       // 3. Salvar no Firestore e aguardar conclusão antes de abrir o WhatsApp
       await saveOrderToFirestore(db, orderData);
 
-      // 4. Preparar mensagem do WhatsApp
+      // 4. Preparar mensagem do WhatsApp (usando chaves em português conforme o objeto do montador)
       const listaItens = itens.map(i => {
         const labelCor = i.corSelecionada ? ` [${i.corSelecionada}]` : '';
-        return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.preco * i.quantity).toFixed(2).replace('.', ',')}`;
+        const subtotalItem = (i.preco * i.quantidade).toFixed(2).replace('.', ',');
+        return `• ${i.nome}${labelCor} x${i.quantidade} — R$ ${subtotalItem}`;
       }).join('\n');
       
       const linhaPagamento = pagamento === 'Pix' 
