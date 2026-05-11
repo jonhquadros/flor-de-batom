@@ -21,6 +21,7 @@ function inferirMaxItens(produto: Product): number {
   const nome = (produto.name || '').toLowerCase();
   if (nome.includes('cesta')) return 15;
   if (nome.includes('copo')) return 4;
+  if (nome.includes('sacola')) return 7;
   return 10;
 }
 
@@ -42,6 +43,7 @@ export function MontadorPresente() {
     return allProducts
       .filter(p => {
         const cat = (p.category || '').trim().toLowerCase();
+        // Filtro resiliente para a categoria
         return cat === 'monte seu presente' && p.isActive !== false;
       })
       .map(p => ({
@@ -65,7 +67,7 @@ export function MontadorPresente() {
       const existente = prev.find(i => i.produtoId === produto.id && i.corSelecionada === corSelecionada);
       if (existente) {
         return prev.map(i =>
-          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade + 1 } : i
+          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantity: (i.quantidade + 1) as any, quantidade: i.quantidade + 1 } : i
         );
       }
       
