@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MessageCircle, CheckCircle2, Copy, ArrowLeft, RefreshCw } from 'lucide-react';
+import { MessageCircle, CheckCircle2, Copy, ArrowLeft, RefreshCw, MapPin } from 'lucide-react';
 import { Presente } from '@/types/presente';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,15 +25,20 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
   const { toast } = useToast();
   const [nome, setNome] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
+  const [endereco, setEndereco] = useState('');
   const [mensagem, setMensagem] = useState('');
-  const [pagamento, setPagamento] = useState<'Pix' | 'Dinheiro' | 'Cartão'>('Pix');
+  const [pagamento, setPagamento] = useState<'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito'>('Pix');
   const [enviado, setEnviado] = useState(false);
 
   const { embalagem, itens, totalFinal } = presente;
 
   const handleEnviar = () => {
-    if (!nome || !whatsapp) {
-      toast({ variant: "destructive", title: "Dados incompletos", description: "Por favor, informe seu nome e WhatsApp." });
+    if (!nome || !whatsapp || !endereco) {
+      toast({ 
+        variant: "destructive", 
+        title: "Dados incompletos", 
+        description: "Por favor, informe seu nome, WhatsApp e endereço para entrega." 
+      });
       return;
     }
 
@@ -45,7 +50,8 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
     const msg = encodeURIComponent(
       `🎁 *PRESENTE PERSONALIZADO - Flor de Batom Makeup*\n\n` +
       `👤 *Cliente:* ${nome}\n` +
-      `📱 *WhatsApp:* ${whatsapp}\n\n` +
+      `📱 *WhatsApp:* ${whatsapp}\n` +
+      `📍 *Endereço:* ${endereco}\n\n` +
       `📦 *EMBALAGEM:* ${embalagem.name} (R$ ${embalagem.price.toFixed(2)})\n` +
       `🛍️ *PRODUTOS SELECIONADOS:*\n${listaItens}\n\n` +
       `💌 *MENSAGEM NO CARTÃO:*\n${mensagem || '_Nenhuma mensagem enviada_'}\n\n` +
@@ -91,12 +97,21 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Seu Nome</Label>
+            <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Seu Nome *</Label>
             <Input className="h-12 rounded-2xl bg-white border-none shadow-sm" value={nome} onChange={e => setNome(e.target.value)} placeholder="Como podemos te chamar?" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Seu WhatsApp</Label>
+            <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Seu WhatsApp *</Label>
             <Input className="h-12 rounded-2xl bg-white border-none shadow-sm" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="(00) 00000-0000" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Endereço de Entrega *</Label>
+            <Textarea 
+              className="min-h-[80px] rounded-2xl bg-white border-none shadow-sm resize-none" 
+              value={endereco} 
+              onChange={e => setEndereco(e.target.value)} 
+              placeholder="Rua, Número, Bairro e Ponto de Referência" 
+            />
           </div>
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Mensagem no Cartão (Opcional)</Label>
@@ -110,13 +125,18 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         </div>
 
         <div className="space-y-4">
-          <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Forma de Pagamento</Label>
-          <RadioGroup value={pagamento} onValueChange={(v: any) => setPagamento(v)} className="grid grid-cols-3 gap-3">
-            {['Pix', 'Dinheiro', 'Cartão'].map(m => (
-              <div key={m} className={`flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border-2 transition-all cursor-pointer ${pagamento === m ? 'border-primary bg-primary/5 shadow-md' : 'border-muted bg-white'}`} onClick={() => setPagamento(m as any)}>
-                <RadioGroupItem value={m} id={m} className="sr-only" />
-                <span className="text-xl">{m === 'Pix' ? '📱' : m === 'Dinheiro' ? '💵' : '💳'}</span>
-                <span className="text-[9px] font-black uppercase tracking-widest">{m}</span>
+          <Label className="text-[10px] font-black uppercase text-primary/60 ml-1">Forma de Pagamento *</Label>
+          <RadioGroup value={pagamento} onValueChange={(v: any) => setPagamento(v)} className="grid grid-cols-2 gap-3">
+            {[
+              { id: 'Pix', label: 'Pix', icon: '📱' },
+              { id: 'Dinheiro', label: 'Dinheiro', icon: '💵' },
+              { id: 'Cartão Débito', label: 'Débito', icon: '💳' },
+              { id: 'Cartão Crédito', label: 'Crédito', icon: '💳' }
+            ].map(m => (
+              <div key={m.id} className={`flex flex-col items-center gap-2 p-4 rounded-[1.5rem] border-2 transition-all cursor-pointer ${pagamento === m.id ? 'border-primary bg-primary/5 shadow-md' : 'border-muted bg-white'}`} onClick={() => setPagamento(m.id as any)}>
+                <RadioGroupItem value={m.id} id={m.id} className="sr-only" />
+                <span className="text-xl">{m.icon}</span>
+                <span className="text-[9px] font-black uppercase tracking-widest">{m.label}</span>
               </div>
             ))}
           </RadioGroup>
