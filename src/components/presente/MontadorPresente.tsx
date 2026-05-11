@@ -9,14 +9,16 @@ import { PassoProdutos } from './PassoProdutos';
 import { PreviewPresente } from './PreviewPresente';
 import { PassoFinalizacao } from './PassoFinalizacao';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { Product } from '@/lib/types';
 import { Embalagem, ItemPresente, Presente } from '@/types/presente';
 
 type Passo = 1 | 2 | 3;
 
 function inferirMaxItens(produto: Product): number {
-  // Fallback se não houver campo maxItens no Firestore
+  // Tenta pegar do campo maxItens, se não existir infere pelo nome
+  if ((produto as any).maxItens) return Number((produto as any).maxItens);
+  
   const nome = produto.name.toLowerCase();
   if (nome.includes('cesta')) return 15;
   if (nome.includes('copo')) return 4;
@@ -29,21 +31,24 @@ export function MontadorPresente() {
   const [embalagem, setEmbalagem] = useState<Embalagem | null>(null);
   const [itens, setItens] = useState<ItemPresente[]>([]);
 
-  // Query Embalagens
-  const embalagensQuery = useMemoFirebase(() => {
+  // Query mais ampla para evitar problemas com índices ou campos ausentes no Firestore
+  const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), where('category', '==', 'Monte seu Presente'), where('isActive', '==', true));
+    return collection(db, 'products');
   }, [db]);
 
-  const { data: embalagensRaw, isLoading: carregandoEmb } = useCollection<Product>(embalagensQuery);
+  const { data: allProducts, isLoading: isProductsLoading } = useCollection<Product>(productsQuery);
 
+  // Filtra as embalagens no cliente para maior robustez
   const embalagens = useMemo(() => {
-    if (!embalagensRaw) return [];
-    return embalagensRaw.map(p => ({
-      ...p,
-      maxItens: (p as any).maxItens || inferirMaxItens(p)
-    })) as Embalagem[];
-  }, [embalagensRaw]);
+    if (!allProducts) return [];
+    return allProducts
+      .filter(p => p.category === 'Monte seu Presente' && p.isActive !== false)
+      .map(p => ({
+        ...p,
+        maxItens: (p as any).maxItens || inferirMaxItens(p)
+      })) as Embalagem[];
+  }, [allProducts]);
 
   // Helpers
   const totalItens = itens.reduce((s, i) => s + i.quantidade, 0);
@@ -61,8 +66,8 @@ export function MontadorPresente() {
       const existente = prev.find(i => i.produtoId === produto.id);
       if (existente) {
         return prev.map(i =>
-          i.produtoId === produto.id ? { ...i, quantity: i.quantidade + 1 } : i
-        ) as any;
+          i.produtoId === produto.id ? { ...i, quantidade: i.quantidade + 1 } : i
+        );
       }
       return [...prev, {
         produtoId: produto.id,
@@ -149,7 +154,7 @@ export function MontadorPresente() {
           {passoAtual === 1 && (
             <PassoEmbalagem
               embalagens={embalagens}
-              carregando={carregandoEmb}
+              carregando={isProductsLoading}
               onSelecionar={selecionarEmbalagem}
             />
           )}

@@ -3,9 +3,9 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Search, Plus, Minus, Filter } from 'lucide-react';
+import { Search, Plus, Minus } from 'lucide-react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Product, INITIAL_CATEGORIES } from '@/lib/types';
 import { Embalagem, ItemPresente } from '@/types/presente';
 import { Input } from '@/components/ui/input';
@@ -31,24 +31,25 @@ export function PassoProdutos({
   const [busca, setBusca] = useState('');
   const [catSelecionada, setCatSelecionada] = useState('Todos');
 
-  const produtosQuery = useMemoFirebase(() => {
+  // Consulta ampla para garantir que todos os produtos sejam carregados e filtrados no cliente
+  const productsQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, 'products'), where('isActive', '==', true), orderBy('category'));
+    return collection(db, 'products');
   }, [db]);
 
-  const { data: produtosRaw, isLoading } = useCollection<Product>(produtosQuery);
+  const { data: allProducts, isLoading } = useCollection<Product>(productsQuery);
 
   const produtos = useMemo(() => {
-    if (!produtosRaw) return [];
-    return produtosRaw.filter(p => p.category !== 'Monte seu Presente' && p.stock > 0);
-  }, [produtosRaw]);
+    if (!allProducts) return [];
+    return allProducts.filter(p => p.category !== 'Monte seu Presente' && p.stock > 0 && p.isActive !== false);
+  }, [allProducts]);
 
   const filtrados = useMemo(() => {
     return produtos.filter(p => {
       const matchCat = catSelecionada === 'Todos' || p.category === catSelecionada;
       const matchBusca = p.name.toLowerCase().includes(busca.toLowerCase());
       return matchCat && matchBusca;
-    });
+    }).sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   }, [produtos, busca, catSelecionada]);
 
   const progresso = Math.min((totalItens / embalagem.maxItens) * 100, 100);
