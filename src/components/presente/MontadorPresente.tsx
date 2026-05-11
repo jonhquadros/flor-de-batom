@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -38,7 +39,6 @@ export function MontadorPresente() {
 
   const embalagens = useMemo(() => {
     if (!allProducts) return [];
-    // Busca insensível a maiúsculas/minúsculas e espaços extras
     return allProducts
       .filter(p => {
         const cat = (p.category || '').trim().toLowerCase();
@@ -59,40 +59,48 @@ export function MontadorPresente() {
     ? { embalagem, itens, totalItens, totalProdutos, totalFinal }
     : null;
 
-  function adicionarProduto(produto: Product) {
+  function adicionarProduto(produto: Product, corSelecionada?: string) {
     if (!embalagem || totalItens >= embalagem.maxItens) return;
     setItens(prev => {
-      const existente = prev.find(i => i.produtoId === produto.id);
+      const existente = prev.find(i => i.produtoId === produto.id && i.corSelecionada === corSelecionada);
       if (existente) {
         return prev.map(i =>
-          i.produtoId === produto.id ? { ...i, quantidade: i.quantidade + 1 } : i
+          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade + 1 } : i
         );
       }
+      
+      let imagem = produto.imageUrl;
+      if (corSelecionada && produto.variations) {
+        const v = produto.variations.find(v => v.name === corSelecionada);
+        if (v?.imageUrl) imagem = v.imageUrl;
+      }
+
       return [...prev, {
         produtoId: produto.id,
         nome: produto.name,
         preco: produto.price,
-        imagem: produto.imageUrl,
+        imagem: imagem,
         categoria: produto.category,
         quantidade: 1,
+        corSelecionada: corSelecionada
       }];
     });
   }
 
-  function decrementarProduto(produtoId: string) {
+  function decrementarProduto(produtoId: string, corSelecionada?: string) {
     setItens(prev => {
-      const item = prev.find(i => i.produtoId === produtoId);
+      const item = prev.find(i => i.produtoId === produtoId && i.corSelecionada === corSelecionada);
       if (!item) return prev;
       if (item.quantidade > 1)
         return prev.map(i =>
-          i.produtoId === produtoId ? { ...i, quantidade: i.quantidade - 1 } : i
+          (i.produtoId === produtoId && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade - 1 } : i
         );
-      return prev.filter(i => i.produtoId !== produtoId);
+      return prev.filter(i => !(i.produtoId === produtoId && i.corSelecionada === corSelecionada));
     });
   }
 
-  function removerItemCompleto(produtoId: string) {
-    setItens(prev => prev.filter(i => i.produtoId !== produtoId));
+  function removerItemCompleto(produtoId: string, corSelecionada?: string) {
+    setItens(prev => prev.filter(i => !(i.produtoId === produtoId && i.corSelecionada === corSelecionada)));
   }
 
   function selecionarEmbalagem(e: Embalagem) {

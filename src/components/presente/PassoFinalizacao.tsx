@@ -37,7 +37,10 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       return;
     }
 
-    const listaItens = itens.map(i => `  • ${i.nome} (x${i.quantidade}) — R$ ${(i.preco * i.quantidade).toFixed(2)}`).join('\n');
+    const listaItens = itens.map(i => {
+      const labelCor = i.corSelecionada ? ` [${i.corSelecionada}]` : '';
+      return `  • ${i.nome}${labelCor} (x${i.quantidade}) — R$ ${(i.preco * i.quantidade).toFixed(2)}`;
+    }).join('\n');
     
     const msg = encodeURIComponent(
       `🎁 *PRESENTE PERSONALIZADO - Flor de Batom Makeup*\n\n` +
@@ -149,17 +152,20 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
               <div className="h-10 w-10 rounded-xl bg-muted overflow-hidden border shrink-0 relative">
                 <Image src={embalagem.imageUrl} alt="" fill className="object-cover" />
               </div>
-              <p className="flex-1 text-[10px] font-bold text-primary uppercase">{embalagem.name}</p>
+              <p className="flex-1 text-[10px] font-bold text-primary uppercase truncate">{embalagem.name}</p>
               <p className="text-xs font-bold text-primary">R$ {embalagem.price.toFixed(2)}</p>
             </div>
-            {itens.map(item => (
-              <div key={item.produtoId} className="flex gap-4 items-center">
+            {itens.map((item, idx) => (
+              <div key={`${item.produtoId}-${item.corSelecionada || idx}`} className="flex gap-4 items-center">
                 <div className="h-10 w-10 rounded-xl bg-muted overflow-hidden border shrink-0 relative">
                   <Image src={item.imagem} alt="" fill className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-bold text-primary truncate uppercase">{item.nome}</p>
-                  <p className="text-[9px] font-bold text-muted-foreground uppercase">{item.quantidade}x unidades</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase">{item.quantidade}x unidades</p>
+                    {item.corSelecionada && <span className="text-[8px] font-black text-primary/60 uppercase">{item.corSelecionada}</span>}
+                  </div>
                 </div>
                 <p className="text-xs font-bold text-primary">R$ {(item.preco * item.quantidade).toFixed(2)}</p>
               </div>

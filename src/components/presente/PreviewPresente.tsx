@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 
 interface Props {
   presente: Presente | null;
-  onRemoverItem: (id: string) => void;
+  onRemoverItem: (id: string, color?: string) => void;
   onAvancar: () => void;
 }
 
@@ -32,9 +32,9 @@ export function PreviewPresente({ presente, onRemoverItem, onAvancar }: Props) {
             <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 border">
               <Image src={embalagem.imageUrl} alt="" fill className="object-cover" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-[8px] font-black text-primary/40 uppercase tracking-widest">Embalagem</p>
-              <p className="font-bold text-primary text-xs leading-tight">{embalagem.name}</p>
+              <p className="font-bold text-primary text-xs leading-tight truncate">{embalagem.name}</p>
               <p className="text-xs font-bold text-primary">R$ {embalagem.price.toFixed(2)}</p>
             </div>
           </div>
@@ -47,18 +47,21 @@ export function PreviewPresente({ presente, onRemoverItem, onAvancar }: Props) {
               <p className="text-center py-10 text-[10px] font-bold text-muted-foreground uppercase italic tracking-widest opacity-50">Adicione produtos</p>
             ) : (
               <div className="space-y-3">
-                {itens.map(item => (
-                  <div key={item.produtoId} className="flex gap-3 items-center group">
+                {itens.map((item, idx) => (
+                  <div key={`${item.produtoId}-${item.corSelecionada || idx}`} className="flex gap-3 items-center group">
                     <div className="relative h-10 w-10 rounded-xl overflow-hidden border shrink-0">
                       <Image src={item.imagem} alt="" fill className="object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold text-primary truncate leading-tight">{item.nome}</p>
-                      <p className="text-[9px] font-bold text-muted-foreground">{item.quantidade}x R$ {item.preco.toFixed(2)}</p>
+                      <p className="text-[10px] font-bold text-primary truncate leading-tight uppercase">{item.nome}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[9px] font-bold text-muted-foreground">{item.quantidade}x R$ {item.preco.toFixed(2)}</p>
+                        {item.corSelecionada && <span className="text-[8px] bg-primary/5 px-1.5 rounded-sm font-black uppercase text-primary/60">{item.corSelecionada}</span>}
+                      </div>
                     </div>
                     <button 
                       className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-red-50 hover:text-red-500 transition-all"
-                      onClick={() => onRemoverItem(item.produtoId)}
+                      onClick={() => onRemoverItem(item.produtoId, item.corSelecionada)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>

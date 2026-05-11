@@ -12,6 +12,7 @@ export interface ItemPresente {
   imagem: string;
   categoria: string;
   quantidade: number;
+  corSelecionada?: string;
 }
 
 export interface Presente {
