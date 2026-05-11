@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Palette, X, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Palette, X, ArrowUpDown, Sparkles, Wand2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,6 +17,7 @@ import { Product, Category, ProductVariation } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { generateProductDescription } from '@/ai/flows/generate-product-description';
 
 export default function AdminProducts() {
   const db = useFirestore();
@@ -46,6 +47,7 @@ export default function AdminProducts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
@@ -91,6 +93,36 @@ export default function AdminProducts() {
       const productRef = doc(db, 'products', id);
       deleteDocumentNonBlocking(productRef);
       toast({ title: "Removido do Banco de Dados" });
+    }
+  };
+
+  const handleGenerateAI = async () => {
+    if (!formData.name || !formData.category) {
+      toast({ 
+        variant: "destructive", 
+        title: "Dados incompletos", 
+        description: "Preencha o nome e a categoria para gerar uma descrição." 
+      });
+      return;
+    }
+
+    setIsGeneratingAI(true);
+    try {
+      const result = await generateProductDescription({
+        productName: formData.name,
+        category: formData.category
+      });
+      setFormData(prev => ({ ...prev, description: result }));
+      toast({ title: "Descrição Gerada!", description: "A IA criou uma descrição luxuosa para seu produto." });
+    } catch (error: any) {
+      console.error("Erro AI:", error);
+      toast({ 
+        variant: "destructive", 
+        title: "Erro ao gerar descrição", 
+        description: "O serviço de IA está temporariamente indisponível. Tente novamente em instantes." 
+      });
+    } finally {
+      setIsGeneratingAI(false);
     }
   };
 
@@ -353,8 +385,29 @@ export default function AdminProducts() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="desc" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</Label>
-              <Textarea id="desc" rows={4} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl" />
+              <div className="flex justify-between items-center mb-1">
+                <Label htmlFor="desc" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</Label>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleGenerateAI}
+                  disabled={isGeneratingAI}
+                  className="h-7 text-[10px] font-bold text-primary hover:text-primary hover:bg-primary/5 rounded-full px-3 border border-primary/20"
+                >
+                  {isGeneratingAI ? (
+                    <>
+                      <Wand2 className="h-3 w-3 mr-1 animate-spin" /> Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3 w-3 mr-1" /> Gerar com IA
+                    </>
+                  )}
+                </Button>
+              </div>
+              <Textarea id="desc" rows={6} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl font-poppins text-sm leading-relaxed" />
+              <p className="text-[10px] text-muted-foreground italic px-1">Dica: Use a IA para criar textos que encantam e vendem.</p>
             </div>
 
             <div className="space-y-1.5">
