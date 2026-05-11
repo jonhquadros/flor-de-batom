@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -25,7 +24,8 @@ function inferirMaxItens(produto: Product): number {
   const nome = (produto.name || '').toLowerCase();
   
   // Regras de negócio solicitadas - Ordem de verificação é importante
-  if (nome.includes('mini buquê') || nome.includes('mini buque')) return 3; // Mini Buquê específico
+  // Ajuste para pegar MiniBuquê (sem espaço) ou Mini Buquê (com espaço)
+  if (nome.includes('mini') && (nome.includes('buquê') || nome.includes('buque'))) return 3; 
   if (nome.includes('buquê') || nome.includes('buque')) return 10; // Buquê padrão/grande
   if (nome.includes('copo')) return 5; // CopoMake
   if (nome.includes('sacola')) return 7;
