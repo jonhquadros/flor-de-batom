@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -10,6 +9,7 @@ import {
   Trash2, 
   ShoppingCart, 
   CheckCircle2, 
+  ShoppingCart as CartIcon, 
   User, 
   Phone, 
   CreditCard, 
@@ -187,7 +187,7 @@ export default function AdminSales() {
 
     try {
       await runTransaction(db, async (transaction) => {
-        // 1. TODAS AS LEITURAS (READS) PRIMEIRO - Regra do Firestore
+        // 1. TODAS AS LEITURAS (READS) PRIMEIRO
         const counterRef = doc(db, 'metadata', 'counters');
         const counterSnap = await transaction.get(counterRef);
 
@@ -201,7 +201,7 @@ export default function AdminSales() {
           productSnapshots.set(pid, productSnap.data() as Product);
         }
 
-        // 2. LÓGICA DE NEGÓCIO E CÁLCULOS (SEM ALTERAR O DB AQUI)
+        // 2. LÓGICA DE NEGÓCIO E CÁLCULOS
         let nextOrderNum = 1;
         if (counterSnap.exists()) {
           nextOrderNum = (counterSnap.data().orderCount || 0) + 1;
@@ -311,8 +311,9 @@ export default function AdminSales() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <ScrollArea className="w-full sm:w-auto whitespace-nowrap">
-            <div className="flex gap-1.5 pb-2">
+          {/* Categorias PDV com Rolagem Nativa */}
+          <div className="w-full sm:w-auto overflow-x-auto no-scrollbar">
+            <div className="flex gap-1.5 pb-2 min-w-max">
               <button 
                 className={`rounded-xl h-11 px-4 text-[10px] font-bold uppercase tracking-wider transition-all border ${selectedCategory === 'Todos' ? 'bg-primary text-white border-primary shadow-md' : 'bg-white text-muted-foreground border-muted-foreground/10 hover:border-primary/50'}`}
                 onClick={() => setSelectedCategory('Todos')}
@@ -329,7 +330,7 @@ export default function AdminSales() {
                 </button>
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </div>
 
         <ScrollArea className="flex-1 -mx-2 px-2">
@@ -392,8 +393,8 @@ export default function AdminSales() {
         <Card className="border-none shadow-xl flex flex-col rounded-[1.5rem] overflow-hidden flex-1">
           <CardHeader className="bg-primary text-white p-5 flex flex-row items-center justify-between">
             <CardTitle className="text-base font-bold flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" /> Carrinho
-            </CardTitle>
+              <CartIcon className="h-4 w-4" /> Carrinho
+            </CartTitle>
             <Badge variant="secondary" className="bg-white/20 text-white border-none text-[10px]">
               {cart.reduce((a, b) => a + b.quantity, 0)} itens
             </Badge>
@@ -404,7 +405,7 @@ export default function AdminSales() {
               <div className="p-4 space-y-3">
                 {cart.length === 0 ? (
                   <div className="h-40 flex flex-col items-center justify-center text-center opacity-30 gap-2">
-                    <ShoppingCart className="h-8 w-8" />
+                    <CartIcon className="h-8 w-8" />
                     <p className="text-[10px] font-bold uppercase tracking-widest">Vazio</p>
                   </div>
                 ) : (

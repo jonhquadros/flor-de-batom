@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -10,7 +9,6 @@ import { Product, INITIAL_CATEGORIES } from '@/lib/types';
 import { Embalagem, ItemPresente } from '@/types/presente';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Props {
   embalagem: Embalagem;
@@ -98,8 +96,9 @@ export function PassoProdutos({
           />
         </div>
 
-        <ScrollArea className="w-full whitespace-nowrap pb-2">
-          <div className="flex gap-2">
+        {/* Navegação de Categorias com Rolagem Nativa Otimizada para Touch */}
+        <div className="w-full overflow-x-auto no-scrollbar -mx-4 px-4">
+          <div className="flex gap-2 pb-2 min-w-max">
             <button 
               className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${catSelecionada === 'Todos' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-muted-foreground border-muted'}`}
               onClick={() => setCatSelecionada('Todos')}
@@ -116,7 +115,7 @@ export function PassoProdutos({
               </button>
             ))}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {isLoading ? (
