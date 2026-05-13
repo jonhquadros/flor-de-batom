@@ -1,14 +1,27 @@
+/**
+ * Flor de Batom - Service Worker Básico
+ * Permite a instalação do app e cache de recursos essenciais.
+ */
 
-// Service Worker básico para habilitar a instalação PWA
+const CACHE_NAME = 'flor-de-batom-v1';
+const ASSETS = [
+  '/',
+  '/manifest.json',
+  'https://i.ibb.co/6J4J1LMd/florlogo.jpg'
+];
+
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-  // Estratégia de rede primeiro para garantir dados atualizados
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
 });
