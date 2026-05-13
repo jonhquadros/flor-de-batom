@@ -95,7 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Faturamento', path: '/admin/billing', icon: BarChart3 },
     { name: 'Pedidos', path: '/admin/orders', icon: ShoppingBag },
     { name: 'Produtos', path: '/admin/products', icon: Package },
-    { name: 'Vendas', path: '/admin/sales', icon: PlusCircle },
+    { name: 'Vendas PDV', path: '/admin/sales', icon: PlusCircle },
   ];
 
   const handleLogout = () => {
