@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Product, CartItem, Order, Category, ProductVariation } from '@/lib/types';
+import { Product, CartItem, Order, Category } from '@/lib/types';
 import { 
   useFirestore, 
   useCollection, 
@@ -187,7 +187,6 @@ export default function AdminSales() {
 
     try {
       await runTransaction(db, async (transaction) => {
-        // 1. TODAS AS LEITURAS (READS) PRIMEIRO
         const counterRef = doc(db, 'metadata', 'counters');
         const counterSnap = await transaction.get(counterRef);
 
@@ -201,7 +200,6 @@ export default function AdminSales() {
           productSnapshots.set(pid, productSnap.data() as Product);
         }
 
-        // 2. LÓGICA DE NEGÓCIO E CÁLCULOS
         let nextOrderNum = 1;
         if (counterSnap.exists()) {
           nextOrderNum = (counterSnap.data().orderCount || 0) + 1;
@@ -229,12 +227,8 @@ export default function AdminSales() {
           }
         }
 
-        // 3. TODAS AS GRAVAÇÕES (WRITES) NO FINAL
-        
-        // Gravar Contador
         transaction.set(counterRef, { orderCount: nextOrderNum }, { merge: true });
 
-        // Gravar Produtos e Movimentações
         localUpdates.forEach((data, id) => {
           const productRef = doc(db, 'products', id);
           transaction.update(productRef, sanitizeData({ 
@@ -260,7 +254,6 @@ export default function AdminSales() {
           });
         });
 
-        // Gravar Pedido Principal
         const orderId = `ORD-${Date.now()}-${formattedOrderNumber}`;
         const orderData: Order = {
           id: orderId,
@@ -299,7 +292,6 @@ export default function AdminSales() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 font-poppins h-full lg:h-[calc(100vh-140px)]">
-      {/* Coluna Esquerda: Produtos */}
       <div className="flex-1 flex flex-col min-w-0 space-y-4">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -311,7 +303,6 @@ export default function AdminSales() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          {/* Categorias PDV com Rolagem Nativa */}
           <div className="w-full sm:w-auto overflow-x-auto no-scrollbar">
             <div className="flex gap-1.5 pb-2 min-w-max">
               <button 
@@ -388,13 +379,12 @@ export default function AdminSales() {
         </ScrollArea>
       </div>
 
-      {/* Coluna Direita: Carrinho */}
       <div className="w-full lg:w-[320px] shrink-0 h-full lg:h-auto flex flex-col">
         <Card className="border-none shadow-xl flex flex-col rounded-[1.5rem] overflow-hidden flex-1">
           <CardHeader className="bg-primary text-white p-5 flex flex-row items-center justify-between">
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <CartIcon className="h-4 w-4" /> Carrinho
-            </CartTitle>
+            </CardTitle>
             <Badge variant="secondary" className="bg-white/20 text-white border-none text-[10px]">
               {cart.reduce((a, b) => a + b.quantity, 0)} itens
             </Badge>
