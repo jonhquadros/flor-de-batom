@@ -104,19 +104,24 @@ export default function AdminOrders() {
     setSelectedOrder({ ...selectedOrder, items: updatedItems, total: newTotal });
   };
 
-  const handleAddNewProduct = (p: Product) => {
+  const handleAddNewProduct = (p: Product, variationName?: string) => {
     if (!selectedOrder) return;
     
-    const existingItem = selectedOrder.items.find(i => i.id === p.id);
+    const color = variationName || (p.variations && p.variations.length > 0 ? p.variations[0].name : '');
+    const variation = p.variations?.find(v => v.name === color);
+    const imageUrl = variation?.imageUrl || p.imageUrl;
+
+    const existingItem = selectedOrder.items.find(i => i.id === p.id && i.selectedColor === color);
     let updatedItems = [...selectedOrder.items];
 
-    if (existingItem && (!p.variations || p.variations.length === 0)) {
-      updatedItems = updatedItems.map(i => i.id === p.id ? { ...i, quantity: i.quantity + 1 } : i);
+    if (existingItem) {
+      updatedItems = updatedItems.map(i => (i.id === p.id && i.selectedColor === color) ? { ...i, quantity: i.quantity + 1 } : i);
     } else {
       updatedItems.push({
         ...p,
+        imageUrl,
         quantity: 1,
-        selectedColor: p.variations?.[0]?.name || ''
+        selectedColor: color
       } as any);
     }
 
@@ -361,19 +366,42 @@ export default function AdminOrders() {
                       <Input placeholder="Buscar por nome do produto..." className="pl-9 h-11 rounded-xl border-none bg-white shadow-sm text-xs" value={productSearch} onChange={e => setProductSearch(e.target.value)} />
                     </div>
                     <div className="space-y-2">
-                      {availableProductsToAdd.map(p => (
-                        <div key={p.id} className="flex items-center justify-between p-2.5 bg-white rounded-xl shadow-sm border border-primary/5 group">
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden relative shrink-0">
-                              <Image src={p.imageUrl} alt="" fill className="object-cover" />
+                      {availableProductsToAdd.map(p => {
+                        const hasVars = p.variations && p.variations.length > 0;
+                        return (
+                          <div key={p.id} className="flex flex-col p-3 bg-white rounded-xl shadow-sm border border-primary/5 gap-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden relative shrink-0">
+                                  <Image src={p.imageUrl} alt="" fill className="object-cover" />
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-[10px] font-bold text-primary uppercase truncate max-w-[120px] md:max-w-[200px] block">{p.name}</span>
+                                  <span className="text-[8px] text-muted-foreground uppercase">{p.category}</span>
+                                </div>
+                              </div>
+                              {!hasVars && (
+                                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-primary hover:text-white" onClick={() => handleAddNewProduct(p)}>
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
-                            <span className="text-[10px] font-bold text-primary uppercase truncate max-w-[120px] md:max-w-[200px]">{p.name}</span>
+                            {hasVars && (
+                              <div className="flex flex-wrap gap-1.5 pt-1 border-t border-dashed">
+                                {p.variations!.map(v => (
+                                  <button
+                                    key={v.name}
+                                    onClick={() => handleAddNewProduct(p, v.name)}
+                                    className="px-3 py-1.5 rounded-lg bg-primary/5 text-[8px] font-black uppercase text-primary border border-primary/10 hover:bg-primary hover:text-white transition-all"
+                                  >
+                                    + {v.name}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-primary hover:text-white" onClick={() => handleAddNewProduct(p)}>
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                        );
+                      })}
                       {productSearch && availableProductsToAdd.length === 0 && <p className="text-center text-[9px] text-muted-foreground uppercase py-4 font-bold">Nenhum produto encontrado</p>}
                     </div>
                   </div>
