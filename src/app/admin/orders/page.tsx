@@ -306,9 +306,24 @@ export default function AdminOrders() {
                         {['Pendente', 'Pago', 'Enviado', 'Entregue', 'Cancelado'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    <Badge variant="outline" className="w-full justify-center h-11 rounded-xl border-dashed border-primary/20 bg-primary/5 text-primary font-black uppercase text-[9px] tracking-widest">
-                      {selectedOrder.paymentMethod}
-                    </Badge>
+                    
+                    {selectedOrder.status === 'Pendente' ? (
+                      <Select value={selectedOrder.paymentMethod} onValueChange={(v: any) => handleUpdateCustomerInfo('paymentMethod', v)}>
+                        <SelectTrigger className="h-11 rounded-xl bg-white border-none shadow-sm font-bold text-[10px] uppercase tracking-wider">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="Pix">Pix</SelectItem>
+                          <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                          <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
+                          <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge variant="outline" className="w-full justify-center h-11 rounded-xl border-dashed border-primary/20 bg-primary/5 text-primary font-black uppercase text-[9px] tracking-widest">
+                        {selectedOrder.paymentMethod}
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
