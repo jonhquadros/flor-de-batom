@@ -145,7 +145,6 @@ export default function AdminOrders() {
     
     if (db && order) {
       updateOrderStatus(db, order, status);
-      // Aqui você poderia chamar a função de notificação do WhatsApp se desejado
     }
     
     setIsStatusConfirmOpen(false);
@@ -165,19 +164,19 @@ export default function AdminOrders() {
 
   const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
-      case 'Pendente': return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 text-[10px] py-0"><Clock className="h-3 w-3 mr-1" /> {status}</Badge>;
-      case 'Pago': return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 text-[10px] py-0"><Package className="h-3 w-3 mr-1" /> {status}</Badge>;
-      case 'Enviado': return <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 text-[10px] py-0"><Truck className="h-3 w-3 mr-1" /> {status}</Badge>;
-      case 'Entregue': return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 text-[10px] py-0"><CheckCircle2 className="h-3 w-3 mr-1" /> {status}</Badge>;
-      case 'Cancelado': return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-[10px] py-0"><XCircle className="h-3 w-3 mr-1" /> {status}</Badge>;
-      default: return <Badge>{status}</Badge>;
+      case 'Pendente': return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 text-[9px] py-0"><Clock className="h-3 w-3 mr-1" /> {status}</Badge>;
+      case 'Pago': return <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 text-[9px] py-0"><Package className="h-3 w-3 mr-1" /> {status}</Badge>;
+      case 'Enviado': return <Badge variant="outline" className="bg-purple-50 text-purple-600 border-purple-200 text-[9px] py-0"><Truck className="h-3 w-3 mr-1" /> {status}</Badge>;
+      case 'Entregue': return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 text-[9px] py-0"><CheckCircle2 className="h-3 w-3 mr-1" /> {status}</Badge>;
+      case 'Cancelado': return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-[9px] py-0"><XCircle className="h-3 w-3 mr-1" /> {status}</Badge>;
+      default: return <Badge className="text-[9px]">{status}</Badge>;
     }
   };
 
   if (isOrdersLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Sincronizando pedidos...</div>;
 
   return (
-    <div className="space-y-6 font-poppins">
+    <div className="space-y-6 font-poppins pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Pedidos</h1>
@@ -192,9 +191,11 @@ export default function AdminOrders() {
         </div>
         <div className="w-full md:w-48">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-12 text-sm rounded-xl border-none bg-white shadow-sm"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="h-12 text-sm rounded-xl border-none bg-white shadow-sm">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="Todos">Todos</SelectItem>
+              <SelectItem value="Todos">Todos Status</SelectItem>
               {['Pendente', 'Pago', 'Enviado', 'Entregue', 'Cancelado'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -204,18 +205,36 @@ export default function AdminOrders() {
       <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader><TableRow className="bg-muted/30"><TableHead>Número</TableHead><TableHead>Cliente</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow className="bg-muted/30">
+                <TableHead className="text-[10px] uppercase font-bold px-4">Pedido</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold px-2">Cliente</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold px-2">Total</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold px-2">Status</TableHead>
+                <TableHead className="text-right px-4"></TableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {filteredOrders.length === 0 ? (
                 <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic">Nenhum pedido encontrado.</TableCell></TableRow>
               ) : (
                 filteredOrders.map(order => (
-                  <TableRow key={order.id} className="hover:bg-muted/10 h-20">
-                    <TableCell className="font-bold text-xs text-primary">#{order.orderNumber || order.id.substr(0,6)}</TableCell>
-                    <TableCell><span className="font-bold text-xs truncate max-w-[120px] inline-block">{order.customerName}</span></TableCell>
-                    <TableCell className="font-bold text-primary text-xs">R$ {(order.total || 0).toFixed(2)}</TableCell>
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
-                    <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => openDetails(order)}><Eye className="h-5 w-5 text-primary" /></Button></TableCell>
+                  <TableRow key={order.id} className="hover:bg-muted/10 h-16 md:h-20">
+                    <TableCell className="font-bold text-[10px] md:text-xs text-primary px-4">
+                      #{order.orderNumber || order.id.substr(0,6)}
+                    </TableCell>
+                    <TableCell className="px-2">
+                      <span className="font-bold text-[10px] md:text-xs truncate max-w-[80px] md:max-w-[150px] inline-block">{order.customerName}</span>
+                    </TableCell>
+                    <TableCell className="font-bold text-primary text-[10px] md:text-xs px-2">
+                      R${(order.total || 0).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="px-2">{getStatusBadge(order.status)}</TableCell>
+                    <TableCell className="text-right px-4">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => openDetails(order)}>
+                        <Eye className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -225,142 +244,187 @@ export default function AdminOrders() {
       </div>
 
       <AlertDialog open={isStatusConfirmOpen} onOpenChange={setIsStatusConfirmOpen}>
-        <AlertDialogContent className="rounded-[2rem]">
-          <AlertDialogHeader><AlertDialogTitle>Alterar Status?</AlertDialogTitle></AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsStatusConfirmOpen(false)}>Cancelar</AlertDialogCancel>
-            <Button variant="outline" onClick={() => handleStatusChangeExecution(false)}>Alterar Apenas</Button>
-            <AlertDialogAction onClick={() => handleStatusChangeExecution(true)}>Alterar e Notificar</AlertDialogAction>
+        <AlertDialogContent className="rounded-[2rem] w-[90%] max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg">Deseja alterar o status?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row">
+            <AlertDialogCancel className="rounded-xl h-11" onClick={() => setIsStatusConfirmOpen(false)}>Voltar</AlertDialogCancel>
+            <div className="flex gap-2 flex-1">
+              <Button variant="outline" className="flex-1 rounded-xl h-11 text-[10px] font-bold" onClick={() => handleStatusChangeExecution(false)}>Apenas Alterar</Button>
+              <AlertDialogAction className="flex-1 rounded-xl h-11 text-[10px] font-bold" onClick={() => handleStatusChangeExecution(true)}>Alterar e Notificar</AlertDialogAction>
+            </div>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto font-poppins rounded-[2rem]">
-          <DialogHeader><DialogTitle className="text-2xl font-bold text-primary">Detalhes do Pedido</DialogTitle></DialogHeader>
+        <DialogContent className="w-[95%] max-w-2xl max-h-[95vh] overflow-y-auto font-poppins rounded-[1.5rem] md:rounded-[2.5rem] p-0 border-none shadow-2xl">
+          <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b flex items-center justify-between">
+            <DialogHeader className="p-0 text-left">
+              <DialogTitle className="text-xl md:text-2xl font-bold text-primary">Pedido #{selectedOrder?.orderNumber || selectedOrder?.id.substr(0,6)}</DialogTitle>
+            </DialogHeader>
+          </div>
+          
           {selectedOrder && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted/20 p-6 rounded-2xl">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-primary font-bold uppercase text-[10px] tracking-widest"><User className="h-3 w-3" /> Dados do Cliente</div>
+            <div className="p-4 md:p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 bg-muted/20 p-4 md:p-6 rounded-2xl md:rounded-[2rem]">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-widest opacity-60">
+                    <User className="h-3 w-3" /> Cliente
+                  </div>
                   {selectedOrder.status === 'Pendente' ? (
-                    <>
+                    <div className="space-y-3">
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase opacity-60">Nome Completo</Label>
-                        <Input className="h-9 rounded-lg bg-white" value={selectedOrder.customerName} onChange={e => handleUpdateCustomerInfo('customerName', e.target.value)} />
+                        <Label className="text-[9px] uppercase font-bold ml-1 opacity-50">Nome</Label>
+                        <Input className="h-10 rounded-xl bg-white border-none shadow-sm text-sm" value={selectedOrder.customerName} onChange={e => handleUpdateCustomerInfo('customerName', e.target.value)} />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[9px] uppercase opacity-60">WhatsApp</Label>
-                        <Input className="h-9 rounded-lg bg-white" value={selectedOrder.customerPhone} onChange={e => handleUpdateCustomerInfo('customerPhone', e.target.value)} />
+                        <Label className="text-[9px] uppercase font-bold ml-1 opacity-50">WhatsApp</Label>
+                        <Input className="h-10 rounded-xl bg-white border-none shadow-sm text-sm" value={selectedOrder.customerPhone} onChange={e => handleUpdateCustomerInfo('customerPhone', e.target.value)} />
                       </div>
-                    </>
+                    </div>
                   ) : (
-                    <>
-                      <p className="font-bold text-sm">{selectedOrder.customerName}</p>
-                      <p className="text-muted-foreground text-xs">{selectedOrder.customerPhone}</p>
-                    </>
+                    <div className="bg-white p-3 rounded-xl shadow-sm border border-primary/5">
+                      <p className="font-bold text-sm text-primary">{selectedOrder.customerName}</p>
+                      <p className="text-muted-foreground text-xs mt-1">{selectedOrder.customerPhone}</p>
+                    </div>
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-primary font-bold uppercase text-[10px] tracking-widest"><Clock className="h-3 w-3" /> Status e Pagamento</div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-widest opacity-60">
+                    <Clock className="h-3 w-3" /> Status & Pagamento
+                  </div>
                   <div className="space-y-3">
                     <Select value={selectedOrder.status} onValueChange={(v: OrderStatus) => initiateStatusChange(selectedOrder.id, v)}>
-                      <SelectTrigger className="h-10 rounded-xl bg-white"><SelectValue /></SelectTrigger>
-                      <SelectContent>{['Pendente', 'Pago', 'Enviado', 'Entregue', 'Cancelado'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                      <SelectTrigger className="h-11 rounded-xl bg-white border-none shadow-sm font-bold text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {['Pendente', 'Pago', 'Enviado', 'Entregue', 'Cancelado'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
                     </Select>
-                    <Badge variant="outline" className="w-full justify-center h-10 rounded-xl border-dashed border-primary/30 text-primary font-bold uppercase text-[9px]">{selectedOrder.paymentMethod}</Badge>
+                    <Badge variant="outline" className="w-full justify-center h-11 rounded-xl border-dashed border-primary/20 bg-primary/5 text-primary font-black uppercase text-[9px] tracking-widest">
+                      {selectedOrder.paymentMethod}
+                    </Badge>
                   </div>
                 </div>
 
-                <div className="sm:col-span-2 space-y-3">
-                  <div className="flex items-center gap-2 text-primary font-bold uppercase text-[10px] tracking-widest"><MapPin className="h-3 w-3" /> Endereço de Entrega</div>
+                <div className="md:col-span-2 space-y-4">
+                  <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-widest opacity-60">
+                    <MapPin className="h-3 w-3" /> Endereço
+                  </div>
                   {selectedOrder.status === 'Pendente' ? (
                     <Textarea 
-                      className="min-h-[80px] rounded-xl bg-white border-none resize-none text-xs" 
+                      className="min-h-[100px] rounded-2xl bg-white border-none shadow-sm resize-none text-sm p-4" 
                       value={selectedOrder.customerAddress} 
                       onChange={e => handleUpdateCustomerInfo('customerAddress', e.target.value)}
+                      placeholder="Preencha o endereço completo..."
                     />
                   ) : (
-                    <p className="bg-white p-4 rounded-xl border border-muted-foreground/10 text-xs leading-relaxed">{selectedOrder.customerAddress || 'Endereço não informado'}</p>
+                    <p className="bg-white p-4 rounded-2xl border border-primary/5 text-sm leading-relaxed text-muted-foreground">{selectedOrder.customerAddress || 'Endereço não informado'}</p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Label className="text-[11px] font-bold uppercase text-primary tracking-widest">Produtos no Pedido</Label>
+                <div className="flex justify-between items-center px-1">
+                  <Label className="text-[10px] font-black uppercase text-primary/60 tracking-[0.2em]">Itens no Pedido</Label>
                   {selectedOrder.status === 'Pendente' && (
-                    <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase text-primary h-8" onClick={() => setIsAddingProduct(!isAddingProduct)}>
-                      {isAddingProduct ? '- Fechar Busca' : '+ Adicionar Produto'}
+                    <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase text-primary h-8 hover:bg-primary/5 rounded-full px-4" onClick={() => setIsAddingProduct(!isAddingProduct)}>
+                      {isAddingProduct ? '- Fechar' : '+ Adicionar'}
                     </Button>
                   )}
                 </div>
 
                 {isAddingProduct && (
-                  <div className="space-y-3 p-4 bg-primary/5 rounded-2xl animate-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-3 p-4 bg-primary/5 rounded-[1.5rem] animate-in slide-in-from-top-2 duration-300 border border-primary/10">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/40" />
-                      <Input placeholder="Buscar por nome do produto..." className="pl-9 h-10 rounded-xl border-none bg-white shadow-sm text-xs" value={productSearch} onChange={e => setProductSearch(e.target.value)} />
+                      <Input placeholder="Buscar por nome do produto..." className="pl-9 h-11 rounded-xl border-none bg-white shadow-sm text-xs" value={productSearch} onChange={e => setProductSearch(e.target.value)} />
                     </div>
                     <div className="space-y-2">
                       {availableProductsToAdd.map(p => (
-                        <div key={p.id} className="flex items-center justify-between p-2 bg-white rounded-xl shadow-sm border border-primary/5 group">
+                        <div key={p.id} className="flex items-center justify-between p-2.5 bg-white rounded-xl shadow-sm border border-primary/5 group">
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-muted overflow-hidden"><img src={p.imageUrl} alt="" className="object-cover h-full w-full" /></div>
-                            <span className="text-[10px] font-bold text-primary uppercase truncate max-w-[150px]">{p.name}</span>
+                            <div className="h-10 w-10 rounded-lg bg-muted overflow-hidden relative shrink-0">
+                              <Image src={p.imageUrl} alt="" fill className="object-cover" />
+                            </div>
+                            <span className="text-[10px] font-bold text-primary uppercase truncate max-w-[120px] md:max-w-[200px]">{p.name}</span>
                           </div>
-                          <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg hover:bg-primary hover:text-white" onClick={() => handleAddNewProduct(p)}><Plus className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-primary hover:text-white" onClick={() => handleAddNewProduct(p)}>
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
                       ))}
-                      {productSearch && availableProductsToAdd.length === 0 && <p className="text-center text-[9px] text-muted-foreground uppercase py-2">Nenhum produto encontrado</p>}
+                      {productSearch && availableProductsToAdd.length === 0 && <p className="text-center text-[9px] text-muted-foreground uppercase py-4 font-bold">Nenhum produto encontrado</p>}
                     </div>
                   </div>
                 )}
 
-                <div className="border rounded-2xl divide-y bg-white overflow-hidden shadow-sm">
+                <div className="border rounded-[1.5rem] md:rounded-[2rem] divide-y bg-white overflow-hidden shadow-sm">
                   {selectedOrder.items?.map((item, idx) => (
-                    <div key={(item.id || idx) + (item.selectedColor || '')} className="p-4 flex items-center justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-bold truncate text-primary uppercase">{item.name}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          {item.selectedColor && <span className="text-[9px] font-black text-primary/40 uppercase">Cor: {item.selectedColor}</span>}
-                          <span className="text-[9px] text-muted-foreground">R$ {(item.price || 0).toFixed(2)} cada</span>
+                    <div key={(item.id || idx) + (item.selectedColor || '')} className="p-4 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="h-10 w-10 rounded-xl bg-muted overflow-hidden relative shrink-0 border border-primary/5">
+                          <Image src={item.imageUrl} alt="" fill className="object-cover" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] md:text-xs font-bold truncate text-primary uppercase leading-tight">{item.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {item.selectedColor && <Badge variant="outline" className="h-4 text-[8px] px-1.5 border-primary/20 text-primary/60 font-black uppercase">{item.selectedColor}</Badge>}
+                            <span className="text-[9px] text-muted-foreground font-bold">R${(item.price || 0).toFixed(2)}</span>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         {selectedOrder.status === 'Pendente' ? (
-                          <div className="flex items-center gap-2 bg-muted/20 p-1 rounded-xl border border-muted-foreground/10">
-                            <button onClick={() => handleUpdateItemQuantity(item.id, -1, item.selectedColor)} className="h-6 w-6 flex items-center justify-center text-primary hover:bg-white rounded-lg"><Minus className="h-3 w-3" /></button>
-                            <span className="text-xs font-bold min-w-[20px] text-center">{item.quantity}</span>
-                            <button onClick={() => handleUpdateItemQuantity(item.id, 1, item.selectedColor)} className="h-6 w-6 flex items-center justify-center text-primary hover:bg-white rounded-lg"><Plus className="h-3 w-3" /></button>
+                          <div className="flex items-center gap-1.5 bg-muted/40 p-1 rounded-xl">
+                            <button onClick={() => handleUpdateItemQuantity(item.id, -1, item.selectedColor)} className="h-7 w-7 flex items-center justify-center text-primary hover:bg-white rounded-lg transition-colors"><Minus className="h-3 w-3" /></button>
+                            <span className="text-xs font-black min-w-[20px] text-center text-primary">{item.quantity}</span>
+                            <button onClick={() => handleUpdateItemQuantity(item.id, 1, item.selectedColor)} className="h-7 w-7 flex items-center justify-center text-primary hover:bg-white rounded-lg transition-colors"><Plus className="h-3 w-3" /></button>
                           </div>
                         ) : (
-                          <span className="text-xs font-bold text-primary bg-primary/5 px-3 py-1 rounded-lg">{item.quantity}x</span>
+                          <span className="text-xs font-black text-primary bg-primary/5 px-4 py-1.5 rounded-xl">{item.quantity}x</span>
                         )}
                         
                         {selectedOrder.status === 'Pendente' && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-red-50 rounded-full" onClick={() => handleRemoveItem(item.id, item.selectedColor)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-red-50 rounded-lg" onClick={() => handleRemoveItem(item.id, item.selectedColor)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
                     </div>
                   ))}
-                  {selectedOrder.items?.length === 0 && <div className="p-10 text-center text-muted-foreground text-xs italic">Nenhum item no pedido</div>}
+                  {selectedOrder.items?.length === 0 && <div className="p-12 text-center text-muted-foreground text-xs italic">Nenhum item no pedido</div>}
                 </div>
               </div>
 
-              <div className="flex justify-between items-center bg-primary p-6 rounded-[1.5rem] text-white shadow-xl shadow-primary/20">
-                <span className="font-black uppercase text-[10px] tracking-[0.2em] opacity-80">Total Atualizado</span>
-                <span className="text-3xl font-bold">R$ {(selectedOrder.total || 0).toFixed(2)}</span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                <Button variant="outline" className="h-14 font-bold rounded-2xl border-2 hover:bg-muted/10" onClick={resendToWhatsApp}><MessageCircle className="h-5 w-5 mr-2" /> Reenviar no WhatsApp</Button>
-                {selectedOrder.status === 'Pendente' && (
-                  <Button className="h-14 font-bold rounded-2xl shadow-lg shadow-primary/10" onClick={saveOrderChanges}><Save className="h-5 w-5 mr-2" /> Salvar Alterações</Button>
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-primary p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] text-white shadow-2xl shadow-primary/30">
+                <div className="text-center md:text-left">
+                  <span className="font-black uppercase text-[10px] tracking-[0.3em] opacity-60">Total do Pedido</span>
+                  <p className="text-3xl md:text-5xl font-bold mt-1">R$ {(selectedOrder.total || 0).toFixed(2)}</p>
+                </div>
+                {selectedOrder.status === 'Pendente' ? (
+                  <Button className="w-full md:w-auto h-14 md:h-16 px-10 rounded-2xl md:rounded-[1.5rem] bg-white text-primary hover:bg-white/90 text-sm font-black uppercase tracking-widest shadow-xl" onClick={saveOrderChanges}>
+                    <Save className="h-5 w-5 mr-2" /> Salvar Tudo
+                  </Button>
+                ) : (
+                  <Button className="w-full md:w-auto h-14 md:h-16 px-10 rounded-2xl md:rounded-[1.5rem] bg-green-500 hover:bg-green-600 text-white text-sm font-black uppercase tracking-widest" onClick={resendToWhatsApp}>
+                    <MessageCircle className="h-5 w-5 mr-2" /> Notificar WhatsApp
+                  </Button>
                 )}
               </div>
+
+              {selectedOrder.status === 'Pendente' && (
+                <div className="pt-2">
+                  <Button variant="outline" className="w-full h-14 rounded-2xl border-2 border-primary/10 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-primary/5" onClick={resendToWhatsApp}>
+                    <MessageCircle className="h-5 w-5 mr-2" /> Compartilhar no WhatsApp
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
