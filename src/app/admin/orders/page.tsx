@@ -2,6 +2,7 @@
 "use client"
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { Search, CheckCircle2, Package, Truck, Clock, Eye, MessageCircle, Save, Trash2, Plus, Minus, XCircle, ChevronLeft, User, Phone, MapPin } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
