@@ -37,12 +37,23 @@ export default function AdminProducts() {
   const { data: productsData, isLoading: productsLoading } = useCollection<Product>(productsQuery);
   const { data: categoriesData } = useCollection<Category>(categoriesQuery);
 
+  // Processamento seguro de produtos
   const products = React.useMemo(() => {
     const raw = productsData || [];
     return [...raw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   }, [productsData]);
 
-  const categories = categoriesData || [];
+  // Desduplicação de categorias para evitar erro de chaves duplicadas no Select
+  const categories = React.useMemo(() => {
+    if (!categoriesData) return [];
+    const unique = new Map<string, Category>();
+    categoriesData.forEach(c => {
+      if (c.name && !unique.has(c.name)) {
+        unique.set(c.name, c);
+      }
+    });
+    return Array.from(unique.values()).sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+  }, [categoriesData]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);

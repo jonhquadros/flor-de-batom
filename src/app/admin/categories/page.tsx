@@ -26,9 +26,16 @@ export default function AdminCategories() {
 
   const { data: categoriesData, isLoading } = useCollection<Category>(categoriesQuery);
   
+  // Desduplicação de categorias para garantir estabilidade do React
   const categories = React.useMemo(() => {
     if (!categoriesData) return [];
-    return [...categoriesData].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+    const seen = new Set();
+    const filtered = categoriesData.filter(c => {
+      if (seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+    return [...filtered].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   }, [categoriesData]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -158,7 +165,7 @@ export default function AdminCategories() {
                 required 
                 className="h-12 rounded-xl"
               />
-              <p className="text-[10px] text-muted-foreground italic">Números menores aparecem primeiro no catálogo.</p>
+              <p className="text-[10px] text-muted-foreground italic">Numbers menores aparecem primeiro no catálogo.</p>
             </div>
             <DialogFooter className="gap-2 sm:gap-0 pt-2">
               <Button type="button" variant="ghost" className="rounded-xl h-11" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
