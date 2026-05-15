@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useMemo } from 'react';
@@ -268,7 +267,7 @@ export default function AdminOrders() {
         <DialogContent className="w-[95%] max-w-2xl max-h-[95vh] overflow-y-auto font-poppins rounded-[1.5rem] md:rounded-[2.5rem] p-0 border-none shadow-2xl">
           <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b flex items-center justify-between">
             <DialogHeader className="p-0 text-left">
-              <DialogTitle className="text-xl md:text-2xl font-bold text-primary">Pedido #{selectedOrder?.orderNumber || selectedOrder?.id.substr(0,6)}</DialogTitle>
+              <DialogTitle className="text-xl md:text-2xl font-semibold font-poppins text-primary">Pedido #{selectedOrder?.orderNumber || selectedOrder?.id.substr(0,6)}</DialogTitle>
             </DialogHeader>
           </div>
           
