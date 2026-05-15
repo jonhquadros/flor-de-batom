@@ -213,6 +213,7 @@ export default function AdminOrders() {
             <TableHeader>
               <TableRow className="bg-muted/30">
                 <TableHead className="text-[10px] uppercase font-bold px-4">Pedido</TableHead>
+                <TableHead className="text-[10px] uppercase font-bold px-2">Data</TableHead>
                 <TableHead className="text-[10px] uppercase font-bold px-2">Cliente</TableHead>
                 <TableHead className="text-[10px] uppercase font-bold px-2">Total</TableHead>
                 <TableHead className="text-[10px] uppercase font-bold px-2">Status</TableHead>
@@ -221,12 +222,17 @@ export default function AdminOrders() {
             </TableHeader>
             <TableBody>
               {filteredOrders.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic">Nenhum pedido encontrado.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground italic">Nenhum pedido encontrado.</TableCell></TableRow>
               ) : (
                 filteredOrders.map(order => (
                   <TableRow key={order.id} className="hover:bg-muted/10 h-16 md:h-20">
                     <TableCell className="font-bold text-[10px] md:text-xs text-primary px-4">
                       #{order.orderNumber || order.id.substr(0,6)}
+                    </TableCell>
+                    <TableCell className="px-2">
+                      <span className="text-[10px] md:text-xs text-muted-foreground whitespace-nowrap">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '-'}
+                      </span>
                     </TableCell>
                     <TableCell className="px-2">
                       <span className="font-bold text-[10px] md:text-xs truncate max-w-[80px] md:max-w-[150px] inline-block">{order.customerName}</span>
