@@ -18,7 +18,8 @@ import {
   Boxes,
   BarChart3,
   PlusCircle,
-  ShieldCheck
+  ShieldCheck,
+  Images
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -103,6 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Categorias', path: '/admin/categories', icon: Tags },
+    { name: 'Biblioteca de Fotos', path: '/admin/photos', icon: Images },
     { name: 'Estoque', path: '/admin/inventory', icon: Boxes },
     { name: 'Faturamento', path: '/admin/billing', icon: BarChart3 },
     { name: 'Pedidos', path: '/admin/orders', icon: ShoppingBag },

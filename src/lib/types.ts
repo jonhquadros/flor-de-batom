@@ -25,6 +25,8 @@ export interface Product {
   variations?: ProductVariation[];
   isActive?: boolean;
   order?: number;
+  createdAt?: string;
+  updatedAt?: any;
 }
 
 export interface CartItem extends Product {
@@ -57,11 +59,22 @@ export interface StockMovement {
   productId: string;
   productName: string;
   variationName?: string;
-  quantity: number; // Positive for additions, negative for reductions
+  quantity: number; 
   type: StockMovementType;
   reason?: string;
   createdAt: string;
   adminId?: string;
+}
+
+export interface Media {
+  id: string;
+  name: string;
+  url: string;
+  path: string;
+  size: number;
+  type: string;
+  productId?: string | null;
+  createdAt: string;
 }
 
 export const INITIAL_CATEGORIES: string[] = [

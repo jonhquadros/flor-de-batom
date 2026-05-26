@@ -14,10 +14,10 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
     firebaseApp: any;
     auth: any;
     firestore: any;
+    storage: any;
   } | null>(null);
 
   useEffect(() => {
-    // Inicializa apenas no cliente para evitar erros de hidratação no build estático
     setServices(initializeFirebase());
   }, []);
 
@@ -30,6 +30,7 @@ export function FirebaseClientProvider({ children }: FirebaseClientProviderProps
       firebaseApp={services.firebaseApp}
       auth={services.auth}
       firestore={services.firestore}
+      storage={services.storage}
     >
       {children}
     </FirebaseProvider>

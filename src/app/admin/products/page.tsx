@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Plus, Edit, Trash2, Search, Palette, X, ArrowUpDown, Sparkles, Wand2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Palette, X, ArrowUpDown, Sparkles, Wand2, Library } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,6 +18,7 @@ import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebas
 import { collection, doc } from 'firebase/firestore';
 import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { generateProductDescription } from '@/ai/flows/generate-product-description';
+import { MediaModal } from '@/components/media/MediaModal';
 
 export default function AdminProducts() {
   const db = useFirestore();
@@ -43,7 +44,7 @@ export default function AdminProducts() {
     return [...raw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   }, [productsData]);
 
-  // Desduplicação de categorias para evitar erro de chaves duplicadas no Select
+  // Desduplicação de categorias
   const categories = React.useMemo(() => {
     if (!categoriesData) return [];
     const unique = new Map<string, Category>();
@@ -82,7 +83,7 @@ export default function AdminProducts() {
       price: 0, 
       cost: 0,
       category: categories.length > 0 ? categories[0].name : '', 
-      imageUrl: `https://picsum.photos/seed/${Math.random()}/400/400`, 
+      imageUrl: '', 
       isFeatured: false, 
       stock: 0,
       isActive: true,
@@ -126,11 +127,10 @@ export default function AdminProducts() {
       setFormData(prev => ({ ...prev, description: result }));
       toast({ title: "Descrição Gerada!", description: "A IA criou uma descrição luxuosa para seu produto." });
     } catch (error: any) {
-      console.error("Erro AI:", error);
       toast({ 
         variant: "destructive", 
         title: "Erro ao gerar descrição", 
-        description: "O serviço de IA está temporariamente indisponível. Tente novamente em instantes." 
+        description: "O serviço de IA está temporariamente indisponível." 
       });
     } finally {
       setIsGeneratingAI(false);
@@ -250,7 +250,7 @@ export default function AdminProducts() {
                     </TableCell>
                     <TableCell>
                       <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-muted">
-                        <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                        <Image src={product.imageUrl || "https://placehold.co/100x100?text=S/Foto"} alt={product.name} fill className="object-cover" />
                       </div>
                     </TableCell>
                     <TableCell>
@@ -321,39 +321,22 @@ export default function AdminProducts() {
                   value={formData.cost} 
                   onChange={(e) => setFormData(p => ({...p, cost: parseFloat(e.target.value)}))} 
                   className="h-11 rounded-xl"
-                  placeholder="Ex: 15.00"
-                />
-                <p className="text-[10px] text-muted-foreground italic">Apenas para relatórios internos.</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="order" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Ordem de Exibição</Label>
-                <Input 
-                  id="order" 
-                  type="number" 
-                  value={formData.order} 
-                  onChange={(e) => setFormData(p => ({...p, order: parseInt(e.target.value) || 0}))} 
-                  required 
-                  className="h-11 rounded-xl"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="stock" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Estoque Total</Label>
-                <Input 
-                  id="stock" 
-                  type="number" 
-                  value={formData.stock} 
-                  readOnly={formData.variations && formData.variations.length > 0}
-                  onChange={(e) => setFormData(p => ({...p, stock: parseInt(e.target.value)}))} 
-                  required 
-                  className="h-11 rounded-xl bg-muted/20"
-                />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center mb-1">
+                <Label htmlFor="img" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL Imagem Principal</Label>
+                <MediaModal onSelect={(url) => setFormData(p => ({...p, imageUrl: url}))} />
               </div>
+              <Input id="img" value={formData.imageUrl || ''} onChange={(e) => setFormData(p => ({...p, imageUrl: e.target.value}))} required className="h-11 rounded-xl" placeholder="Link da imagem ou selecione da biblioteca..." />
             </div>
 
             <div className="space-y-3 p-4 bg-muted/10 rounded-xl">
               <div className="flex justify-between items-center">
                 <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <Palette className="h-4 w-4" /> Variações e Imagens de Cores
+                  <Palette className="h-4 w-4" /> Variações e Cores
                 </Label>
                 <Button type="button" variant="outline" size="sm" onClick={addVariation} className="h-8 text-[10px] font-bold rounded-lg border-primary/20 text-primary">
                   <Plus className="h-3 w-3 mr-1" /> Adicionar Cor
@@ -363,33 +346,21 @@ export default function AdminProducts() {
               {formData.variations?.map((v, i) => (
                 <div key={i} className="flex flex-col gap-2 p-3 bg-white rounded-xl shadow-sm border animate-in fade-in slide-in-from-top-1">
                   <div className="flex items-center gap-3">
-                    <Input 
-                      placeholder="Nome da Cor" 
-                      value={v.name} 
-                      onChange={(e) => updateVariation(i, 'name', e.target.value)}
-                      className="flex-1 h-10 rounded-xl"
-                    />
-                    <Input 
-                      type="number" 
-                      placeholder="Qtd" 
-                      value={v.stock} 
-                      onChange={(e) => updateVariation(i, 'stock', parseInt(e.target.value) || 0)}
-                      className="w-20 h-10 text-center rounded-xl"
-                    />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeVariation(i)} className="text-destructive h-10 w-10">
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <Input placeholder="Cor" value={v.name} onChange={(e) => updateVariation(i, 'name', e.target.value)} className="flex-1 h-10 rounded-xl" />
+                    <Input type="number" placeholder="Qtd" value={v.stock} onChange={(e) => updateVariation(i, 'stock', parseInt(e.target.value) || 0)} className="w-20 h-10 text-center rounded-xl" />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeVariation(i)} className="text-destructive h-10 w-10"><X className="h-4 w-4" /></Button>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="h-9 w-9 bg-muted rounded-lg overflow-hidden shrink-0 border">
                       {v.imageUrl && <Image src={v.imageUrl} alt="preview" width={36} height={36} className="object-cover" />}
                     </div>
                     <Input 
-                      placeholder="URL da Imagem desta cor" 
+                      placeholder="URL da foto..." 
                       value={v.imageUrl || ''} 
                       onChange={(e) => updateVariation(i, 'imageUrl', e.target.value)}
-                      className="flex-1 h-9 text-[10px] rounded-xl border-dashed"
+                      className="flex-1 h-9 text-[10px] rounded-xl"
                     />
+                    <MediaModal onSelect={(url) => updateVariation(i, 'imageUrl', url)} />
                   </div>
                 </div>
               ))}
@@ -398,32 +369,11 @@ export default function AdminProducts() {
             <div className="space-y-1.5">
               <div className="flex justify-between items-center mb-1">
                 <Label htmlFor="desc" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</Label>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleGenerateAI}
-                  disabled={isGeneratingAI}
-                  className="h-7 text-[10px] font-bold text-primary hover:text-primary hover:bg-primary/5 rounded-full px-3 border border-primary/20"
-                >
-                  {isGeneratingAI ? (
-                    <>
-                      <Wand2 className="h-3 w-3 mr-1 animate-spin" /> Gerando...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-3 w-3 mr-1" /> Gerar com IA
-                    </>
-                  )}
+                <Button type="button" variant="ghost" size="sm" onClick={handleGenerateAI} disabled={isGeneratingAI} className="h-7 text-[10px] font-bold text-primary border border-primary/20 rounded-full px-3">
+                  {isGeneratingAI ? <RefreshCcw className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />} IA Gerar
                 </Button>
               </div>
-              <Textarea id="desc" rows={6} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl font-poppins text-sm leading-relaxed" />
-              <p className="text-[10px] text-muted-foreground italic px-1">Dica: Use a IA para criar textos que encantam e vendem.</p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="img" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL Imagem Principal</Label>
-              <Input id="img" value={formData.imageUrl || ''} onChange={(e) => setFormData(p => ({...p, imageUrl: e.target.value}))} required className="h-11 rounded-xl" />
+              <Textarea id="desc" rows={4} value={formData.description || ''} onChange={(e) => setFormData(p => ({...p, description: e.target.value}))} required className="rounded-xl" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -439,7 +389,7 @@ export default function AdminProducts() {
 
             <DialogFooter className="gap-2 sm:gap-0 pt-4">
               <Button type="button" variant="ghost" className="rounded-xl h-12" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90 px-8 rounded-xl h-12 font-bold shadow-lg shadow-primary/20">Salvar Sincronizado</Button>
+              <Button type="submit" className="bg-primary hover:bg-primary/90 px-8 rounded-xl h-12 font-bold shadow-lg shadow-primary/20">Salvar Produto</Button>
             </DialogFooter>
           </form>
         </DialogContent>
