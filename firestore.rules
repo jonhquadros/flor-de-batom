@@ -5,26 +5,12 @@ service cloud.firestore {
 
     /**
      * FLORD BATOM MAKEUP - SECURITY RULES
-     * 
-     * Ajustado para protótipo: Permite leitura de pedidos para usuários logados
-     * para facilitar a sincronização entre dispositivos.
-     * Atualização: Sincronização de sessão garantida no painel administrativo.
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
 
     function isSignedIn() {
       return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      // Para o MVP, qualquer usuário logado que acessa o painel pode ver os dados
-      // No futuro, isso deve ser restrito via coleção roles_admin
-      return isSignedIn();
     }
 
     // --- COLLECTION RULES ---
@@ -40,12 +26,12 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      allow create: if isSignedIn();
+      allow create: if true; // Permite que clientes enviem pedidos
       allow get, list: if isSignedIn();
       allow update, delete: if isSignedIn();
 
       match /orderItems/{orderItemId} {
-        allow create: if isSignedIn();
+        allow create: if true;
         allow get, list: if isSignedIn();
         allow update, delete: if isSignedIn();
       }
@@ -54,16 +40,14 @@ service cloud.firestore {
     match /stockMovements/{movementId} {
       allow get, list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update, delete: if false; // Histórico não deve ser modificado
+      allow update, delete: if false; 
     }
 
-    match /roles_admin/{adminId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create, update, delete: if false; 
+    match /admin_users/{username} {
+      allow get: if true; // Permite consulta por ID para o login (segurança por segredo da senha no doc)
+      allow list, create, update, delete: if false; // Ninguém altera via client livremente
     }
 
-    // Regras para metadados (contadores de pedidos)
     match /metadata/{docId} {
       allow get: if true;
       allow write: if isSignedIn();

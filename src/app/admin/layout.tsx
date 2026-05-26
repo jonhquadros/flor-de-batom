@@ -17,20 +17,24 @@ import {
   Tags,
   Boxes,
   BarChart3,
-  PlusCircle
+  PlusCircle,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useAuth, useUser, initiateAnonymousSignIn } from '@/firebase';
+import { useAuth, useUser, initiateAnonymousSignIn, useFirestore } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const auth = useAuth();
+  const db = useFirestore();
   const { user, isUserLoading } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authorized, setAuthorized] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [adminUsername, setAdminUsername] = useState('');
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
   const isLoginPage = pathname === '/admin/login';
@@ -40,22 +44,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    if (!isClient || isLoginPage) return;
+    if (!isClient || isLoginPage || !db || !auth) return;
 
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
-        const authorizedBySession = sessionStorage.getItem('adminLogado') === 'true';
-        if (!authorizedBySession) {
+        const sessionToken = sessionStorage.getItem('adminLogado') === 'true';
+        const sessionUser = sessionStorage.getItem('adminUser');
+
+        if (!sessionToken || !sessionUser) {
           router.push('/admin/login');
           return;
         }
 
-        if (!isUserLoading && !user && auth) {
-          initiateAnonymousSignIn(auth);
+        // Garante que o Firebase Auth está ativo
+        if (!isUserLoading && !user) {
+          await initiateAnonymousSignIn(auth);
         }
 
-        if (user) {
+        // Verifica no Firestore se o usuário da sessão ainda é válido
+        const userDoc = await getDoc(doc(db, 'admin_users', sessionUser));
+        if (userDoc.exists()) {
           setAuthorized(true);
+          setAdminUsername(sessionUser);
+        } else {
+          sessionStorage.clear();
+          router.push('/admin/login');
         }
       } catch (e) {
         console.error("Erro na verificação de sessão admin:", e);
@@ -63,7 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     checkAuth();
-  }, [isClient, pathname, router, user, isUserLoading, auth, isLoginPage]);
+  }, [isClient, pathname, router, user, isUserLoading, auth, db, isLoginPage]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -80,14 +93,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="space-y-2">
             <div className="w-12 h-1 bg-[#7B1C2A] mx-auto rounded-full animate-bounce"></div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">Sincronizando Sessão Segura</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-70">Verificando Credenciais na Nuvem</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Itens do menu atualizados
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Categorias', path: '/admin/categories', icon: Tags },
@@ -99,7 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   const handleLogout = () => {
-    sessionStorage.removeItem('adminLogado');
+    sessionStorage.clear();
     router.push('/admin/login');
   };
 
@@ -114,8 +126,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <h2 className="text-xl font-bold">Gestão Flor de Batom</h2>
           </div>
         </div>
-        <Separator className="bg-white/10 mx-6 w-auto" />
-        <nav className="flex-1 p-6 space-y-2 mt-4">
+        
+        <div className="px-6 py-4 mx-6 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase text-gray-500 tracking-wider">Logado como</p>
+            <p className="text-xs font-bold truncate">{adminUsername}</p>
+          </div>
+        </div>
+
+        <nav className="flex-1 p-6 space-y-2 mt-2">
           {navItems.map(item => (
             <Link key={item.path} href={item.path}>
               <Button 
@@ -171,6 +193,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <X className="h-6 w-6" />
                 </Button>
               </div>
+              
+              <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                <span className="text-xs font-bold text-gray-300">{adminUsername}</span>
+              </div>
+
               <nav className="space-y-2 flex-1 overflow-y-auto">
                 {navItems.map(item => (
                   <Link key={item.path} href={item.path}>

@@ -8,30 +8,53 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, LogIn } from 'lucide-react';
-import { useAuth, initiateAnonymousSignIn } from '@/firebase';
+import { Lock, LogIn, Loader2 } from 'lucide-react';
+import { useAuth, useFirestore, initiateAnonymousSignIn } from '@/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function AdminLogin() {
-  const [user, setUser] = useState('');
-  const [pass, setPass] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
+  const db = useFirestore();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (user === 'flordebatom' && pass === 'gestaoflor@26') {
-      sessionStorage.setItem('adminLogado', 'true');
-      
-      // Garante login no Firebase de forma proativa
-      if (auth) {
-        initiateAnonymousSignIn(auth);
+    if (!db || !auth) return;
+
+    setIsLoading(true);
+    try {
+      // 1. Garante uma sessão anônima para permitir leitura do Firestore via rules
+      await initiateAnonymousSignIn(auth);
+
+      // 2. Busca o usuário no Firestore pelo ID (username)
+      const userDocRef = doc(db, 'admin_users', username.toLowerCase().trim());
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        
+        // 3. Valida a senha (Em um app real, usaríamos hashes, mas mantendo conforme solicitado)
+        if (userData.password === password) {
+          sessionStorage.setItem('adminLogado', 'true');
+          sessionStorage.setItem('adminUser', username);
+          
+          toast({ title: "Acesso Autorizado", description: "Bem-vinda ao painel de gestão." });
+          router.push('/admin/dashboard');
+        } else {
+          toast({ variant: "destructive", title: "Erro de Acesso", description: "Senha incorreta." });
+        }
+      } else {
+        toast({ variant: "destructive", title: "Erro de Acesso", description: "Usuário não encontrado." });
       }
-      
-      toast({ title: "Acesso Autorizado", description: "Bem-vinda ao painel de gestão." });
-      router.push('/admin/dashboard');
-    } else {
-      toast({ variant: "destructive", title: "Erro de Acesso", description: "Usuário ou senha incorretos." });
+    } catch (error) {
+      console.error("Erro no login:", error);
+      toast({ variant: "destructive", title: "Erro de Sistema", description: "Não foi possível validar as credenciais." });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -49,16 +72,37 @@ export default function AdminLogin() {
           <CardContent className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="user" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Usuário</Label>
-              <Input id="user" placeholder="flordebatom" value={user} onChange={(e) => setUser(e.target.value)} required className="h-11 rounded-lg" />
+              <Input 
+                id="user" 
+                placeholder="Seu usuário" 
+                value={username} 
+                onChange={(e) => setUsername(e.target.value)} 
+                disabled={isLoading}
+                required 
+                className="h-11 rounded-lg" 
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="pass" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Senha</Label>
-              <Input id="pass" type="password" value={pass} onChange={(e) => setPass(e.target.value)} required className="h-11 rounded-lg" />
+              <Input 
+                id="pass" 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                disabled={isLoading}
+                required 
+                className="h-11 rounded-lg" 
+              />
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 h-14 text-lg font-bold rounded-xl gap-2">
-              <LogIn className="h-5 w-5" /> Entrar no Sistema
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-primary hover:bg-primary/90 h-14 text-lg font-bold rounded-xl gap-2"
+            >
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogIn className="h-5 w-5" />}
+              {isLoading ? "Validando..." : "Entrar no Sistema"}
             </Button>
           </CardFooter>
         </form>

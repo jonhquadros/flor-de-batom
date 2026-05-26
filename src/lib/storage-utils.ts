@@ -86,10 +86,8 @@ export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
     createdAt: order.createdAt || new Date().toISOString()
   });
 
-  // Salva o pedido principal (aguarda conclusão para garantir visibilidade no admin)
   await setDoc(orderDocRef, cleanedOrder, { merge: true });
 
-  // Salva itens em sub-coleção para redundância e relatórios complexos
   const itemsRef = collection(orderDocRef, 'orderItems');
   for (const item of order.items) {
     const itemRef = doc(itemsRef);
@@ -109,9 +107,6 @@ export const updateOrder = (db: Firestore, order: Order) => {
   updateDocumentNonBlocking(orderRef, sanitizeData(order));
 };
 
-/** 
- * Ajusta o inventário baseado nos itens de um pedido.
- */
 export const adjustInventoryForOrder = async (db: Firestore, order: Order, type: 'decrement' | 'increment') => {
   for (const item of order.items) {
     const productRef = doc(db, 'products', item.id);
@@ -169,6 +164,17 @@ export const updateOrderStatus = async (db: Firestore, order: Order, newStatus: 
 };
 
 export const seedInitialDataToFirestore = async (db: Firestore) => {
+  // 1. Seed Admins
+  const adminCheck = await getDocs(collection(db, 'admin_users'));
+  if (adminCheck.empty) {
+    const adminRef = doc(db, 'admin_users', 'flordebatom');
+    const supportRef = doc(db, 'admin_users', 'suportthreej');
+    
+    await setDoc(adminRef, { username: 'flordebatom', password: 'gestaoflor@26', role: 'admin' });
+    await setDoc(supportRef, { username: 'suportthreej', password: 'ThreeJ@suport3', role: 'admin' });
+  }
+
+  // 2. Seed Products
   const productsCheck = await getDocs(collection(db, 'products'));
   if (productsCheck.empty) {
     const initialProducts: Product[] = [
@@ -184,6 +190,7 @@ export const seedInitialDataToFirestore = async (db: Firestore) => {
     }
   }
 
+  // 3. Seed Categories
   const categoriesCheck = await getDocs(collection(db, 'categories'));
   if (categoriesCheck.empty) {
     const initialCats = ['Batom', 'Delineador', 'Base', 'Sombra', 'Blush'];

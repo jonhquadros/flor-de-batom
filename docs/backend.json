@@ -108,7 +108,7 @@
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp when the product was last updated.",
+          "description": "Timestamp when the category was last updated.",
           "format": "date-time"
         }
       },
@@ -193,6 +193,18 @@
         "adminId": { "type": "string" }
       },
       "required": ["id", "productId", "quantity", "type", "createdAt"]
+    },
+    "AdminUser": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AdminUser",
+      "type": "object",
+      "description": "Administrative users with access to the dashboard.",
+      "properties": {
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "support"] }
+      },
+      "required": ["username", "password", "role"]
     }
   },
   "auth": {
@@ -241,6 +253,16 @@
             "$ref": "#/backend/entities/StockMovement"
           },
           "description": "History of stock changes."
+        }
+      },
+      {
+        "path": "/admin_users/{username}",
+        "definition": {
+          "entityName": "AdminUser",
+          "schema": {
+            "$ref": "#/backend/entities/AdminUser"
+          },
+          "description": "Credentials for admin dashboard."
         }
       }
     ]
