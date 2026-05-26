@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Lock, LogIn, Loader2 } from 'lucide-react';
 import { useAuth, useFirestore, initiateAnonymousSignIn } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { seedInitialDataToFirestore } from '@/lib/storage-utils';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -21,14 +22,21 @@ export default function AdminLogin() {
   const auth = useAuth();
   const db = useFirestore();
 
+  // Garante que os usuários iniciais existam no Firestore ao carregar a página
+  useEffect(() => {
+    if (db) {
+      seedInitialDataToFirestore(db);
+    }
+  }, [db]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db || !auth) return;
 
     setIsLoading(true);
     try {
-      // 1. Garante uma sessão anônima para permitir leitura do Firestore via rules
-      await initiateAnonymousSignIn(auth);
+      // 1. Garante uma sessão ativa para leitura (regras de segurança)
+      initiateAnonymousSignIn(auth);
 
       // 2. Busca o usuário no Firestore pelo ID (username)
       const userDocRef = doc(db, 'admin_users', username.toLowerCase().trim());
@@ -37,10 +45,10 @@ export default function AdminLogin() {
       if (userSnap.exists()) {
         const userData = userSnap.data();
         
-        // 3. Valida a senha (Em um app real, usaríamos hashes, mas mantendo conforme solicitado)
+        // 3. Valida a senha conforme solicitado
         if (userData.password === password) {
           sessionStorage.setItem('adminLogado', 'true');
-          sessionStorage.setItem('adminUser', username);
+          sessionStorage.setItem('adminUser', username.toLowerCase().trim());
           
           toast({ title: "Acesso Autorizado", description: "Bem-vinda ao painel de gestão." });
           router.push('/admin/dashboard');
@@ -48,11 +56,11 @@ export default function AdminLogin() {
           toast({ variant: "destructive", title: "Erro de Acesso", description: "Senha incorreta." });
         }
       } else {
-        toast({ variant: "destructive", title: "Erro de Acesso", description: "Usuário não encontrado." });
+        toast({ variant: "destructive", title: "Erro de Acesso", description: "Usuário não encontrado no banco de dados." });
       }
     } catch (error) {
       console.error("Erro no login:", error);
-      toast({ variant: "destructive", title: "Erro de Sistema", description: "Não foi possível validar as credenciais." });
+      toast({ variant: "destructive", title: "Erro de Sistema", description: "Falha na comunicação com o banco de dados." });
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +82,7 @@ export default function AdminLogin() {
               <Label htmlFor="user" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Usuário</Label>
               <Input 
                 id="user" 
-                placeholder="Seu usuário" 
+                placeholder="Ex: flordebatom" 
                 value={username} 
                 onChange={(e) => setUsername(e.target.value)} 
                 disabled={isLoading}

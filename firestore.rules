@@ -44,8 +44,8 @@ service cloud.firestore {
     }
 
     match /admin_users/{username} {
-      allow get: if true; // Permite consulta por ID para o login (segurança por segredo da senha no doc)
-      allow list, create, update, delete: if false; // Ninguém altera via client livremente
+      allow get, list, create: if true; // Permite consulta e criação inicial para o login/seed
+      allow update, delete: if false; 
     }
 
     match /metadata/{docId} {
