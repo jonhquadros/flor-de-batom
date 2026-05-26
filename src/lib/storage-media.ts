@@ -17,6 +17,8 @@ import {
 } from 'firebase/firestore';
 import { Media } from './types';
 import imageCompression from 'browser-image-compression';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
  * Faz compressão da imagem antes do upload para melhorar performance.
@@ -37,7 +39,6 @@ async function compressImage(file: File) {
 
 /**
  * Upload de arquivo para o Firebase Storage com registro no Firestore.
- * Refatorado para usar async/await e garantir a persistência no Firestore.
  */
 export async function uploadMedia(
   storage: FirebaseStorage, 
@@ -57,39 +58,56 @@ export async function uploadMedia(
   const storageRef = ref(storage, filePath);
   const uploadTask = uploadBytesResumable(storageRef, compressedFile);
 
-  // 3. Monitorar progresso
-  if (onProgress) {
-    uploadTask.on('state_changed', (snapshot) => {
-      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      onProgress(progress);
-    });
-  }
+  // 3. Monitorar progresso e aguardar upload
+  await new Promise((resolve, reject) => {
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        if (onProgress) onProgress(progress);
+      },
+      (error) => {
+        console.error("Erro no Storage:", error);
+        reject(error);
+      },
+      () => resolve(true)
+    );
+  });
 
-  // 4. Aguardar conclusão do upload no Storage
-  await uploadTask;
-
-  // 5. Obter URL pública
+  // 4. Obter URL pública
   const downloadURL = await getDownloadURL(storageRef);
   
-  // 6. Preparar metadados
-  const mediaData: Media = {
+  // 5. Preparar metadados
+  const mediaData: any = {
     id: mediaId,
     name: file.name,
     url: downloadURL,
     path: filePath,
     size: compressedFile.size,
     type: file.type,
-    createdAt: new Date().toISOString() // Fallback caso o serverTimestamp demore
+    createdAt: serverTimestamp()
   };
 
-  // 7. Gravar no Firestore (Crucial: aguardar a gravação)
+  // 6. Gravar no Firestore com tratamento de erro contextual
   const mediaDocRef = doc(db, 'media', mediaId);
-  await setDoc(mediaDocRef, {
-    ...mediaData,
-    createdAt: serverTimestamp() // Usa o tempo oficial do servidor Firebase
-  }, { merge: true });
+  
+  try {
+    await setDoc(mediaDocRef, mediaData, { merge: true });
+  } catch (e: any) {
+    if (e.code === 'permission-denied' || e.message?.includes('permissions')) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: mediaDocRef.path,
+        operation: 'create',
+        requestResourceData: mediaData
+      }));
+    }
+    throw e;
+  }
 
-  return mediaData;
+  return {
+    ...mediaData,
+    createdAt: new Date().toISOString() // Fallback para o retorno da função
+  } as Media;
 }
 
 /**
@@ -101,6 +119,10 @@ export async function deleteMedia(
   media: Media
 ) {
   const storageRef = ref(storage, media.path);
-  await deleteObject(storageRef);
+  try {
+    await deleteObject(storageRef);
+  } catch (e) {
+    console.warn("Arquivo não encontrado no Storage, removendo apenas do banco.");
+  }
   await deleteDoc(doc(db, 'media', media.id));
 }

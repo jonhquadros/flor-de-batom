@@ -2,10 +2,10 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Upload, X, Loader2, ImagePlus } from 'lucide-react';
+import { Upload, X, Loader2, ImagePlus, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useFirebase } from '@/firebase';
+import { useFirebase, useUser } from '@/firebase';
 import { uploadMedia } from '@/lib/storage-media';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,6 +15,7 @@ interface Props {
 
 export function UploadDropzone({ onUploadComplete }: Props) {
   const firebase = useFirebase();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Map<string, number>>(new Map());
@@ -53,6 +54,15 @@ export function UploadDropzone({ onUploadComplete }: Props) {
   };
 
   const startUpload = async () => {
+    if (!user) {
+      toast({ 
+        variant: "destructive", 
+        title: "Sessão não identificada", 
+        description: "Aguarde um momento enquanto validamos seu acesso ou tente recarregar a página." 
+      });
+      return;
+    }
+
     if (previews.length === 0) return;
 
     let successCount = 0;
@@ -62,7 +72,11 @@ export function UploadDropzone({ onUploadComplete }: Props) {
       try {
         setUploadingFiles(prev => new Map(prev).set(item.id, 0));
         await uploadMedia(storage, firestore, item.file, 'products', (progress) => {
-          setUploadingFiles(prev => new Map(prev).set(item.id, progress));
+          setUploadingFiles(prev => {
+            const next = new Map(prev);
+            next.set(item.id, progress);
+            return next;
+          });
         });
         successCount++;
       } catch (error: any) {
@@ -70,7 +84,7 @@ export function UploadDropzone({ onUploadComplete }: Props) {
         toast({ 
           variant: "destructive", 
           title: "Erro no upload", 
-          description: `Falha ao subir ${item.file.name}. Verifique sua conexão ou permissões.` 
+          description: `Falha ao subir ${item.file.name}.` 
         });
       }
     }
@@ -80,8 +94,8 @@ export function UploadDropzone({ onUploadComplete }: Props) {
       setUploadingFiles(new Map());
       onUploadComplete();
       toast({ 
-        title: "Upload Concluído!", 
-        description: `${successCount} de ${totalFiles} imagens foram adicionadas à biblioteca.` 
+        title: "Sucesso!", 
+        description: `${successCount} imagem(ns) adicionada(s) à biblioteca.` 
       });
     }
   };
@@ -90,6 +104,13 @@ export function UploadDropzone({ onUploadComplete }: Props) {
 
   return (
     <div className="space-y-6">
+      {(!user && !isUserLoading) && (
+        <div className="bg-orange-50 border border-orange-200 p-4 rounded-2xl flex items-center gap-3 text-orange-800 text-xs font-bold">
+          <ShieldAlert className="h-5 w-5" />
+          O sistema está em modo offline. O upload pode falhar.
+        </div>
+      )}
+
       <div 
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -105,11 +126,11 @@ export function UploadDropzone({ onUploadComplete }: Props) {
           accept="image/*" 
           onChange={handleFileInput} 
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          disabled={totalUploading}
+          disabled={totalUploading || isUserLoading}
         />
         
         <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-2">
-          <ImagePlus className="h-8 w-8" />
+          {isUserLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : <ImagePlus className="h-8 w-8" />}
         </div>
         
         <div className="space-y-1">
@@ -117,7 +138,7 @@ export function UploadDropzone({ onUploadComplete }: Props) {
           <p className="text-xs text-muted-foreground uppercase tracking-widest font-black opacity-60">Ou clique para selecionar arquivos</p>
         </div>
         
-        <p className="text-[10px] text-muted-foreground">Suporte para JPG, PNG e WebP (Máx. 5MB por arquivo)</p>
+        <p className="text-[10px] text-muted-foreground">JPG, PNG ou WebP (Máx. 5MB por arquivo)</p>
       </div>
 
       {previews.length > 0 && (
@@ -125,38 +146,46 @@ export function UploadDropzone({ onUploadComplete }: Props) {
           <div className="flex justify-between items-center px-2">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-primary/60">Imagens Pendentes ({previews.length})</h4>
             {!totalUploading && (
-              <Button variant="ghost" size="sm" className="text-destructive text-[10px] font-bold h-7" onClick={() => setPreviews([])}>
+              <button className="text-destructive text-[10px] font-bold uppercase" onClick={() => setPreviews([])}>
                 Limpar Tudo
-              </Button>
+              </button>
             )}
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-            {previews.map((p) => (
-              <div key={p.id} className="relative aspect-square rounded-2xl overflow-hidden border bg-muted">
-                <img src={URL.createObjectURL(p.file)} alt="" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/20" />
-                
-                {uploadingFiles.has(p.id) ? (
-                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-4">
-                    <Loader2 className="h-6 w-6 text-white animate-spin mb-2" />
-                    <Progress value={uploadingFiles.get(p.id)!} className="h-1" />
-                  </div>
-                ) : (
-                  <button 
-                    onClick={() => removePreview(p.id)}
-                    className="absolute top-2 right-2 h-6 w-6 bg-white/90 rounded-full flex items-center justify-center text-destructive hover:bg-white shadow-lg"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            ))}
+            {previews.map((p) => {
+              const progress = uploadingFiles.get(p.id);
+              const isUploading = progress !== undefined;
+
+              return (
+                <div key={p.id} className="relative aspect-square rounded-2xl overflow-hidden border bg-muted group">
+                  <img src={URL.createObjectURL(p.file)} alt="" className="w-full h-full object-cover" />
+                  
+                  {isUploading ? (
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-4">
+                      <Loader2 className="h-6 w-6 text-white animate-spin mb-2" />
+                      <Progress value={progress} className="h-1" />
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => removePreview(p.id)}
+                      className="absolute top-2 right-2 h-6 w-6 bg-white/90 rounded-full flex items-center justify-center text-destructive hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {!totalUploading && (
-            <Button className="w-full h-14 rounded-2xl bg-primary text-xs font-black uppercase tracking-widest gap-2 shadow-xl shadow-primary/20" onClick={startUpload}>
-              <Upload className="h-4 w-4" /> Iniciar Upload de {previews.length} fotos
+            <Button 
+              className="w-full h-14 rounded-2xl bg-primary text-xs font-black uppercase tracking-widest gap-2 shadow-xl shadow-primary/20" 
+              onClick={startUpload}
+              disabled={isUserLoading}
+            >
+              <Upload className="h-4 w-4" /> Enviar para a Biblioteca
             </Button>
           )}
         </div>
