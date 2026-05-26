@@ -2,29 +2,24 @@
 {
   "name": "Flor de Batom Makeup",
   "short_name": "Flor de Batom",
-  "description": "Catálogo exclusivo de maquiagens Flor de Batom.",
+  "description": "Catálogo Exclusivo de Maquiagens Flor de Batom",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FAF7F5",
   "theme_color": "#7B1C2A",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "https://i.ibb.co/6J4J1LMd/florlogo.jpg",
       "sizes": "192x192",
-      "type": "image/jpg",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
       "src": "https://i.ibb.co/6J4J1LMd/florlogo.jpg",
       "sizes": "512x512",
-      "type": "image/jpg",
+      "type": "image/jpeg",
       "purpose": "any"
-    },
-    {
-      "src": "https://i.ibb.co/6J4J1LMd/florlogo.jpg",
-      "sizes": "192x192",
-      "type": "image/jpg",
-      "purpose": "maskable"
     }
   ]
 }

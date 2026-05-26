@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -81,10 +82,16 @@ export default function AdminSales() {
   const [discount, setDiscount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Memoized Data
+  // Memoized Data - Desduplicação de categorias
   const categories = useMemo(() => {
     if (!categoriesRaw) return [];
-    return [...categoriesRaw].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const unique = new Map<string, Category>();
+    categoriesRaw.forEach(c => {
+      if (c.name && !unique.has(c.name)) {
+        unique.set(c.name, c);
+      }
+    });
+    return Array.from(unique.values()).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [categoriesRaw]);
 
   const filteredProducts = useMemo(() => {
@@ -303,6 +310,7 @@ export default function AdminSales() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          {/* Barra de categorias com arraste nativo */}
           <div className="w-full sm:w-auto overflow-x-auto no-scrollbar">
             <div className="flex gap-1.5 pb-2 min-w-max">
               <button 

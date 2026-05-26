@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -23,15 +24,14 @@ function inferirMaxItens(produto: Product): number {
   
   const nome = (produto.name || '').toLowerCase();
   
-  // Regras de negócio solicitadas - Ordem de verificação é importante
-  // Ajuste para pegar MiniBuquê (sem espaço) ou Mini Buquê (com espaço)
+  // Regras de negócio: Somente o Mini Buquê tem 3 itens.
   if (nome.includes('mini') && (nome.includes('buquê') || nome.includes('buque'))) return 3; 
-  if (nome.includes('buquê') || nome.includes('buque')) return 10; // Buquê padrão/grande
-  if (nome.includes('copo')) return 5; // CopoMake
+  if (nome.includes('buquê') || nome.includes('buque')) return 10;
+  if (nome.includes('copo')) return 5;
   if (nome.includes('sacola')) return 7;
   if (nome.includes('cesta')) return 15;
   
-  return 10; // Padrão
+  return 10;
 }
 
 export function MontadorPresente() {
@@ -52,7 +52,6 @@ export function MontadorPresente() {
     const list = allProducts
       .filter(p => {
         const cat = (p.category || '').trim().toLowerCase();
-        // Filtra apenas produtos da categoria de presentes que estão ativos
         return cat === 'monte seu presente' && p.isActive !== false;
       })
       .map(p => ({
@@ -60,7 +59,6 @@ export function MontadorPresente() {
         maxItens: (p as any).maxItens || inferirMaxItens(p)
       })) as Embalagem[];
 
-    // Ordenação: Do item com menor capacidade para o de maior capacidade
     return [...list].sort((a, b) => a.maxItens - b.maxItens);
   }, [allProducts]);
 

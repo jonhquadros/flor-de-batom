@@ -26,12 +26,12 @@ export default function AdminCategories() {
 
   const { data: categoriesData, isLoading } = useCollection<Category>(categoriesQuery);
   
-  // Desduplicação de categorias para garantir estabilidade do React
+  // Desduplicação de categorias para garantir estabilidade do React e chaves únicas
   const categories = React.useMemo(() => {
     if (!categoriesData) return [];
     const seen = new Set();
     const filtered = categoriesData.filter(c => {
-      if (seen.has(c.id)) return false;
+      if (!c.id || seen.has(c.id)) return false;
       seen.add(c.id);
       return true;
     });

@@ -87,7 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // Itens do menu ordenados: Dashboard fixo em 1º, os demais em ordem alfabética
+  // Itens do menu atualizados
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Categorias', path: '/admin/categories', icon: Tags },
