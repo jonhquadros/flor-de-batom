@@ -55,21 +55,35 @@ export function UploadDropzone({ onUploadComplete }: Props) {
   const startUpload = async () => {
     if (previews.length === 0) return;
 
+    let successCount = 0;
+    const totalFiles = previews.length;
+
     for (const item of previews) {
       try {
         setUploadingFiles(prev => new Map(prev).set(item.id, 0));
         await uploadMedia(storage, firestore, item.file, 'products', (progress) => {
           setUploadingFiles(prev => new Map(prev).set(item.id, progress));
         });
-      } catch (error) {
-        toast({ variant: "destructive", title: "Erro no upload", description: `Falha ao subir ${item.file.name}` });
+        successCount++;
+      } catch (error: any) {
+        console.error("Erro detalhado no upload:", error);
+        toast({ 
+          variant: "destructive", 
+          title: "Erro no upload", 
+          description: `Falha ao subir ${item.file.name}. Verifique sua conexão ou permissões.` 
+        });
       }
     }
 
-    setPreviews([]);
-    setUploadingFiles(new Map());
-    onUploadComplete();
-    toast({ title: "Upload Concluído!", description: `${previews.length} imagens adicionadas à biblioteca.` });
+    if (successCount > 0) {
+      setPreviews([]);
+      setUploadingFiles(new Map());
+      onUploadComplete();
+      toast({ 
+        title: "Upload Concluído!", 
+        description: `${successCount} de ${totalFiles} imagens foram adicionadas à biblioteca.` 
+      });
+    }
   };
 
   const totalUploading = uploadingFiles.size > 0;

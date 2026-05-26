@@ -37,6 +37,7 @@ async function compressImage(file: File) {
 
 /**
  * Upload de arquivo para o Firebase Storage com registro no Firestore.
+ * Refatorado para usar async/await e garantir a persistência no Firestore.
  */
 export async function uploadMedia(
   storage: FirebaseStorage, 
@@ -45,45 +46,50 @@ export async function uploadMedia(
   folder: string = 'products',
   onProgress?: (progress: number) => void
 ): Promise<Media> {
+  // 1. Comprimir imagem
   const compressedFile = await compressImage(file);
+  
+  // 2. Preparar caminhos e IDs
   const mediaId = `IMG-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-  const extension = file.name.split('.').pop();
+  const extension = file.name.split('.').pop() || 'jpg';
   const filePath = `${folder}/${mediaId}.${extension}`;
   
   const storageRef = ref(storage, filePath);
   const uploadTask = uploadBytesResumable(storageRef, compressedFile);
 
-  return new Promise((resolve, reject) => {
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        if (onProgress) onProgress(progress);
-      },
-      (error) => reject(error),
-      async () => {
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-        
-        const mediaData: Media = {
-          id: mediaId,
-          name: file.name,
-          url: downloadURL,
-          path: filePath,
-          size: compressedFile.size,
-          type: file.type,
-          createdAt: new Date().toISOString()
-        };
+  // 3. Monitorar progresso
+  if (onProgress) {
+    uploadTask.on('state_changed', (snapshot) => {
+      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      onProgress(progress);
+    });
+  }
 
-        const mediaDocRef = doc(db, 'media', mediaId);
-        await setDoc(mediaDocRef, {
-          ...mediaData,
-          createdAt: serverTimestamp()
-        }, { merge: true });
+  // 4. Aguardar conclusão do upload no Storage
+  await uploadTask;
 
-        resolve(mediaData);
-      }
-    );
-  });
+  // 5. Obter URL pública
+  const downloadURL = await getDownloadURL(storageRef);
+  
+  // 6. Preparar metadados
+  const mediaData: Media = {
+    id: mediaId,
+    name: file.name,
+    url: downloadURL,
+    path: filePath,
+    size: compressedFile.size,
+    type: file.type,
+    createdAt: new Date().toISOString() // Fallback caso o serverTimestamp demore
+  };
+
+  // 7. Gravar no Firestore (Crucial: aguardar a gravação)
+  const mediaDocRef = doc(db, 'media', mediaId);
+  await setDoc(mediaDocRef, {
+    ...mediaData,
+    createdAt: serverTimestamp() // Usa o tempo oficial do servidor Firebase
+  }, { merge: true });
+
+  return mediaData;
 }
 
 /**
