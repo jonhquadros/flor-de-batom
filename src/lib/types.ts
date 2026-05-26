@@ -74,7 +74,7 @@ export interface Media {
   size: number;
   type: string;
   productId?: string | null;
-  createdAt: string;
+  createdAt: any;
 }
 
 export const INITIAL_CATEGORIES: string[] = [

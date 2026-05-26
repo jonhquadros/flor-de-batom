@@ -25,15 +25,15 @@ import { useToast } from '@/hooks/use-toast';
 export default function AdminPhotos() {
   const db = useFirestore();
   const storage = useStorage();
-  const { user } = useUser();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('library');
 
+  // Removida a dependência de 'user' para visualização da biblioteca
   const mediaQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
+    if (!db) return null;
     return query(collection(db, 'media'), orderBy('createdAt', 'desc'));
-  }, [db, user]);
+  }, [db]);
 
   const { data: mediaData, isLoading } = useCollection<Media>(mediaQuery);
 

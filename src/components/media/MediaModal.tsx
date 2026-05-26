@@ -27,12 +27,11 @@ export function MediaModal({ onSelect }: Props) {
   const [search, setSearch] = useState('');
   const db = useFirestore();
   const storage = useStorage();
-  const { user } = useUser();
 
   const mediaQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
+    if (!db) return null;
     return query(collection(db, 'media'), orderBy('createdAt', 'desc'));
-  }, [db, user]);
+  }, [db]);
 
   const { data: mediaData, isLoading } = useCollection<Media>(mediaQuery);
 

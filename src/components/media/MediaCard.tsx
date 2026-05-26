@@ -31,9 +31,16 @@ export function MediaCard({ media, onDelete, onSelect, variant = 'grid' }: Props
     window.open(media.url, '_blank');
   };
 
-  const formattedDate = media.createdAt 
-    ? format(new Date(media.createdAt), 'dd MMM yyyy', { locale: ptBR })
-    : '-';
+  // Tratamento seguro para data do Firestore (Timestamp ou String)
+  const getFormattedDate = () => {
+    if (!media.createdAt) return '-';
+    try {
+      const date = media.createdAt.toDate ? media.createdAt.toDate() : new Date(media.createdAt);
+      return format(date, 'dd MMM yyyy', { locale: ptBR });
+    } catch (e) {
+      return '-';
+    }
+  };
 
   return (
     <div 
@@ -77,7 +84,7 @@ export function MediaCard({ media, onDelete, onSelect, variant = 'grid' }: Props
         </p>
         <div className="flex items-center justify-between opacity-60">
           <div className="flex items-center gap-1 text-[8px] font-bold uppercase">
-            <Calendar className="h-2.5 w-2.5" /> {formattedDate}
+            <Calendar className="h-2.5 w-2.5" /> {getFormattedDate()}
           </div>
           <div className="flex items-center gap-1 text-[8px] font-bold uppercase">
             <FileText className="h-2.5 w-2.5" /> {(media.size / 1024 / 1024).toFixed(2)} MB
