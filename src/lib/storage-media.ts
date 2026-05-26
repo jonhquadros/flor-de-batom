@@ -30,9 +30,10 @@ async function compressImage(file: File) {
     useWebWorker: true,
   };
   try {
+    console.log(`[Media] Comprimindo imagem: ${file.name}`);
     return await imageCompression(file, options);
   } catch (error) {
-    console.error("Erro na compressão:", error);
+    console.warn("[Media] Erro na compressão, enviando original:", error);
     return file;
   }
 }
@@ -58,19 +59,25 @@ export async function uploadMedia(
   const storageRef = ref(storage, filePath);
   const uploadTask = uploadBytesResumable(storageRef, compressedFile);
 
+  console.log(`[Media] Iniciando upload para Storage: ${filePath}`);
+
   // 3. Monitorar progresso e aguardar upload
   await new Promise((resolve, reject) => {
     uploadTask.on(
       'state_changed',
       (snapshot) => {
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log(`[Media] Progresso ${file.name}: ${progress.toFixed(0)}%`);
         if (onProgress) onProgress(progress);
       },
       (error) => {
-        console.error("Erro no Storage:", error);
+        console.error("[Media] Erro crítico no Storage:", error);
         reject(error);
       },
-      () => resolve(true)
+      () => {
+        console.log(`[Media] Upload concluído no Storage: ${file.name}`);
+        resolve(true);
+      }
     );
   });
 
@@ -88,12 +95,15 @@ export async function uploadMedia(
     createdAt: serverTimestamp()
   };
 
-  // 6. Gravar no Firestore com tratamento de erro contextual
+  // 6. Gravar no Firestore
+  console.log(`[Media] Gravando metadados no Firestore: ${mediaId}`);
   const mediaDocRef = doc(db, 'media', mediaId);
   
   try {
     await setDoc(mediaDocRef, mediaData, { merge: true });
+    console.log(`[Media] Sucesso total: ${file.name}`);
   } catch (e: any) {
+    console.error("[Media] Erro ao gravar no Firestore:", e);
     if (e.code === 'permission-denied' || e.message?.includes('permissions')) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: mediaDocRef.path,
@@ -106,7 +116,7 @@ export async function uploadMedia(
 
   return {
     ...mediaData,
-    createdAt: new Date().toISOString() // Fallback para o retorno da função
+    createdAt: new Date().toISOString()
   } as Media;
 }
 
@@ -122,7 +132,7 @@ export async function deleteMedia(
   try {
     await deleteObject(storageRef);
   } catch (e) {
-    console.warn("Arquivo não encontrado no Storage, removendo apenas do banco.");
+    console.warn("[Media] Arquivo não encontrado no Storage ao excluir:", e);
   }
   await deleteDoc(doc(db, 'media', media.id));
 }
