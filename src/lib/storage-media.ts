@@ -1,13 +1,5 @@
-
 'use client';
 
-import { 
-  ref, 
-  uploadBytesResumable, 
-  getDownloadURL, 
-  deleteObject, 
-  FirebaseStorage 
-} from 'firebase/storage';
 import { 
   doc, 
   setDoc, 
@@ -19,6 +11,7 @@ import { Media } from './types';
 import imageCompression from 'browser-image-compression';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { uploadToCloudinary, deleteFromCloudinary } from './cloudinary-actions';
 
 /**
  * Faz compressão da imagem antes do upload para melhorar performance.
@@ -26,113 +19,104 @@ import { FirestorePermissionError } from '@/firebase/errors';
 async function compressImage(file: File) {
   const options = {
     maxSizeMB: 1,
-    maxWidthOrHeight: 1920,
+    maxWidthOrHeight: 1200,
     useWebWorker: true,
   };
   try {
-    console.log(`[Media] Comprimindo imagem: ${file.name}`);
     return await imageCompression(file, options);
   } catch (error) {
-    console.warn("[Media] Erro na compressão, enviando original:", error);
     return file;
   }
 }
 
 /**
- * Upload de arquivo para o Firebase Storage com registro no Firestore.
+ * Converte arquivo para Base64 para envio via Server Action.
+ */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+}
+
+/**
+ * Upload de arquivo para o Cloudinary com registro no Firestore.
  */
 export async function uploadMedia(
-  storage: FirebaseStorage, 
+  _storage: any, // Mantido apenas para compatibilidade de assinatura
   db: Firestore, 
   file: File, 
-  folder: string = 'products',
+  _folder: string = 'products',
   onProgress?: (progress: number) => void
 ): Promise<Media> {
-  // 1. Comprimir imagem
-  const compressedFile = await compressImage(file);
-  
-  // 2. Preparar caminhos e IDs
-  const mediaId = `IMG-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-  const extension = file.name.split('.').pop() || 'jpg';
-  const filePath = `${folder}/${mediaId}.${extension}`;
-  
-  const storageRef = ref(storage, filePath);
-  const uploadTask = uploadBytesResumable(storageRef, compressedFile);
-
-  console.log(`[Media] Iniciando upload para Storage: ${filePath}`);
-
-  // 3. Monitorar progresso e aguardar upload
-  await new Promise((resolve, reject) => {
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        console.log(`[Media] Progresso ${file.name}: ${progress.toFixed(0)}%`);
-        if (onProgress) onProgress(progress);
-      },
-      (error) => {
-        console.error("[Media] Erro crítico no Storage:", error);
-        reject(error);
-      },
-      () => {
-        console.log(`[Media] Upload concluído no Storage: ${file.name}`);
-        resolve(true);
-      }
-    );
-  });
-
-  // 4. Obter URL pública
-  const downloadURL = await getDownloadURL(storageRef);
-  
-  // 5. Preparar metadados
-  const mediaData: any = {
-    id: mediaId,
-    name: file.name,
-    url: downloadURL,
-    path: filePath,
-    size: compressedFile.size,
-    type: file.type,
-    createdAt: serverTimestamp()
-  };
-
-  // 6. Gravar no Firestore
-  console.log(`[Media] Gravando metadados no Firestore: ${mediaId}`);
-  const mediaDocRef = doc(db, 'media', mediaId);
-  
   try {
+    if (onProgress) onProgress(10); // Início
+    
+    // 1. Comprimir imagem localmente primeiro
+    const compressedFile = await compressImage(file);
+    if (onProgress) onProgress(30);
+
+    // 2. Converter para base64
+    const base64 = await fileToBase64(compressedFile as File);
+    if (onProgress) onProgress(50);
+
+    // 3. Chamar Server Action para Cloudinary
+    const result = await uploadToCloudinary(base64, file.name);
+    if (onProgress) onProgress(80);
+
+    // 4. Preparar metadados para Firestore
+    const mediaId = `IMG-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    const mediaData: any = {
+      id: mediaId,
+      name: file.name,
+      url: result.url,
+      path: result.public_id, // Usamos public_id do Cloudinary aqui
+      size: result.size,
+      type: file.type || result.format,
+      createdAt: serverTimestamp()
+    };
+
+    // 5. Gravar no Firestore
+    const mediaDocRef = doc(db, 'media', mediaId);
     await setDoc(mediaDocRef, mediaData, { merge: true });
-    console.log(`[Media] Sucesso total: ${file.name}`);
+    
+    if (onProgress) onProgress(100);
+
+    return {
+      ...mediaData,
+      createdAt: new Date().toISOString()
+    } as Media;
   } catch (e: any) {
-    console.error("[Media] Erro ao gravar no Firestore:", e);
+    console.error("[Media] Erro no upload Cloudinary/Firestore:", e);
+    
     if (e.code === 'permission-denied' || e.message?.includes('permissions')) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: mediaDocRef.path,
+        path: 'media/new',
         operation: 'create',
-        requestResourceData: mediaData
       }));
     }
     throw e;
   }
-
-  return {
-    ...mediaData,
-    createdAt: new Date().toISOString()
-  } as Media;
 }
 
 /**
- * Exclui arquivo do Storage e documento do Firestore.
+ * Exclui arquivo do Cloudinary e documento do Firestore.
  */
 export async function deleteMedia(
-  storage: FirebaseStorage, 
+  _storage: any, 
   db: Firestore, 
   media: Media
 ) {
-  const storageRef = ref(storage, media.path);
   try {
-    await deleteObject(storageRef);
+    // 1. Excluir do Cloudinary
+    await deleteFromCloudinary(media.path);
+    
+    // 2. Excluir do Firestore
+    await deleteDoc(doc(db, 'media', media.id));
   } catch (e) {
-    console.warn("[Media] Arquivo não encontrado no Storage ao excluir:", e);
+    console.error("[Media] Erro ao excluir mídia:", e);
+    throw e;
   }
-  await deleteDoc(doc(db, 'media', media.id));
 }

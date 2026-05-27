@@ -1,8 +1,7 @@
-
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Upload, X, Loader2, ImagePlus, ShieldAlert, AlertCircle } from 'lucide-react';
+import { Upload, X, Loader2, ImagePlus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useFirebase, useUser } from '@/firebase';
@@ -23,7 +22,7 @@ export function UploadDropzone({ onUploadComplete }: Props) {
   const [isGlobalLoading, setIsGlobalLoading] = useState(false);
 
   if (!firebase) return null;
-  const { storage, firestore } = firebase;
+  const { firestore } = firebase;
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -73,7 +72,7 @@ export function UploadDropzone({ onUploadComplete }: Props) {
       try {
         setUploadingFiles(prev => new Map(prev).set(item.id, 0));
         
-        await uploadMedia(storage, firestore, item.file, 'products', (progress) => {
+        await uploadMedia(null, firestore, item.file, 'products', (progress) => {
           setUploadingFiles(prev => {
             const next = new Map(prev);
             next.set(item.id, progress);
@@ -82,14 +81,13 @@ export function UploadDropzone({ onUploadComplete }: Props) {
         });
         
         successCount++;
-        // Remove da lista de previews conforme completa para feedback visual
         setPreviews(prev => prev.filter(p => p.id !== item.id));
       } catch (error: any) {
-        console.error("Erro no processo de upload:", error);
+        console.error("Erro no processo de upload Cloudinary:", error);
         toast({ 
           variant: "destructive", 
           title: "Falha no arquivo", 
-          description: `Erro ao subir "${item.file.name}". Verifique sua conexão.` 
+          description: `Erro ao subir "${item.file.name}". Verifique os limites do Cloudinary.` 
         });
       } finally {
         setUploadingFiles(prev => {
@@ -106,7 +104,7 @@ export function UploadDropzone({ onUploadComplete }: Props) {
       onUploadComplete();
       toast({ 
         title: "Sucesso!", 
-        description: `${successCount} imagem(ns) adicionada(s) à sua biblioteca.` 
+        description: `${successCount} imagem(ns) adicionada(s) ao Cloudinary e biblioteca.` 
       });
     }
   };
@@ -145,11 +143,11 @@ export function UploadDropzone({ onUploadComplete }: Props) {
         </div>
         
         <div className="space-y-1">
-          <h3 className="text-xl font-bold text-primary">Arraste fotos aqui</h3>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest font-black opacity-60">Ou clique para escolher arquivos</p>
+          <h3 className="text-xl font-bold text-primary">Upload Profissional (Cloudinary)</h3>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest font-black opacity-60">Arraste ou clique para escolher</p>
         </div>
         
-        <p className="text-[10px] text-muted-foreground">JPG, PNG ou WebP (Máx. 5MB por arquivo)</p>
+        <p className="text-[10px] text-muted-foreground">Otimização automática (WebP/AVIF) ativa.</p>
       </div>
 
       {previews.length > 0 && (
@@ -177,7 +175,7 @@ export function UploadDropzone({ onUploadComplete }: Props) {
                       <Loader2 className="h-6 w-6 text-white animate-spin mb-2" />
                       <div className="w-full space-y-1">
                          <Progress value={progress} className="h-1 bg-white/20" />
-                         <p className="text-[8px] text-white font-bold text-center">{progress.toFixed(0)}%</p>
+                         <p className="text-[8px] text-white font-bold text-center">Processando Cloudinary...</p>
                       </div>
                     </div>
                   ) : (
@@ -199,13 +197,13 @@ export function UploadDropzone({ onUploadComplete }: Props) {
               onClick={startUpload}
               disabled={isUserLoading || previews.length === 0}
             >
-              <Upload className="h-4 w-4" /> Iniciar Envio para a Nuvem
+              <Upload className="h-4 w-4" /> Inviar para Biblioteca Otimizada
             </Button>
           )}
 
           {isAnythingUploading && (
             <div className="p-4 bg-muted/20 rounded-xl text-center">
-              <p className="text-[10px] font-bold text-primary animate-pulse uppercase">Gravando informações na biblioteca, não feche a página...</p>
+              <p className="text-[10px] font-bold text-primary animate-pulse uppercase">Otimizando e enviando para o Cloudinary, aguarde...</p>
             </div>
           )}
         </div>
