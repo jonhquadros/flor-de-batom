@@ -1,5 +1,5 @@
 
-import { Product, Order, Category, OrderStatus, StockMovement, StockMovementType } from './types';
+import { Product, Order, Category, OrderStatus, StockMovement } from './types';
 import { 
   collection, 
   doc, 
@@ -47,33 +47,11 @@ export const getNextOrderNumber = async (db: Firestore): Promise<string> => {
       transaction.set(counterRef, { orderCount: nextNum }, { merge: true });
     });
   } catch (e: any) {
-    if (e.code === 'permission-denied' || e.message?.includes('permissions')) {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: counterRef.path,
-        operation: 'write',
-      }));
-    }
+    console.error("Erro ao gerar número do pedido:", e);
     nextNum = Math.floor(100000 + Math.random() * 899999);
   }
 
   return nextNum.toString().padStart(6, '0');
-};
-
-export const recordStockMovement = async (
-  db: Firestore, 
-  movement: Omit<StockMovement, 'id' | 'createdAt'>
-) => {
-  const movementsRef = collection(db, 'stockMovements');
-  const movementId = `MOV-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-  
-  const newMovement: StockMovement = {
-    ...movement,
-    id: movementId,
-    createdAt: new Date().toISOString()
-  };
-
-  const movementDocRef = doc(movementsRef, movementId);
-  await setDoc(movementDocRef, sanitizeData(newMovement), { merge: true });
 };
 
 export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
@@ -134,15 +112,6 @@ export const adjustInventoryForOrder = async (db: Firestore, order: Order, type:
         variations: updatedVariations,
         updatedAt: serverTimestamp()
       });
-
-      recordStockMovement(db, {
-        productId: item.id,
-        productName: product.name,
-        variationName: item.selectedColor,
-        quantity: quantityChange,
-        type: multiplier < 0 ? 'Sale' : 'Adjustment',
-        reason: multiplier < 0 ? `Venda Pedido #${order.orderNumber}` : `Estorno Pedido #${order.orderNumber}`
-      });
     }
   }
 };
@@ -164,7 +133,6 @@ export const updateOrderStatus = async (db: Firestore, order: Order, newStatus: 
 };
 
 export const seedInitialDataToFirestore = async (db: Firestore) => {
-  // 1. Seed Admins
   const adminCheck = await getDocs(collection(db, 'admin_users'));
   if (adminCheck.empty) {
     const adminRef = doc(db, 'admin_users', 'flordebatom');
@@ -174,29 +142,14 @@ export const seedInitialDataToFirestore = async (db: Firestore) => {
     await setDoc(supportRef, { username: 'suportthreej', password: 'ThreeJ@suport3', role: 'admin' });
   }
 
-  // 2. Seed Products
   const productsCheck = await getDocs(collection(db, 'products'));
   if (productsCheck.empty) {
     const initialProducts: Product[] = [
-      { id:"p001", name:"Batom Matte Vinho Intenso",    category:"Batom",            description:"Batom de longa duração com textura matte sedosa.", price:29.90, stock:25, imageUrl:"https://picsum.photos/seed/lip1/400/400", isFeatured:true, isActive: true, variations: [{name: "Vinho", stock: 15}, {name: "Bordô", stock: 10}] },
-      { id:"p002", name:"Batom Nude Rosado",             category:"Batom",            description:"Tom nude cremoso.", price:26.90, stock:12, imageUrl:"https://picsum.photos/seed/lip2/400/400", isFeatured:false, isActive: true, variations: [{name: "Nude 01", stock: 6}, {name: "Nude 02", stock: 6}] },
-      { id:"p004", name:"Delineador Líquido Preto",      category:"Delineador",       description:"Ponta fina para traços precisos.", price:24.90, stock:20, imageUrl:"https://picsum.photos/seed/eye1/400/400", isFeatured:true, isActive: true },
-      { id:"p006", name:"Base Líquida Cobertura Total",  category:"Base",             description:"Alta cobertura, acabamento matte.", price:45.90, stock:20, imageUrl:"https://picsum.photos/seed/face1/400/400", isFeatured:true, isActive: true, variations: [{name: "Bege 01", stock: 10}, {name: "Bege 02", stock: 10}] },
+      { id:"p001", name:"Batom Matte Vinho Intenso", category:"Batom", description:"Batom de longa duração.", price:29.90, stock:25, imageUrl:"https://picsum.photos/seed/lip1/400/400", isFeatured:true, isActive: true },
+      { id:"p002", name:"Delineador Líquido Preto", category:"Delineador", description:"Ponta fina precisa.", price:24.90, stock:20, imageUrl:"https://picsum.photos/seed/eye1/400/400", isFeatured:true, isActive: true }
     ];
-
     for (const p of initialProducts) {
-      const pRef = doc(db, 'products', p.id);
-      await setDoc(pRef, sanitizeData(p), { merge: true });
-    }
-  }
-
-  // 3. Seed Categories
-  const categoriesCheck = await getDocs(collection(db, 'categories'));
-  if (categoriesCheck.empty) {
-    const initialCats = ['Batom', 'Delineador', 'Base', 'Sombra', 'Blush'];
-    for (const name of initialCats) {
-      const id = Math.random().toString(36).substr(2, 9);
-      await setDoc(doc(db, 'categories', id), { id, name }, { merge: true });
+      await setDoc(doc(db, 'products', p.id), sanitizeData(p), { merge: true });
     }
   }
 };

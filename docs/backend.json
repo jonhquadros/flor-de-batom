@@ -176,24 +176,6 @@
         "status"
       ]
     },
-    "StockMovement": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "StockMovement",
-      "type": "object",
-      "description": "Records any change in product stock levels.",
-      "properties": {
-        "id": { "type": "string" },
-        "productId": { "type": "string" },
-        "productName": { "type": "string" },
-        "variationName": { "type": "string" },
-        "quantity": { "type": "number" },
-        "type": { "type": "string", "enum": ["Addition", "Sale", "Loss", "Breakage", "Donation", "Adjustment"] },
-        "reason": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "adminId": { "type": "string" }
-      },
-      "required": ["id", "productId", "quantity", "type", "createdAt"]
-    },
     "AdminUser": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AdminUser",
@@ -210,7 +192,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Media",
       "type": "object",
-      "description": "Metadata for images stored in Firebase Storage.",
+      "description": "Metadata for images stored in Cloudinary.",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
@@ -218,7 +200,6 @@
         "path": { "type": "string" },
         "size": { "type": "number" },
         "type": { "type": "string" },
-        "productId": { "type": "string", "nullable": true },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "url", "path", "createdAt"]
@@ -260,16 +241,6 @@
             "$ref": "#/backend/entities/Order"
           },
           "description": "Customer orders."
-        }
-      },
-      {
-        "path": "/stockMovements/{movementId}",
-        "definition": {
-          "entityName": "StockMovement",
-          "schema": {
-            "$ref": "#/backend/entities/StockMovement"
-          },
-          "description": "History of stock changes."
         }
       },
       {
