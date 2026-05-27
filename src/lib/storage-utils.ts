@@ -32,6 +32,28 @@ export const sanitizeData = (data: any): any => {
 };
 
 /** 
+ * Registra uma movimentação de estoque no Firestore (histórico).
+ */
+export const recordStockMovement = (db: Firestore, movement: Partial<StockMovement>) => {
+  const movementId = `MOV-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+  const movementRef = doc(db, 'stockMovements', movementId);
+  
+  const data = sanitizeData({
+    ...movement,
+    id: movementId,
+    createdAt: new Date().toISOString()
+  });
+
+  setDoc(movementRef, data, { merge: true }).catch(error => {
+    errorEmitter.emit('permission-error', new FirestorePermissionError({
+      path: movementRef.path,
+      operation: 'create',
+      requestResourceData: data
+    }));
+  });
+};
+
+/** 
  * Gera o próximo número de pedido sequencial (000001) 
  */
 export const getNextOrderNumber = async (db: Firestore): Promise<string> => {
