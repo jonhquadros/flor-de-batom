@@ -1,3 +1,4 @@
+
 'use client';
 
 import { 
@@ -45,16 +46,16 @@ function fileToBase64(file: File): Promise<string> {
  * Upload de arquivo para o Cloudinary com registro no Firestore.
  */
 export async function uploadMedia(
-  _storage: any, // Mantido apenas para compatibilidade de assinatura
+  _storage: any, 
   db: Firestore, 
   file: File, 
   _folder: string = 'products',
   onProgress?: (progress: number) => void
 ): Promise<Media> {
   try {
-    if (onProgress) onProgress(10); // Início
+    if (onProgress) onProgress(10);
     
-    // 1. Comprimir imagem localmente primeiro
+    // 1. Comprimir imagem localmente
     const compressedFile = await compressImage(file);
     if (onProgress) onProgress(30);
 
@@ -72,13 +73,13 @@ export async function uploadMedia(
       id: mediaId,
       name: file.name,
       url: result.url,
-      path: result.public_id, // Usamos public_id do Cloudinary aqui
+      path: result.public_id,
       size: result.size,
       type: file.type || result.format,
       createdAt: serverTimestamp()
     };
 
-    // 5. Gravar no Firestore
+    // 5. Gravar no Firestore (Aguardando conclusão)
     const mediaDocRef = doc(db, 'media', mediaId);
     await setDoc(mediaDocRef, mediaData, { merge: true });
     

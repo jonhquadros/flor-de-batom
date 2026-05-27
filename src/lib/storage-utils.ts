@@ -134,6 +134,16 @@ export const adjustInventoryForOrder = async (db: Firestore, order: Order, type:
         variations: updatedVariations,
         updatedAt: serverTimestamp()
       });
+      
+      // Registrar movimento automático
+      recordStockMovement(db, {
+        productId: item.id,
+        productName: product.name,
+        variationName: item.selectedColor,
+        quantity: quantityChange,
+        type: type === 'decrement' ? 'Sale' : 'Adjustment',
+        reason: `Ajuste automático via alteração de status do pedido #${order.orderNumber}`
+      });
     }
   }
 };
