@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -272,6 +273,7 @@ export default function Storefront() {
     const url = `https://flordebatommakeup.netlify.app/produto/${p.id}`;
     const msg = encodeURIComponent(
       `🌸 *Flor de Batom Makeup*\n\n` +
+      `Olha que lindo esse produto! 😍\n\n` +
       `🛍️ *${p.name}*\n` +
       `💰 R$ ${p.price.toFixed(2).replace('.', ',')}\n\n` +
       `🔗 Veja os detalhes:\n${url}`

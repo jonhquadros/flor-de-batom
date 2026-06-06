@@ -55,7 +55,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       const orderNum = await getNextOrderNumber(db);
       const orderId = `ORD-${Date.now()}-${orderNum}`;
 
-      // 2. Mapear itens para o formato do pedido (usando chaves em inglês para o banco)
+      // 2. Mapear itens para o formato do pedido
       const orderItems = [
         {
           id: embalagem.id,
@@ -97,20 +97,21 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         source: 'catalog'
       };
 
-      // 3. Salvar no Firestore e aguardar conclusão antes de abrir o WhatsApp
+      // 3. Salvar no Firestore
       await saveOrderToFirestore(db, orderData);
 
-      // 4. Preparar mensagem do WhatsApp (usando chaves em português conforme o objeto do montador)
+      // 4. Preparar mensagem do WhatsApp
       const listaItens = itens.map(i => {
         const labelCor = i.corSelecionada ? ` [${i.corSelecionada}]` : '';
         const subtotalItem = (i.preco * i.quantidade).toFixed(2).replace('.', ',');
-        return `• ${i.nome}${labelCor} x${i.quantidade} — R$ ${subtotalItem}`;
+        return `• ${i.nome}${labelCor} x${i.quantity} — R$ ${subtotalItem}`;
       }).join('\n');
       
       const linhaPagamento = pagamento === 'Pix' 
         ? '📱 Pix — comprovante a enviar' 
         : pagamento === 'Dinheiro' ? '💵 Dinheiro' : `💳 ${pagamento}`;
 
+      const totalFormatado = totalFinal.toFixed(2).replace('.', ',');
       const msg = encodeURIComponent(
         `🌸 *NOVO PEDIDO #${orderNum} - Flor de Batom Makeup*\n\n` +
         `👤 *Cliente:* ${nome}\n` +
@@ -119,7 +120,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         `🎁 *PRESENTE PERSONALIZADO:*\n` +
         `📦 *Embalagem:* ${embalagem.name} (R$ ${embalagem.price.toFixed(2).replace('.', ',')})\n` +
         `🛍️ *Produtos:*\n${listaItens}\n\n` +
-        `💰 *TOTAL: R$ ${totalFinal.toFixed(2).replace('.', ',')}*\n` +
+        `💰 *TOTAL: R$ ${totalFormatado}*\n` +
         `💳 *Pagamento:* ${linhaPagamento}\n` +
         (mensagem.trim() ? `\n💌 *Mensagem no Cartão:* "${mensagem.trim()}"` : '') +
         `\n\n_Enviado pelo montador de presentes online_`
@@ -257,7 +258,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
                     {item.corSelecionada && <span className="text-[8px] font-black text-primary/60 uppercase">{item.corSelecionada}</span>}
                   </div>
                 </div>
-                <p className="text-xs font-bold text-primary">R$ {(item.preco * item.quantidade).toFixed(2)}</p>
+                <p className="text-xs font-bold text-primary">R$ {(item.preco * item.quantity).toFixed(2)}</p>
               </div>
             ))}
           </div>
@@ -278,7 +279,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
                   <RefreshCw className="h-6 w-6 animate-spin" />
                 ) : (
                   <>
-                    <MessageCircle className="h-6 w-6" /> Finalizar Pedido
+                    <MessageCircle className="h-6 w-6" /> Enviar p/ WhatsApp
                   </>
                 )}
               </Button>

@@ -186,15 +186,18 @@ export default function AdminOrders() {
     
     const listaProdutos = selectedOrder.items.map(i => {
       const cor = i.selectedColor ? ` [${i.selectedColor}]` : '';
-      return `• ${i.name}${cor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2)}`;
+      return `• ${i.name}${cor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`;
     }).join('\n');
 
     const msg = encodeURIComponent(
-      `🌸 *DETALHES DO PEDIDO #${selectedOrder.orderNumber}*\n\n` +
+      `🌸 *DETALHES DO PEDIDO #${selectedOrder.orderNumber || selectedOrder.id.substr(0,6)}*\n\n` +
       `👤 *Cliente:* ${selectedOrder.customerName}\n` +
-      `📍 *Endereço:* ${selectedOrder.customerAddress}\n\n` +
+      `📱 *WhatsApp:* ${selectedOrder.customerPhone}\n` +
+      `📍 *Endereço:* ${selectedOrder.customerAddress || 'Não informado'}\n\n` +
       `🛍️ *PRODUTOS:*\n${listaProdutos}\n\n` +
-      `💰 *TOTAL: R$ ${selectedOrder.total.toFixed(2)}*`
+      `💰 *TOTAL: R$ ${selectedOrder.total.toFixed(2).replace('.', ',')}*\n` +
+      `💳 *Pagamento:* ${selectedOrder.paymentMethod}\n\n` +
+      `_Status Atual: ${selectedOrder.status.toUpperCase()}_`
     );
     window.open(`https://wa.me/${finalPhone}?text=${msg}`, '_blank');
   };
@@ -273,9 +276,22 @@ export default function AdminOrders() {
                     </TableCell>
                     <TableCell className="px-2">{getStatusBadge(order.status)}</TableCell>
                     <TableCell className="text-right px-4">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => openDetails(order)}>
-                        <Eye className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                         <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-8 w-8 text-green-600 hover:bg-green-50"
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            resendToWhatsApp();
+                          }}
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => openDetails(order)}>
+                          <Eye className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -486,15 +502,16 @@ export default function AdminOrders() {
                   <span className="font-black uppercase text-[10px] tracking-[0.3em] opacity-60">Valor Total do Pedido</span>
                   <p className="text-4xl md:text-5xl font-bold mt-1 tracking-tighter">R$ {(selectedOrder.total || 0).toFixed(2)}</p>
                 </div>
-                {selectedOrder.status === 'Pendente' ? (
-                  <Button className="w-full md:w-auto h-14 md:h-16 px-10 rounded-2xl bg-white text-primary hover:bg-white/90 text-sm font-black uppercase tracking-widest shadow-xl transition-transform active:scale-95" onClick={saveOrderChanges}>
-                    <Save className="h-5 w-5 mr-2" /> Salvar Alterações
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                  {selectedOrder.status === 'Pendente' && (
+                    <Button className="h-14 md:h-16 px-10 rounded-2xl bg-white text-primary hover:bg-white/90 text-sm font-black uppercase tracking-widest shadow-xl transition-transform active:scale-95" onClick={saveOrderChanges}>
+                      <Save className="h-5 w-5 mr-2" /> Salvar Alterações
+                    </Button>
+                  )}
+                  <Button className="h-14 md:h-16 px-10 rounded-2xl bg-green-500 hover:bg-green-600 text-white text-sm font-black uppercase tracking-widest shadow-xl flex gap-3" onClick={resendToWhatsApp}>
+                    <MessageCircle className="h-6 w-6" /> Enviar p/ WhatsApp
                   </Button>
-                ) : (
-                  <Button className="w-full md:w-auto h-14 md:h-16 px-10 rounded-2xl bg-green-500 hover:bg-green-600 text-white text-sm font-black uppercase tracking-widest shadow-xl flex gap-3" onClick={resendToWhatsApp}>
-                    <MessageCircle className="h-6 w-6" /> Reenviar via WhatsApp
-                  </Button>
-                )}
+                </div>
               </div>
             </div>
           )}
