@@ -84,7 +84,7 @@ export default function Storefront() {
   const [customerAddress, setCustomerAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito'>('Pix');
   const [changeAmount, setChangeAmount] = useState('');
-  const [isFinalizing, setIsProcessing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
   const WHATSAPP_LOJA = "5591987199039";
@@ -138,6 +138,14 @@ export default function Storefront() {
 
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+  const handleOpenCheckout = () => {
+    setIsCartOpen(false);
+    // Pequeno delay para garantir que o Sheet fechou antes de abrir o Dialog do checkout
+    setTimeout(() => {
+      setIsCheckoutOpen(true);
+    }, 300);
+  };
+
   const handleCheckout = async () => {
     if (!customerName || !customerPhone || !customerAddress || !db) {
       toast({ variant: "destructive", title: "Erro", description: "Preencha nome, telefone e endereço." });
@@ -162,6 +170,7 @@ export default function Storefront() {
       
       if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount.replace(',', '.')) || 0;
       
+      // Salva o pedido e JÁ REALIZA A BAIXA NO ESTOQUE (conforme configurado em storage-utils)
       await saveOrderToFirestore(db, orderData as Order);
       
       const linhasProdutos = cart.map(i => {
@@ -195,7 +204,9 @@ export default function Storefront() {
       setCart([]);
       setIsCheckoutOpen(false);
       setIsCartOpen(false);
+      toast({ title: "Pedido Finalizado!", description: "Sua reserva foi garantida e o estoque atualizado." });
     } catch (e) {
+      console.error(e);
       toast({ variant: "destructive", title: "Erro", description: "Falha ao processar pedido." });
     } finally {
       setIsProcessing(false);
@@ -265,7 +276,7 @@ export default function Storefront() {
                   <SheetFooter className="p-6 border-t bg-white">
                     <div className="w-full space-y-4">
                       <div className="flex justify-between items-end"><span className="text-muted-foreground">Subtotal</span><span className="text-2xl font-semibold text-primary">R$ {cartTotal.toFixed(2)}</span></div>
-                      <Button className="w-full bg-primary h-14 rounded-2xl text-lg font-bold" onClick={() => setIsCheckoutOpen(true)}>Finalizar</Button>
+                      <Button className="w-full bg-primary h-14 rounded-2xl text-lg font-bold" onClick={handleOpenCheckout}>Finalizar</Button>
                     </div>
                   </SheetFooter>
                 )}
@@ -310,7 +321,7 @@ export default function Storefront() {
       </div>
 
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
-        <DialogContent className="w-[95%] max-w-[400px] p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] max-h-[90vh] flex flex-col">
+        <DialogContent className="w-[95%] max-w-[400px] p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] max-h-[90vh] flex flex-col z-[110]">
           <DialogHeader className="p-6 pb-2"><DialogTitle className="text-xl font-bold text-primary">Finalizar Pedido</DialogTitle></DialogHeader>
           <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-4 no-scrollbar">
             <div className="space-y-4">
@@ -335,7 +346,7 @@ export default function Storefront() {
                 </div>
               )}
             </div>
-            <Button className="w-full h-14 rounded-2xl bg-primary text-base font-bold shadow-xl shadow-primary/20" onClick={handleCheckout} disabled={isFinalizing}>{isFinalizing ? 'Enviando...' : 'Pedir no WhatsApp'}</Button>
+            <Button className="w-full h-14 rounded-2xl bg-primary text-base font-bold shadow-xl shadow-primary/20" onClick={handleCheckout} disabled={isProcessing}>{isProcessing ? 'Enviando...' : 'Pedir no WhatsApp'}</Button>
           </div>
         </DialogContent>
       </Dialog>
