@@ -308,17 +308,18 @@ export default function AdminOrders() {
       </div>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="w-[95%] max-w-4xl max-h-[95vh] overflow-hidden font-poppins rounded-[2rem] md:rounded-[2.5rem] p-0 border-none shadow-2xl flex flex-col bg-white">
-          <div className="px-6 py-6 md:px-8 md:py-8 border-b border-primary/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#FDFCFB]">
-            <div className="pr-12 sm:pr-0">
-              <DialogTitle className="text-2xl md:text-3xl font-bold text-primary font-poppins tracking-tight truncate max-w-xs md:max-w-none">
+        <DialogContent className="w-[95%] sm:w-[90%] max-w-5xl h-[95vh] sm:h-[90vh] overflow-hidden font-poppins rounded-[2rem] p-0 border-none shadow-2xl flex flex-col bg-white">
+          {/* Header Compacto */}
+          <div className="px-6 py-4 md:px-10 md:py-6 border-b border-primary/5 flex flex-row items-center justify-between gap-4 bg-[#FDFCFB]">
+            <div className="min-w-0">
+              <DialogTitle className="text-xl md:text-2xl font-bold text-primary tracking-tight truncate">
                 Pedido #{selectedOrder?.orderNumber || selectedOrder?.id.substr(0,6)}
               </DialogTitle>
-              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-primary/40 mt-1">Detalhes da Transação</p>
+              <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-primary/40">Detalhes da Transação</p>
             </div>
             {selectedOrder && (
               <Select value={selectedOrder.status} onValueChange={(v: OrderStatus) => initiateStatusChange(selectedOrder.id, v)}>
-                <SelectTrigger className="w-full sm:w-40 h-10 md:h-11 rounded-xl md:rounded-2xl border-none shadow-lg font-bold text-[10px] md:text-xs uppercase bg-white">
+                <SelectTrigger className="w-32 md:w-40 h-9 md:h-11 rounded-xl md:rounded-2xl border-none shadow-md font-bold text-[9px] md:text-xs uppercase bg-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-none shadow-2xl">
@@ -329,215 +330,212 @@ export default function AdminOrders() {
           </div>
           
           {selectedOrder && (
-            <div className="flex-1 overflow-y-auto no-scrollbar">
-              <div className="p-6 md:p-10 space-y-8 md:space-y-10">
-                
-                {/* 1. SEÇÃO DE INFORMAÇÕES DO CLIENTE */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                  <div className="space-y-4 md:space-y-6">
-                    <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] md:text-[10px] tracking-widest opacity-60">
-                      <User className="h-3 w-3" /> Dados Pessoais
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 md:gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-[8px] md:text-[9px] uppercase font-black ml-1 opacity-50">Nome do Cliente</Label>
-                        <Input 
-                          className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-muted/20 border-none shadow-sm text-xs md:text-sm font-bold" 
-                          value={selectedOrder.customerName} 
-                          readOnly={!isEditable}
-                          onChange={e => handleUpdateField('customerName', e.target.value)} 
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-[8px] md:text-[9px] uppercase font-black ml-1 opacity-50">WhatsApp / Telefone</Label>
-                        <Input 
-                          className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-muted/20 border-none shadow-sm text-xs md:text-sm font-bold" 
-                          value={selectedOrder.customerPhone} 
-                          readOnly={!isEditable}
-                          onChange={e => handleUpdateField('customerPhone', e.target.value)} 
-                        />
-                      </div>
-                    </div>
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 md:space-y-10 custom-scrollbar">
+              
+              {/* 1. SEÇÃO DE INFORMAÇÕES EM GRID */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                {/* Dados do Cliente */}
+                <div className="space-y-3 md:space-y-4">
+                  <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] tracking-widest opacity-60">
+                    <User className="h-3 w-3" /> Dados do Cliente
                   </div>
-
-                  <div className="space-y-4 md:space-y-6">
-                    <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] md:text-[10px] tracking-widest opacity-60">
-                      <Wallet className="h-3 w-3" /> Pagamento e Controle
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 md:gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-[8px] md:text-[9px] uppercase font-black ml-1 opacity-50">Forma de Pagamento</Label>
-                        {isEditable ? (
-                          <Select value={selectedOrder.paymentMethod} onValueChange={(v: any) => handleUpdateField('paymentMethod', v)}>
-                            <SelectTrigger className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-muted/20 border-none shadow-sm font-bold text-[10px] md:text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-2xl">
-                              <SelectItem value="Pix">Pix</SelectItem>
-                              <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                              <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
-                              <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <div className="h-11 md:h-12 px-4 rounded-xl md:rounded-2xl bg-muted/10 flex items-center text-xs font-bold text-muted-foreground uppercase">{selectedOrder.paymentMethod}</div>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-[8px] md:text-[9px] uppercase font-black ml-1 opacity-50">Nº de Controle (Edição)</Label>
-                        <Input 
-                          className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-muted/20 border-none shadow-sm text-xs md:text-sm font-bold" 
-                          value={selectedOrder.orderNumber || ''} 
-                          readOnly={!isEditable}
-                          onChange={e => handleUpdateField('orderNumber', e.target.value)} 
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-2 space-y-4 md:space-y-6">
-                    <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] md:text-[10px] tracking-widest opacity-60">
-                      <MapPin className="h-3 w-3" /> Endereço de Entrega
-                    </div>
-                    <div className="space-y-1.5">
-                      <Textarea 
-                        className="min-h-[80px] md:min-h-[100px] rounded-xl md:rounded-[1.5rem] bg-muted/20 border-none shadow-sm resize-none text-xs md:text-sm p-4 md:p-5 font-medium leading-relaxed" 
-                        value={selectedOrder.customerAddress} 
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase font-black ml-1 opacity-50">Nome</Label>
+                      <Input 
+                        className="h-10 md:h-12 rounded-xl bg-muted/20 border-none text-xs md:text-sm font-bold" 
+                        value={selectedOrder.customerName} 
                         readOnly={!isEditable}
-                        onChange={e => handleUpdateField('customerAddress', e.target.value)}
-                        placeholder="Endereço não informado"
+                        onChange={e => handleUpdateField('customerName', e.target.value)} 
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase font-black ml-1 opacity-50">WhatsApp</Label>
+                      <Input 
+                        className="h-10 md:h-12 rounded-xl bg-muted/20 border-none text-xs md:text-sm font-bold" 
+                        value={selectedOrder.customerPhone} 
+                        readOnly={!isEditable}
+                        onChange={e => handleUpdateField('customerPhone', e.target.value)} 
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* 2. SEÇÃO DE PRODUTOS */}
-                <div className="space-y-4 md:space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] md:text-[10px] tracking-widest opacity-60">
-                      <ShoppingBag className="h-3 w-3" /> Produtos no Pedido
-                    </div>
-                    {isEditable && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-[9px] md:text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary rounded-lg md:rounded-xl h-8 md:h-9 px-3 md:px-4"
-                        onClick={() => setIsAddingProduct(!isAddingProduct)}
-                      >
-                        {isAddingProduct ? 'Cancelar' : <><PlusCircle className="h-3.5 w-3.5 mr-2" /> Adicionar</>}
-                      </Button>
-                    )}
+                {/* Pagamento e Controle */}
+                <div className="space-y-3 md:space-y-4">
+                  <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] tracking-widest opacity-60">
+                    <Wallet className="h-3 w-3" /> Pagamento
                   </div>
-
-                  {isAddingProduct && (
-                    <div className="p-4 md:p-6 bg-primary/5 rounded-2xl md:rounded-[2rem] border border-dashed border-primary/20 space-y-3 md:space-y-4 animate-in fade-in slide-in-from-top-4">
-                      <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/30" />
-                        <Input 
-                          placeholder="Buscar produto pelo nome..." 
-                          className="pl-11 h-11 md:h-14 bg-white border-none rounded-xl md:rounded-2xl text-xs md:text-sm"
-                          value={productSearch}
-                          onChange={(e) => setProductSearch(e.target.value)}
-                        />
-                      </div>
-                      {availableProductsToAdd.length > 0 && (
-                        <div className="grid grid-cols-1 gap-2">
-                          {availableProductsToAdd.map(p => (
-                            <div key={p.id} className="bg-white p-2.5 md:p-3 rounded-xl md:rounded-2xl flex items-center justify-between border border-primary/5 shadow-sm">
-                              <div className="flex items-center gap-3 md:gap-4">
-                                <div className="h-10 w-10 md:h-12 md:w-12 relative rounded-lg md:rounded-xl overflow-hidden border bg-muted">
-                                  <Image src={p.imageUrl} alt="" fill className="object-cover" />
-                                </div>
-                                <div>
-                                  <p className="text-[10px] md:text-xs font-bold text-primary truncate max-w-[120px] md:max-w-[150px]">{p.name}</p>
-                                  <p className="text-[8px] md:text-[10px] text-muted-foreground uppercase font-black tracking-widest">R$ {p.price.toFixed(2)}</p>
-                                </div>
-                              </div>
-                              <Button size="sm" className="h-8 md:h-10 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase px-4 md:px-5" onClick={() => handleAddNewProduct(p)}>Inserir</Button>
-                            </div>
-                          ))}
-                        </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase font-black ml-1 opacity-50">Forma</Label>
+                      {isEditable ? (
+                        <Select value={selectedOrder.paymentMethod} onValueChange={(v: any) => handleUpdateField('paymentMethod', v)}>
+                          <SelectTrigger className="h-10 md:h-12 rounded-xl bg-muted/20 border-none font-bold text-[10px] md:text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            <SelectItem value="Pix">Pix</SelectItem>
+                            <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                            <SelectItem value="Cartão Débito">Cartão Débito</SelectItem>
+                            <SelectItem value="Cartão Crédito">Cartão Crédito</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="h-10 md:h-12 px-4 rounded-xl bg-muted/10 flex items-center text-xs font-bold text-muted-foreground uppercase">{selectedOrder.paymentMethod}</div>
                       )}
                     </div>
-                  )}
+                    <div className="space-y-1">
+                      <Label className="text-[8px] uppercase font-black ml-1 opacity-50">Nº Controle</Label>
+                      <Input 
+                        className="h-10 md:h-12 rounded-xl bg-muted/20 border-none text-xs md:text-sm font-bold" 
+                        value={selectedOrder.orderNumber || ''} 
+                        readOnly={!isEditable}
+                        onChange={e => handleUpdateField('orderNumber', e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                </div>
 
-                  <div className="bg-white rounded-2xl md:rounded-[2rem] border border-primary/5 shadow-sm overflow-hidden divide-y divide-primary/5">
-                    {selectedOrder.items.length === 0 ? (
-                      <div className="p-16 md:p-20 text-center text-muted-foreground italic text-xs md:text-sm">Este pedido está vazio.</div>
-                    ) : (
-                      selectedOrder.items.map((item, idx) => (
-                        <div key={`${item.id}-${item.selectedColor || idx}`} className="p-4 md:p-8 flex items-center justify-between group bg-white hover:bg-primary/[0.01] transition-colors">
-                          <div className="flex items-center gap-3 md:gap-6">
-                            <div className="relative h-14 w-14 md:h-20 md:w-20 rounded-xl md:rounded-[1.5rem] overflow-hidden border border-primary/5 shrink-0 shadow-sm">
-                              <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
-                            </div>
-                            <div className="space-y-1 md:space-y-1.5">
-                              <h4 className="font-poppins font-semibold text-xs md:text-lg text-primary leading-tight line-clamp-1">{item.name}</h4>
-                              {item.selectedColor && (
-                                <Badge variant="secondary" className="bg-primary/5 text-primary text-[8px] md:text-[9px] font-black uppercase px-2 py-0.5 md:px-3 md:py-1 border-primary/10 tracking-widest rounded-md md:rounded-lg">
-                                  {item.selectedColor}
-                                </Badge>
-                              )}
-                              <div className="flex flex-wrap items-center gap-3 md:gap-6 mt-1.5 md:mt-3">
-                                <p className="text-xs md:text-sm font-black text-primary uppercase">R$ {item.price.toFixed(2)}</p>
-                                <div className="flex items-center gap-2 md:gap-3">
-                                  {isEditable ? (
-                                    <div className="flex items-center bg-muted/40 rounded-lg md:rounded-xl p-0.5 md:p-1 shadow-inner">
-                                      <button onClick={() => handleUpdateItemQuantity(item.id, -1, item.selectedColor)} className="h-6 w-6 md:h-8 md:w-8 flex items-center justify-center text-primary hover:bg-white rounded-md md:rounded-lg transition-all"><Minus className="h-3 w-3 md:h-4 md:w-4" /></button>
-                                      <span className="w-7 md:w-10 text-center text-[10px] md:text-xs font-black">{item.quantity}</span>
-                                      <button onClick={() => handleUpdateItemQuantity(item.id, 1, item.selectedColor)} className="h-6 w-6 md:h-8 md:w-8 flex items-center justify-center text-primary hover:bg-white rounded-md md:rounded-lg transition-all"><Plus className="h-3 w-3 md:h-4 md:w-4" /></button>
-                                    </div>
-                                  ) : (
-                                    <span className="text-[8px] md:text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Qtd: {item.quantity}</span>
-                                  )}
-                                </div>
+                {/* Endereço */}
+                <div className="md:col-span-2 space-y-3 md:space-y-4">
+                  <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] tracking-widest opacity-60">
+                    <MapPin className="h-3 w-3" /> Endereço de Entrega
+                  </div>
+                  <Textarea 
+                    className="min-h-[60px] md:min-h-[80px] rounded-xl bg-muted/20 border-none resize-none text-xs md:text-sm p-4 font-medium" 
+                    value={selectedOrder.customerAddress} 
+                    readOnly={!isEditable}
+                    onChange={e => handleUpdateField('customerAddress', e.target.value)}
+                    placeholder="Endereço não informado"
+                  />
+                </div>
+              </div>
+
+              {/* 2. SEÇÃO DE PRODUTOS */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] tracking-widest opacity-60">
+                    <ShoppingBag className="h-3 w-3" /> Itens do Carrinho
+                  </div>
+                  {isEditable && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-[9px] font-black uppercase border-primary/20 text-primary rounded-xl h-8 px-3"
+                      onClick={() => setIsAddingProduct(!isAddingProduct)}
+                    >
+                      {isAddingProduct ? 'Fechar Busca' : '+ Adicionar'}
+                    </Button>
+                  )}
+                </div>
+
+                {isAddingProduct && (
+                  <div className="p-4 bg-primary/5 rounded-2xl border border-dashed border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/30" />
+                      <Input 
+                        placeholder="Pesquisar produto..." 
+                        className="pl-9 h-10 bg-white border-none rounded-xl text-xs"
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                      />
+                    </div>
+                    {availableProductsToAdd.length > 0 && (
+                      <div className="space-y-2">
+                        {availableProductsToAdd.map(p => (
+                          <div key={p.id} className="bg-white p-2 rounded-xl flex items-center justify-between border border-primary/5 shadow-sm">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 relative rounded-lg overflow-hidden border bg-muted">
+                                <Image src={p.imageUrl} alt="" fill className="object-cover" />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold text-primary truncate max-w-[150px]">{p.name}</p>
+                                <p className="text-[8px] text-muted-foreground font-black uppercase">R$ {p.price.toFixed(2)}</p>
                               </div>
                             </div>
+                            <Button size="sm" className="h-8 rounded-lg text-[8px] font-black uppercase" onClick={() => handleAddNewProduct(p)}>Inserir</Button>
                           </div>
-
-                          <div className="flex flex-col items-end gap-1.5 md:gap-3">
-                            <p className="font-black text-sm md:text-lg text-primary">R$ {(item.price * item.quantity).toFixed(2)}</p>
-                            {isEditable && (
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 md:h-10 md:w-10 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg md:rounded-xl opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-                                onClick={() => handleRemoveItem(item.id, item.selectedColor)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
                   </div>
+                )}
+
+                <div className="space-y-3">
+                  {selectedOrder.items.length === 0 ? (
+                    <div className="p-10 text-center text-muted-foreground italic text-xs">O pedido está vazio.</div>
+                  ) : (
+                    selectedOrder.items.map((item, idx) => (
+                      <div key={`${item.id}-${item.selectedColor || idx}`} className="p-3 md:p-5 flex items-center justify-between gap-4 bg-white rounded-2xl border border-primary/5 shadow-sm group">
+                        <div className="flex items-center gap-3 md:gap-5 min-w-0">
+                          <div className="relative h-14 w-14 md:h-16 md:w-16 rounded-xl overflow-hidden border shrink-0">
+                            <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-xs md:text-sm text-primary truncate">{item.name}</h4>
+                            {item.selectedColor && (
+                              <Badge className="bg-primary/5 text-primary text-[7px] md:text-[8px] font-black uppercase px-2 py-0.5 mt-1 border-primary/10 tracking-widest rounded-md">
+                                {item.selectedColor}
+                              </Badge>
+                            )}
+                            <div className="flex items-center gap-4 mt-2">
+                              <p className="text-[10px] md:text-xs font-black text-primary">R$ {item.price.toFixed(2)}</p>
+                              {isEditable ? (
+                                <div className="flex items-center bg-muted/40 rounded-lg p-1">
+                                  <button onClick={() => handleUpdateItemQuantity(item.id, -1, item.selectedColor)} className="h-6 w-6 flex items-center justify-center text-primary"><Minus className="h-3 w-3" /></button>
+                                  <span className="w-6 text-center text-[10px] font-black">{item.quantity}</span>
+                                  <button onClick={() => handleUpdateItemQuantity(item.id, 1, item.selectedColor)} className="h-6 w-6 flex items-center justify-center text-primary"><Plus className="h-3 w-3" /></button>
+                                </div>
+                              ) : (
+                                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Qtd: {item.quantity}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <p className="font-black text-xs md:text-sm text-primary">R$ {(item.price * item.quantity).toFixed(2)}</p>
+                          {isEditable && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                              onClick={() => handleRemoveItem(item.id, item.selectedColor)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* 3. RODAPÉ DE AÇÕES */}
-          <div className="p-6 md:p-10 border-t bg-[#FDFCFB] flex flex-col items-center gap-6">
+          {/* Rodapé de Ações Fixo */}
+          <div className="p-4 md:p-8 border-t bg-[#FDFCFB] flex flex-col items-center gap-4">
             <div className="text-center">
-              <span className="font-black uppercase text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] text-primary/40">Valor Total do Pedido</span>
-              <p className="text-3xl md:text-5xl font-black text-primary mt-0.5 md:mt-1 tracking-tighter">R$ {(selectedOrder?.total || 0).toFixed(2)}</p>
+              <span className="font-black uppercase text-[8px] tracking-widest text-primary/40">Valor Total</span>
+              <p className="text-2xl md:text-4xl font-black text-primary leading-tight tracking-tighter">R$ {(selectedOrder?.total || 0).toFixed(2)}</p>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full justify-center">
+            <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
               {isEditable && (
                 <Button 
-                  className="h-14 md:h-16 px-6 md:px-10 rounded-xl md:rounded-2xl bg-white border-2 border-primary text-primary hover:bg-primary/5 text-[10px] md:text-xs font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 w-full sm:w-auto" 
+                  className="h-12 md:h-14 px-8 rounded-xl md:rounded-2xl bg-white border-2 border-primary text-primary hover:bg-primary/5 text-[10px] font-black uppercase tracking-widest transition-all w-full sm:w-auto" 
                   onClick={saveOrderChanges}
                 >
-                  <Save className="h-4 w-4 md:h-5 md:w-5 mr-2 md:mr-3" /> Salvar Alterações
+                  <Save className="h-4 w-4 mr-2" /> Salvar Alterações
                 </Button>
               )}
               <Button 
-                className="h-14 md:h-16 px-6 md:px-10 rounded-xl md:rounded-2xl bg-[#25D366] hover:bg-[#1da851] text-white text-[10px] md:text-xs font-black uppercase tracking-widest shadow-lg shadow-green-500/20 flex gap-2 md:gap-3 transition-all active:scale-95 w-full sm:w-auto" 
+                className="h-12 md:h-14 px-8 rounded-xl md:rounded-2xl bg-[#25D366] hover:bg-[#1da851] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-500/20 flex gap-2 transition-all w-full sm:w-auto" 
                 onClick={() => selectedOrder && sendOrderToWhatsApp(selectedOrder)}
               >
-                <MessageCircle className="h-5 w-5 md:h-6 md:w-6" /> Enviar p/ WhatsApp
+                <MessageCircle className="h-5 w-5" /> Enviar p/ WhatsApp
               </Button>
             </div>
           </div>
@@ -546,17 +544,17 @@ export default function AdminOrders() {
 
       {/* Alerta de Confirmação de Mudança de Status */}
       <AlertDialog open={isStatusConfirmOpen} onOpenChange={setIsStatusConfirmOpen}>
-        <AlertDialogContent className="rounded-[2.5rem] w-[90%] max-w-md border-none p-10 font-poppins shadow-2xl">
+        <AlertDialogContent className="rounded-[2rem] w-[90%] max-w-md border-none p-8 md:p-10 font-poppins shadow-2xl">
           <AlertDialogHeader>
-            <div className="h-16 w-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6">
-              <Package className="h-8 w-8" />
+            <div className="h-14 w-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary mx-auto mb-4">
+              <Package className="h-7 w-7" />
             </div>
-            <AlertDialogTitle className="text-2xl font-bold text-primary text-center">Atualizar Status?</AlertDialogTitle>
-            <p className="text-sm text-muted-foreground text-center mt-2 leading-relaxed">Esta ação pode atualizar automaticamente o estoque dos produtos e alterar o bloqueio de edição do pedido.</p>
+            <AlertDialogTitle className="text-xl md:text-2xl font-bold text-primary text-center">Atualizar Status?</AlertDialogTitle>
+            <p className="text-xs md:text-sm text-muted-foreground text-center mt-2 leading-relaxed">Esta ação pode atualizar automaticamente o estoque dos produtos e alterar o bloqueio de edição do pedido.</p>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col gap-3 sm:flex-row mt-8">
-            <AlertDialogCancel className="rounded-2xl h-14 border-none bg-muted/50 font-black text-[10px] uppercase tracking-widest flex-1" onClick={() => setIsStatusConfirmOpen(false)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction className="rounded-2xl h-14 bg-primary hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 flex-1" onClick={() => handleStatusChangeExecution(true)}>Confirmar</AlertDialogAction>
+          <AlertDialogFooter className="flex flex-col gap-3 sm:flex-row mt-6 md:mt-8">
+            <AlertDialogCancel className="rounded-xl h-12 border-none bg-muted/50 font-black text-[10px] uppercase tracking-widest flex-1" onClick={() => setIsStatusConfirmOpen(false)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction className="rounded-xl h-12 bg-primary hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 flex-1" onClick={() => handleStatusChangeExecution(true)}>Confirmar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
