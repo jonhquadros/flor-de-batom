@@ -32,6 +32,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
   const [endereco, setEndereco] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [pagamento, setPagamento] = useState<'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito'>('Pix');
+  const [changeAmount, setChangeAmount] = useState('');
   const [enviado, setEnviado] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -83,7 +84,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         }))
       ];
 
-      const orderData: Order = {
+      const orderData: any = {
         id: orderId,
         orderNumber: orderNum,
         customerName: nome,
@@ -97,8 +98,10 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         source: 'catalog'
       };
 
+      if (pagamento === 'Dinheiro') orderData.change = parseFloat(changeAmount.replace(',', '.')) || 0;
+
       // 3. Salvar no Firestore
-      await saveOrderToFirestore(db, orderData);
+      await saveOrderToFirestore(db, orderData as Order);
 
       // 4. Preparar mensagem do WhatsApp
       const listaItens = itens.map(i => {
@@ -107,9 +110,14 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
         return `• ${i.nome}${labelCor} x${i.quantity} — R$ ${subtotalItem}`;
       }).join('\n');
       
-      const linhaPagamento = pagamento === 'Pix' 
-        ? '📱 Pix — comprovante a enviar' 
-        : pagamento === 'Dinheiro' ? '💵 Dinheiro' : `💳 ${pagamento}`;
+      let linhaPagamento = "";
+      if (pagamento === 'Dinheiro') {
+        linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`;
+      } else if (pagamento === 'Pix') {
+        linhaPagamento = `📱 Pix — comprovante a enviar`;
+      } else {
+        linhaPagamento = `💳 ${pagamento}`;
+      }
 
       const totalFormatado = totalFinal.toFixed(2).replace('.', ',');
       const msg = encodeURIComponent(
@@ -227,6 +235,21 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
               (91) 98719-9039 <Copy className="h-3 w-3 opacity-50" />
             </button>
             <p className="text-[9px] text-primary/60 italic">Confirme o pagamento enviando o comprovante no WhatsApp.</p>
+          </div>
+        )}
+
+        {pagamento === 'Dinheiro' && (
+          <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2 font-poppins">
+            <div className="space-y-1.5">
+              <Label htmlFor="change" className="text-[10px] font-black uppercase text-primary/60 ml-1">Troco para quanto?</Label>
+              <Input 
+                id="change" 
+                placeholder="Ex: 50,00" 
+                className="h-12 rounded-2xl bg-white border-none shadow-sm font-poppins text-sm" 
+                value={changeAmount} 
+                onChange={e => setChangeAmount(e.target.value)} 
+              />
+            </div>
           </div>
         )}
       </div>

@@ -79,6 +79,7 @@ export default function AdminSales() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'Dinheiro' | 'Cartão Débito' | 'Cartão Crédito'>('Pix');
+  const [changeAmount, setChangeAmount] = useState('');
   const [discount, setDiscount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -262,7 +263,7 @@ export default function AdminSales() {
         });
 
         const orderId = `ORD-${Date.now()}-${formattedOrderNumber}`;
-        const orderData: Order = {
+        const orderData: any = {
           id: orderId,
           orderNumber: formattedOrderNumber,
           customerName: customerName || 'Venda Manual',
@@ -277,6 +278,8 @@ export default function AdminSales() {
           discount: discount
         };
 
+        if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount.replace(',', '.')) || 0;
+
         const orderRef = doc(db, 'orders', orderId);
         transaction.set(orderRef, sanitizeData(orderData));
       });
@@ -287,6 +290,7 @@ export default function AdminSales() {
       setCustomerPhone('');
       setDiscount(0);
       setPaymentMethod('Pix');
+      setChangeAmount('');
     } catch (error: any) {
       console.error("Erro na transação:", error);
       toast({ variant: "destructive", title: "Falha ao registrar venda", description: error.message });
@@ -478,6 +482,18 @@ export default function AdminSales() {
                   ))}
                 </div>
               </div>
+
+              {paymentMethod === 'Dinheiro' && (
+                <div className="space-y-1 animate-in fade-in slide-in-from-top-1">
+                  <Label className="text-[8px] font-bold uppercase text-muted-foreground ml-1">Troco para quanto?</Label>
+                  <Input 
+                    placeholder="Ex: 100,00" 
+                    className="h-8 text-[9px] rounded-lg border-muted-foreground/10"
+                    value={changeAmount}
+                    onChange={(e) => setChangeAmount(e.target.value)}
+                  />
+                </div>
+              )}
 
               <div className="pt-2 space-y-1.5 border-t">
                 <div className="flex items-center justify-between text-[10px] font-bold">

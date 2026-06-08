@@ -199,7 +199,7 @@ export default function Storefront() {
         createdAt: new Date().toISOString(),
       };
       
-      if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount) || 0;
+      if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount.replace(',', '.')) || 0;
       
       await saveOrderToFirestore(db, orderData as Order);
       
@@ -420,6 +420,20 @@ export default function Storefront() {
               {paymentMethod === 'Pix' && (
                 <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2 font-poppins text-center">
                   <div className="flex flex-col gap-1 items-center"><span className="text-[10px] font-bold uppercase text-primary/60">Chave Pix (Celular)</span><button onClick={() => { navigator.clipboard.writeText(PIX_KEY); toast({ title: "Copiado!" }); }} className="text-sm font-bold text-primary bg-white px-5 py-2.5 rounded-xl border border-primary/20 shadow-sm">(91) 98719-9039</button></div>
+                </div>
+              )}
+              {paymentMethod === 'Dinheiro' && (
+                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2 font-poppins">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="change" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Troco para quanto?</Label>
+                    <Input 
+                      id="change" 
+                      placeholder="Ex: 50,00" 
+                      className="h-11 rounded-2xl bg-white border-none font-poppins text-sm" 
+                      value={changeAmount} 
+                      onChange={e => setChangeAmount(e.target.value)} 
+                    />
+                  </div>
                 </div>
               )}
             </div>

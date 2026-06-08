@@ -97,7 +97,7 @@ export default function AdminOrders() {
 
   const isEditable = selectedOrder?.status === 'Pendente';
 
-  const handleUpdateField = (field: keyof Order, value: string) => {
+  const handleUpdateField = (field: keyof Order, value: any) => {
     if (!selectedOrder || !isEditable) return;
     setSelectedOrder({ ...selectedOrder, [field]: value });
   };
@@ -203,7 +203,7 @@ export default function AdminOrders() {
 
     let linhaPagamento = "";
     if (order.paymentMethod === 'Dinheiro') {
-      linhaPagamento = `💵 Dinheiro${order.change ? ` (troco para R$ ${order.change})` : ' (sem troco)'}`;
+      linhaPagamento = `💵 Dinheiro${order.change ? ` (troco para R$ ${order.change.toFixed(2).replace('.', ',')})` : ' (sem troco)'}`;
     } else if (order.paymentMethod === 'Pix') {
       linhaPagamento = `📱 Pix — comprovante a enviar`;
     } else {
@@ -380,6 +380,19 @@ export default function AdminOrders() {
                         <div className="h-10 md:h-12 px-4 rounded-xl bg-muted/10 flex items-center text-xs font-bold text-muted-foreground uppercase">{selectedOrder.paymentMethod}</div>
                       )}
                     </div>
+                    {selectedOrder.paymentMethod === 'Dinheiro' && (
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase font-black ml-1 opacity-50">Troco para</Label>
+                        <Input 
+                          className="h-10 md:h-12 rounded-xl bg-muted/20 border-none text-xs md:text-sm font-bold" 
+                          value={selectedOrder.change || ''} 
+                          readOnly={!isEditable}
+                          type="number"
+                          step="0.01"
+                          onChange={e => handleUpdateField('change', parseFloat(e.target.value) || 0)} 
+                        />
+                      </div>
+                    )}
                     <div className="space-y-1">
                       <Label className="text-[8px] uppercase font-black ml-1 opacity-50">Nº Controle</Label>
                       <Input 
