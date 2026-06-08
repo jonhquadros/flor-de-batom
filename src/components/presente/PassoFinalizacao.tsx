@@ -100,7 +100,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
 
       if (pagamento === 'Dinheiro') orderData.change = parseFloat(changeAmount.replace(',', '.')) || 0;
 
-      // 3. Salvar no Firestore
+      // 3. Salvar no Firestore e fazer baixa no estoque
       await saveOrderToFirestore(db, orderData as Order);
 
       // 4. Preparar mensagem do WhatsApp
@@ -112,7 +112,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
       
       let linhaPagamento = "";
       if (pagamento === 'Dinheiro') {
-        linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`;
+        linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount.replace('.', ',')})` : ' (sem troco)'}`;
       } else if (pagamento === 'Pix') {
         linhaPagamento = `📱 Pix — comprovante a enviar`;
       } else {
@@ -136,7 +136,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
 
       window.open(`https://wa.me/${WHATSAPP_LOJA}?text=${msg}`, '_blank');
       setEnviado(true);
-      toast({ title: "Pedido Registrado!", description: "Seu presente foi salvo e enviado para o WhatsApp." });
+      toast({ title: "Pedido Registrado!", description: "Seu presente foi salvo e o estoque atualizado." });
     } catch (error) {
       console.error("Erro ao finalizar presente:", error);
       toast({ variant: "destructive", title: "Erro no processamento", description: "Não foi possível salvar seu pedido." });
@@ -267,7 +267,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
                 <Image src={embalagem.imageUrl} alt="" fill className="object-cover" />
               </div>
               <p className="flex-1 text-[10px] font-bold text-primary uppercase truncate">{embalagem.name}</p>
-              <p className="text-xs font-bold text-primary">R$ {embalagem.price.toFixed(2)}</p>
+              <p className="text-xs font-bold text-primary">R$ {embalagem.price.toFixed(2).replace('.', ',')}</p>
             </div>
             {itens.map((item, idx) => (
               <div key={`${item.produtoId}-${item.corSelecionada || idx}`} className="flex gap-4 items-center">
@@ -281,7 +281,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
                     {item.corSelecionada && <span className="text-[8px] font-black text-primary/60 uppercase">{item.corSelecionada}</span>}
                   </div>
                 </div>
-                <p className="text-xs font-bold text-primary">R$ {(item.preco * item.quantity).toFixed(2)}</p>
+                <p className="text-xs font-bold text-primary">R$ {(item.preco * item.quantity).toFixed(2).replace('.', ',')}</p>
               </div>
             ))}
           </div>
@@ -289,7 +289,7 @@ export function PassoFinalizacao({ presente, onVoltar, onReiniciar }: Props) {
           <div className="pt-6 border-t space-y-4">
             <div className="flex justify-between items-center text-2xl font-bold text-primary">
               <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Total</span>
-              <span>R$ {totalFinal.toFixed(2)}</span>
+              <span>R$ {totalFinal.toFixed(2).replace('.', ',')}</span>
             </div>
 
             <div className="flex flex-col gap-3">

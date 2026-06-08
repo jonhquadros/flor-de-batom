@@ -314,7 +314,6 @@ export default function AdminSales() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          {/* Barra de categorias com arraste nativo */}
           <div className="w-full sm:w-auto overflow-x-auto no-scrollbar">
             <div className="flex gap-1.5 pb-2 min-w-max">
               <button 
@@ -358,7 +357,7 @@ export default function AdminSales() {
                     <div className="flex-1 min-h-[5.5rem]">
                       <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">{product.category}</p>
                       <h4 className="text-[10px] font-bold line-clamp-2 leading-tight text-primary mt-0.5">{product.name}</h4>
-                      <p className="text-xs font-bold text-primary mt-1">R$ {product.price.toFixed(2)}</p>
+                      <p className="text-xs font-bold text-primary mt-1">R$ {product.price.toFixed(2).replace('.', ',')}</p>
                       <p className={`text-[8px] font-bold mt-0.5 ${stock <= 5 ? 'text-red-500' : 'text-muted-foreground'}`}>Estoque: {stock}</p>
                     </div>
 
@@ -421,7 +420,7 @@ export default function AdminSales() {
                           <h5 className="text-[9px] font-bold leading-tight truncate">{item.name}</h5>
                           {item.selectedColor && <p className="text-[7px] font-bold text-muted-foreground uppercase">{item.selectedColor}</p>}
                           <div className="flex items-center justify-between mt-1">
-                            <span className="text-[9px] font-bold text-primary">R$ {(item.price * item.quantity).toFixed(2)}</span>
+                            <span className="text-[9px] font-bold text-primary">R$ {(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
                             <div className="flex items-center gap-1.5">
                               <button className="h-5 w-5 rounded-md bg-muted flex items-center justify-center hover:bg-primary/10" onClick={() => updateCartQuantity(item.id, -1, item.selectedColor)}><Minus className="h-2 w-2" /></button>
                               <span className="text-[9px] font-bold">{item.quantity}</span>
@@ -498,7 +497,7 @@ export default function AdminSales() {
               <div className="pt-2 space-y-1.5 border-t">
                 <div className="flex items-center justify-between text-[10px] font-bold">
                   <span className="text-muted-foreground">SUBTOTAL</span>
-                  <span>R$ {subtotal.toFixed(2)}</span>
+                  <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
                 </div>
                 <div className="flex items-center justify-between text-[10px] font-bold text-red-500">
                   <span className="flex items-center gap-1 uppercase tracking-tighter">Desconto</span>
@@ -514,7 +513,7 @@ export default function AdminSales() {
                 </div>
                 <div className="flex items-center justify-between text-lg font-bold text-primary pt-1">
                   <span>TOTAL</span>
-                  <span>R$ {total.toFixed(2)}</span>
+                  <span>R$ {total.toFixed(2).replace('.', ',')}</span>
                 </div>
               </div>
 

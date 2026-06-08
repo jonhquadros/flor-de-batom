@@ -157,7 +157,7 @@ export default function AdminOrders() {
               <TableRow key={order.id} className="h-16">
                 <TableCell className="font-bold text-primary">#{order.orderNumber || order.id.substr(0,6)}</TableCell>
                 <TableCell className="font-medium">{order.customerName}</TableCell>
-                <TableCell className="font-black">R$ {order.total.toFixed(2)}</TableCell>
+                <TableCell className="font-black">R$ {order.total.toFixed(2).replace('.', ',')}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={`text-[10px] font-bold uppercase px-3 py-1 rounded-full ${order.status === 'Entregue' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
                     {order.status}
@@ -173,61 +173,61 @@ export default function AdminOrders() {
       </div>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="w-[95%] max-w-4xl h-[90vh] rounded-[2rem] p-0 flex flex-col overflow-hidden">
-          <div className="px-6 py-4 border-b flex items-center justify-between bg-[#FDFCFB]">
-            <DialogTitle className="text-xl font-bold text-primary">Pedido #{selectedOrder?.orderNumber || selectedOrder?.id.substr(0,6)}</DialogTitle>
+        <DialogContent className="w-[98%] max-w-4xl h-[94vh] rounded-[2rem] p-0 flex flex-col overflow-hidden">
+          <div className="px-5 py-3 border-b flex items-center justify-between bg-[#FDFCFB]">
+            <DialogTitle className="text-lg font-bold text-primary">#{selectedOrder?.orderNumber || selectedOrder?.id.substr(0,6)}</DialogTitle>
             {selectedOrder && (
               <Select value={selectedOrder.status} onValueChange={(v: OrderStatus) => initiateStatusChange(selectedOrder.id, v)}>
-                <SelectTrigger className="w-32 h-9 rounded-xl shadow-sm font-bold text-[10px] uppercase bg-white"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-28 h-8 rounded-xl shadow-sm font-bold text-[9px] uppercase bg-white"><SelectValue /></SelectTrigger>
                 <SelectContent>{['Pendente', 'Pago', 'Enviado', 'Entregue', 'Cancelado'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
             )}
           </div>
           
           {selectedOrder && (
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar bg-white">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase text-primary/40"><User className="h-3 w-3" /> Cliente</div>
-                  <Input className="h-10 rounded-xl bg-muted/20 border-none font-bold" value={selectedOrder.customerName} readOnly={!isEditable} onChange={e => handleUpdateField('customerName', e.target.value)} />
-                  <Input className="h-10 rounded-xl bg-muted/20 border-none font-bold" value={selectedOrder.customerPhone} readOnly={!isEditable} onChange={e => handleUpdateField('customerPhone', e.target.value)} />
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase text-primary/40"><User className="h-3 w-3" /> Dados Básicos</div>
+                  <Input className="h-10 rounded-xl bg-muted/20 border-none font-bold text-xs" value={selectedOrder.customerName} readOnly={!isEditable} onChange={e => handleUpdateField('customerName', e.target.value)} placeholder="Nome do Cliente" />
+                  <Input className="h-10 rounded-xl bg-muted/20 border-none font-bold text-xs" value={selectedOrder.customerPhone} readOnly={!isEditable} onChange={e => handleUpdateField('customerPhone', e.target.value)} placeholder="WhatsApp" />
                 </div>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase text-primary/40"><Wallet className="h-3 w-3" /> Pagamento</div>
-                  <div className="h-10 px-4 rounded-xl bg-muted/10 flex items-center text-xs font-bold uppercase">{selectedOrder.paymentMethod}</div>
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase text-primary/40"><Wallet className="h-3 w-3" /> Pagamento</div>
+                  <div className="h-10 px-4 rounded-xl bg-muted/10 flex items-center text-[10px] font-bold uppercase">{selectedOrder.paymentMethod}</div>
                   {selectedOrder.paymentMethod === 'Dinheiro' && (
-                    <Input className="h-10 rounded-xl bg-muted/20 border-none font-bold" value={selectedOrder.change || ''} placeholder="Troco para" readOnly={!isEditable} type="number" onChange={e => handleUpdateField('change', parseFloat(e.target.value))} />
+                    <Input className="h-10 rounded-xl bg-muted/20 border-none font-bold text-xs" value={selectedOrder.change || ''} placeholder="Troco para quanto?" readOnly={!isEditable} type="number" onChange={e => handleUpdateField('change', parseFloat(e.target.value))} />
                   )}
                 </div>
                 <div className="md:col-span-2 space-y-2">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase text-primary/40"><MapPin className="h-3 w-3" /> Endereço</div>
-                  <Textarea className="min-h-[60px] rounded-xl bg-muted/20 border-none resize-none font-medium" value={selectedOrder.customerAddress} readOnly={!isEditable} onChange={e => handleUpdateField('customerAddress', e.target.value)} />
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase text-primary/40"><MapPin className="h-3 w-3" /> Endereço Completo</div>
+                  <Textarea className="min-h-[60px] rounded-xl bg-muted/20 border-none resize-none font-medium text-xs leading-relaxed" value={selectedOrder.customerAddress} readOnly={!isEditable} onChange={e => handleUpdateField('customerAddress', e.target.value)} />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-primary/40 border-b pb-2"><ShoppingBag className="h-3 w-3" /> Itens</div>
-                <div className="space-y-3">
+                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-primary/40 border-b pb-2"><ShoppingBag className="h-3 w-3" /> Itens Escolhidos</div>
+                <div className="grid grid-cols-1 gap-2">
                   {selectedOrder.items.map((item, idx) => (
-                    <div key={idx} className="p-3 flex items-center justify-between gap-4 bg-white rounded-2xl border border-primary/5 shadow-sm">
-                      <div className="flex items-center gap-3">
+                    <div key={idx} className="p-2 flex items-center justify-between gap-3 bg-white rounded-2xl border border-primary/5 shadow-sm">
+                      <div className="flex items-center gap-2 min-w-0">
                         <div className="relative h-12 w-12 rounded-xl overflow-hidden border shrink-0"><Image src={item.imageUrl} alt="" fill className="object-cover" /></div>
-                        <div>
-                          <h4 className="font-bold text-[10px] text-primary truncate max-w-[150px]">{item.name}</h4>
-                          {item.selectedColor && <Badge className="text-[7px] font-black uppercase mt-1">{item.selectedColor}</Badge>}
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="text-[10px] font-black">R$ {item.price.toFixed(2)}</span>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-[10px] text-primary truncate">{item.name}</h4>
+                          {item.selectedColor && <Badge className="text-[7px] font-black uppercase mt-1 h-4 px-1">{item.selectedColor}</Badge>}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] font-black">R$ {item.price.toFixed(2).replace('.', ',')}</span>
                             {isEditable ? (
-                              <div className="flex items-center bg-muted/40 rounded-lg p-1">
+                              <div className="flex items-center bg-muted/40 rounded-lg p-0.5">
                                 <button onClick={() => handleUpdateItemQuantity(item.id, -1, item.selectedColor)} className="h-5 w-5 flex items-center justify-center"><Minus className="h-2 w-2" /></button>
                                 <span className="w-5 text-center text-[10px] font-bold">{item.quantity}</span>
                                 <button onClick={() => handleUpdateItemQuantity(item.id, 1, item.selectedColor)} className="h-5 w-5 flex items-center justify-center"><Plus className="h-2 w-2" /></button>
                               </div>
-                            ) : <span className="text-[10px] font-bold">Qtd: {item.quantity}</span>}
+                            ) : <span className="text-[10px] font-bold text-muted-foreground">Qtd: {item.quantity}</span>}
                           </div>
                         </div>
                       </div>
-                      {isEditable && <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem(item.id, item.selectedColor)}><Trash2 className="h-4 w-4" /></Button>}
+                      {isEditable && <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 shrink-0" onClick={() => handleRemoveItem(item.id, item.selectedColor)}><Trash2 className="h-4 w-4" /></Button>}
                     </div>
                   ))}
                 </div>
@@ -235,11 +235,11 @@ export default function AdminOrders() {
             </div>
           )}
 
-          <div className="p-6 border-t bg-[#FDFCFB] flex flex-col items-center gap-4">
-            <div className="text-center"><p className="text-[10px] font-black uppercase text-primary/40">Total</p><p className="text-2xl font-black text-primary">R$ {selectedOrder?.total.toFixed(2)}</p></div>
+          <div className="p-5 border-t bg-[#FDFCFB] flex flex-col items-center gap-4">
+            <div className="text-center"><p className="text-[9px] font-black uppercase text-primary/40">Total do Pedido</p><p className="text-2xl font-black text-primary">R$ {selectedOrder?.total.toFixed(2).replace('.', ',')}</p></div>
             <div className="flex gap-2 w-full justify-center">
-              {isEditable && <Button className="h-12 px-6 rounded-xl bg-white border-2 border-primary text-primary font-black uppercase text-[10px]" onClick={saveOrderChanges}><Save className="h-4 w-4 mr-2" /> Salvar</Button>}
-              <Button className="h-12 px-6 rounded-xl bg-[#25D366] text-white font-black uppercase text-[10px] flex gap-2" onClick={() => selectedOrder && sendOrderToWhatsApp(selectedOrder)}><MessageCircle className="h-4 w-4" /> WhatsApp</Button>
+              {isEditable && <Button className="h-12 flex-1 rounded-xl bg-white border-2 border-primary text-primary font-black uppercase text-[10px]" onClick={saveOrderChanges}><Save className="h-4 w-4 mr-2" /> Salvar</Button>}
+              <Button className="h-12 flex-1 rounded-xl bg-[#25D366] text-white font-black uppercase text-[10px] flex gap-2" onClick={() => selectedOrder && sendOrderToWhatsApp(selectedOrder)}><MessageCircle className="h-4 w-4" /> WhatsApp</Button>
             </div>
           </div>
         </DialogContent>

@@ -170,7 +170,7 @@ export default function Storefront() {
       
       if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount.replace(',', '.')) || 0;
       
-      // Salva o pedido e JÁ REALIZA A BAIXA NO ESTOQUE (conforme configurado em storage-utils)
+      // Salva o pedido e JÁ REALIZA A BAIXA NO ESTOQUE
       await saveOrderToFirestore(db, orderData as Order);
       
       const linhasProdutos = cart.map(i => {
@@ -180,7 +180,7 @@ export default function Storefront() {
 
       let linhaPagamento = "";
       if (paymentMethod === 'Dinheiro') {
-        linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`;
+        linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount.replace('.', ',')})` : ' (sem troco)'}`;
       } else if (paymentMethod === 'Pix') {
         linhaPagamento = `📱 Pix — comprovante a enviar`;
       } else {
@@ -265,7 +265,7 @@ export default function Storefront() {
                         <div className="flex-1">
                           <h4 className="font-poppins text-sm truncate text-primary">{item.name}</h4>
                           {item.selectedColor && <p className="text-[10px] font-bold uppercase text-muted-foreground">Cor: {item.selectedColor}</p>}
-                          <p className="text-primary font-semibold">R$ {item.price.toFixed(2)}</p>
+                          <p className="text-primary font-semibold">R$ {item.price.toFixed(2).replace('.', ',')}</p>
                           <div className="flex items-center gap-3 mt-2"><button onClick={() => updateQuantity(item.id, -1, item.selectedColor)}><Minus className="h-3 w-3" /></button><span className="text-xs font-bold">{item.quantity}</span><button onClick={() => updateQuantity(item.id, 1, item.selectedColor)}><Plus className="h-3 w-3" /></button></div>
                         </div>
                       </div>
@@ -275,7 +275,7 @@ export default function Storefront() {
                 {cart.length > 0 && (
                   <SheetFooter className="p-6 border-t bg-white">
                     <div className="w-full space-y-4">
-                      <div className="flex justify-between items-end"><span className="text-muted-foreground">Subtotal</span><span className="text-2xl font-semibold text-primary">R$ {cartTotal.toFixed(2)}</span></div>
+                      <div className="flex justify-between items-end"><span className="text-muted-foreground">Subtotal</span><span className="text-2xl font-semibold text-primary">R$ {cartTotal.toFixed(2).replace('.', ',')}</span></div>
                       <Button className="w-full bg-primary h-14 rounded-2xl text-lg font-bold" onClick={handleOpenCheckout}>Finalizar</Button>
                     </div>
                   </SheetFooter>
@@ -307,7 +307,7 @@ export default function Storefront() {
                       <Link href={`/produto/${product.id}`}>
                         <h4 className="font-poppins text-xs leading-tight line-clamp-2 min-h-[2.5em] text-primary">{product.name}</h4>
                       </Link>
-                      <p className="text-base font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
+                      <p className="text-base font-semibold text-primary">R$ {product.price.toFixed(2).replace('.', ',')}</p>
                     </div>
                     <Link href={`/produto/${product.id}`} className="absolute bottom-3 right-3 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg active:scale-95">
                       <Plus className="h-6 w-6" />
