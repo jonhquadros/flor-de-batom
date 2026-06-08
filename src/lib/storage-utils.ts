@@ -76,6 +76,9 @@ export const getNextOrderNumber = async (db: Firestore): Promise<string> => {
   return nextNum.toString().padStart(6, '0');
 };
 
+/**
+ * Salva o pedido e JÁ REALIZA A BAIXA NO ESTOQUE automaticamente.
+ */
 export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
   const ordersRef = collection(db, 'orders');
   const orderDocRef = doc(ordersRef, order.id);
@@ -86,8 +89,10 @@ export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
     createdAt: order.createdAt || new Date().toISOString()
   });
 
+  // 1. Salva o documento principal do pedido
   await setDoc(orderDocRef, cleanedOrder, { merge: true });
 
+  // 2. Salva os itens em subcoleção (para relatórios detalhados)
   const itemsRef = collection(orderDocRef, 'orderItems');
   for (const item of order.items) {
     const itemRef = doc(itemsRef);
@@ -100,6 +105,9 @@ export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
       subtotal: item.price * item.quantity
     }), { merge: true });
   }
+
+  // 3. REALIZA A BAIXA NO ESTOQUE IMEDIATAMENTE (Pendente já retira do estoque)
+  await adjustInventoryForOrder(db, order, 'decrement');
 };
 
 export const updateOrder = (db: Firestore, order: Order) => {
@@ -107,6 +115,9 @@ export const updateOrder = (db: Firestore, order: Order) => {
   updateDocumentNonBlocking(orderRef, sanitizeData(order));
 };
 
+/**
+ * Ajusta o inventário baseado nos itens do pedido.
+ */
 export const adjustInventoryForOrder = async (db: Firestore, order: Order, type: 'decrement' | 'increment') => {
   for (const item of order.items) {
     const productRef = doc(db, 'products', item.id);
@@ -135,34 +146,48 @@ export const adjustInventoryForOrder = async (db: Firestore, order: Order, type:
         updatedAt: serverTimestamp()
       });
       
-      // Registrar movimento automático
+      // Registrar movimento automático no histórico
       recordStockMovement(db, {
         productId: item.id,
         productName: product.name,
         variationName: item.selectedColor,
         quantity: quantityChange,
         type: type === 'decrement' ? 'Sale' : 'Adjustment',
-        reason: `Ajuste automático via alteração de status do pedido #${order.orderNumber}`
+        reason: `Ajuste automático via pedido #${order.orderNumber || order.id.substr(0,6)}`
       });
     }
   }
 };
 
+/**
+ * Atualiza o status do pedido e gerencia o estoque apenas em casos de cancelamento/reativação.
+ */
 export const updateOrderStatus = async (db: Firestore, order: Order, newStatus: OrderStatus) => {
   const oldStatus = order.status;
-  const isPaidState = (s: OrderStatus) => ['Pago', 'Enviado', 'Entregue'].includes(s);
-  const isUnpaidState = (s: OrderStatus) => ['Pendente', 'Cancelado'].includes(s);
+  
+  // Definição de estados: 
+  // 'Cancelado' = Estoque devolvido
+  // 'Pendente', 'Pago', 'Enviado', 'Entregue' = Estoque retirado
+  
+  const isStockOutStatus = (s: OrderStatus) => ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Confirmado'].includes(s);
+  const isStockInStatus = (s: OrderStatus) => s === 'Cancelado';
 
-  if (isUnpaidState(oldStatus) && isPaidState(newStatus)) {
+  // Se saiu de Cancelado para um estado ativo -> Retira do estoque de novo
+  if (isStockInStatus(oldStatus) && isStockOutStatus(newStatus)) {
     await adjustInventoryForOrder(db, order, 'decrement');
   } 
-  else if (isPaidState(oldStatus) && isUnpaidState(newStatus)) {
+  // Se saiu de um estado ativo para Cancelado -> Devolve ao estoque
+  else if (isOutStatus(oldStatus) && isStockInStatus(newStatus)) {
     await adjustInventoryForOrder(db, order, 'increment');
   }
 
+  // Atualiza o documento no Firestore
   const orderRef = doc(db, 'orders', order.id);
   updateDocumentNonBlocking(orderRef, { status: newStatus });
 };
+
+// Helper interno para clareza
+const isOutStatus = (s: OrderStatus) => ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Confirmado'].includes(s);
 
 export const seedInitialDataToFirestore = async (db: Firestore) => {
   const adminCheck = await getDocs(collection(db, 'admin_users'));
