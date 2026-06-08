@@ -309,10 +309,9 @@ export default function AdminOrders() {
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="w-[95%] sm:w-[90%] max-w-5xl h-[95vh] sm:h-[90vh] overflow-hidden font-poppins rounded-[2rem] p-0 border-none shadow-2xl flex flex-col bg-white">
-          {/* Header Compacto */}
           <div className="px-6 py-4 md:px-10 md:py-6 border-b border-primary/5 flex flex-row items-center justify-between gap-4 bg-[#FDFCFB]">
             <div className="min-w-0">
-              <DialogTitle className="text-xl md:text-2xl font-bold text-primary tracking-tight truncate">
+              <DialogTitle className="text-lg md:text-2xl font-bold text-primary tracking-tight truncate">
                 Pedido #{selectedOrder?.orderNumber || selectedOrder?.id.substr(0,6)}
               </DialogTitle>
               <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-primary/40">Detalhes da Transação</p>
@@ -331,10 +330,7 @@ export default function AdminOrders() {
           
           {selectedOrder && (
             <div className="flex-1 overflow-y-auto p-4 md:p-10 space-y-6 md:space-y-10 custom-scrollbar">
-              
-              {/* 1. SEÇÃO DE INFORMAÇÕES EM GRID */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                {/* Dados do Cliente */}
                 <div className="space-y-3 md:space-y-4">
                   <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] tracking-widest opacity-60">
                     <User className="h-3 w-3" /> Dados do Cliente
@@ -361,7 +357,6 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
-                {/* Pagamento e Controle */}
                 <div className="space-y-3 md:space-y-4">
                   <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] tracking-widest opacity-60">
                     <Wallet className="h-3 w-3" /> Pagamento
@@ -397,7 +392,6 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
-                {/* Endereço */}
                 <div className="md:col-span-2 space-y-3 md:space-y-4">
                   <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] tracking-widest opacity-60">
                     <MapPin className="h-3 w-3" /> Endereço de Entrega
@@ -412,7 +406,6 @@ export default function AdminOrders() {
                 </div>
               </div>
 
-              {/* 2. SEÇÃO DE PRODUTOS */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-2">
                   <div className="flex items-center gap-2 text-primary font-black uppercase text-[9px] tracking-widest opacity-60">
@@ -515,7 +508,6 @@ export default function AdminOrders() {
             </div>
           )}
 
-          {/* Rodapé de Ações Fixo */}
           <div className="p-4 md:p-8 border-t bg-[#FDFCFB] flex flex-col items-center gap-4">
             <div className="text-center">
               <span className="font-black uppercase text-[8px] tracking-widest text-primary/40">Valor Total</span>
@@ -542,7 +534,6 @@ export default function AdminOrders() {
         </DialogContent>
       </Dialog>
 
-      {/* Alerta de Confirmação de Mudança de Status */}
       <AlertDialog open={isStatusConfirmOpen} onOpenChange={setIsStatusConfirmOpen}>
         <AlertDialogContent className="rounded-[2rem] w-[90%] max-w-md border-none p-8 md:p-10 font-poppins shadow-2xl">
           <AlertDialogHeader>

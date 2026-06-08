@@ -72,7 +72,6 @@ export default function Storefront() {
 
   const categories = useMemo(() => {
     if (!mounted || !categoriesRaw) return [];
-    // Filtra a categoria "Monte seu Presente" para não aparecer no menu principal
     return [...categoriesRaw]
       .filter(cat => cat.name.toLowerCase().trim() !== 'monte seu presente')
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
@@ -109,30 +108,6 @@ export default function Storefront() {
       }
     }
   }, [mounted]);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const anyOverlayOpen = isCartOpen || isCheckoutOpen || isMobileMenuOpen;
-    if (anyOverlayOpen) {
-      window.history.pushState({ overlay: true }, '');
-    }
-    const handlePopState = (event: PopStateEvent) => {
-      if (isCartOpen) setIsCartOpen(false);
-      if (isCheckoutOpen) setIsCheckoutOpen(false);
-      if (isMobileMenuOpen) setIsMobileMenuOpen(false);
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [isCartOpen, isCheckoutOpen, isMobileMenuOpen, mounted]);
-
-  useEffect(() => {
-    if (!mounted || isUserLoading || !auth || !db) return;
-    if (!user) {
-      initiateAnonymousSignIn(auth);
-    } else {
-      seedInitialDataToFirestore(db);
-    }
-  }, [user, isUserLoading, auth, db, mounted]);
 
   useEffect(() => {
     if (mounted) {
@@ -212,13 +187,11 @@ export default function Storefront() {
       
       if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount) || 0;
       
+      // Salva no banco E já retira do estoque automaticamente
       await saveOrderToFirestore(db, orderData as Order);
       
-      const NUMERO_LOJA_MSG = "5591987199039";
-      
       const linhasProdutos = cart.map(i => {
-        const temVariacoes = i.variations && i.variations.length > 0;
-        const labelCor = (temVariacoes && i.selectedColor) ? ` [${i.selectedColor}]` : '';
+        const labelCor = i.selectedColor ? ` [${i.selectedColor}]` : '';
         return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`;
       }).join('\n');
 
@@ -227,10 +200,8 @@ export default function Storefront() {
         linhaPagamento = `💵 Dinheiro${changeAmount ? ` (troco para R$ ${changeAmount})` : ' (sem troco)'}`;
       } else if (paymentMethod === 'Pix') {
         linhaPagamento = `📱 Pix — comprovante a enviar`;
-      } else if (paymentMethod === 'Cartão Débito') {
-        linhaPagamento = `💳 Cartão de Débito`;
       } else {
-        linhaPagamento = `💳 Cartão de Crédito`;
+        linhaPagamento = `💳 ${paymentMethod}`;
       }
 
       const totalFormatado = cartTotal.toFixed(2).replace('.', ',');
@@ -245,7 +216,7 @@ export default function Storefront() {
         `_Pedido enviado pelo catálogo online_`
       );
       
-      window.open(`https://wa.me/${NUMERO_LOJA_MSG}?text=${msg}`, '_blank');
+      window.open(`https://wa.me/${WHATSAPP_LOJA}?text=${msg}`, '_blank');
       
       setCart([]);
       setIsCheckoutOpen(false);
@@ -260,25 +231,6 @@ export default function Storefront() {
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  const copyPixKey = () => {
-    navigator.clipboard.writeText(PIX_KEY);
-    toast({ title: "Chave Copiada!", description: "A chave Pix foi copiada com sucesso." });
-  };
-
-  const handleShareProduct = (e: React.MouseEvent, p: Product) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const url = `https://flordebatommakeup.netlify.app/produto/${p.id}`;
-    const msg = encodeURIComponent(
-      `🌸 *Flor de Batom Makeup*\n\n` +
-      `Olha que lindo esse produto! 😍\n\n` +
-      `🛍️ *${p.name}*\n` +
-      `💰 R$ ${p.price.toFixed(2).replace('.', ',')}\n\n` +
-      `🔗 Veja os detalhes:\n${url}`
-    );
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
   };
 
   if (!mounted) return null;
@@ -368,7 +320,6 @@ export default function Storefront() {
 
         <main className="flex-1">
           <div className="container mx-auto px-4 mt-8 pb-10">
-            {/* Promo Presentes Banner */}
             <Link href="/presente">
               <div className="mb-6 group bg-white border border-primary/10 rounded-[2rem] p-4 flex items-center justify-between shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-500 cursor-pointer overflow-hidden relative">
                 <div className="flex items-center gap-4 z-10">
@@ -392,34 +343,10 @@ export default function Storefront() {
                 <div className="inline-flex items-center bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10">Coleção Exclusiva</div>
                 <h2 className="text-2xl md:text-5xl font-bold text-white leading-tight font-poppins">Realce sua beleza todos os dias <span className="inline-block animate-pulse">💓</span></h2>
                 <p className="text-white/80 text-xs md:text-base leading-relaxed max-w-md mx-auto md:mx-0 font-poppins">Maquiagens selecionadas para valorizar sua autoestima com delicadeza <Sparkles className="h-4 w-4 inline text-yellow-300" /></p>
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 pt-2 text-white/90">
-                  <div className="flex items-center gap-2 text-[10px] md:text-xs font-medium"><Truck className="h-4 w-4" /> Entrega grátis</div>
-                  <div className="flex items-center gap-2 text-[10px] md:text-xs font-medium"><ShoppingBag className="h-4 w-4" /> Loja 100% online</div>
-                </div>
               </div>
               <div className="relative shrink-0 z-10">
-                <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
                 <div className="relative w-32 h-32 md:w-56 md:h-56 rounded-full overflow-hidden border-[6px] md:border-[8px] border-white/20 shadow-2xl"><Image src={LOGO_URL} alt="Flor de Batom Logo" fill className="object-cover" /></div>
               </div>
-              <div className="absolute top-[-20px] right-[-20px] w-48 h-48 md:w-64 md:h-64 bg-white/5 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-[-40px] left-[-40px] w-64 h-64 md:w-80 md:h-80 bg-black/10 rounded-full blur-3xl"></div>
-            </div>
-
-            <div className="lg:hidden mb-8 overflow-x-auto no-scrollbar -mx-4 px-4 flex gap-3">
-              <button className={`flex-none px-5 py-2.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white border text-muted-foreground'}`} onClick={() => setSelectedCategory('Todos')}>TODOS</button>
-              {categories.map(cat => (
-                <button key={cat.id} className={`flex-none px-5 py-2.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all ${selectedCategory === cat.name ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white border text-muted-foreground'}`} onClick={() => setSelectedCategory(cat.name)}>{cat.name.toUpperCase()}</button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl md:text-2xl font-bold text-primary">{selectedCategory.toUpperCase()}</h3>
-              <select className="bg-transparent text-[10px] md:text-xs font-bold text-primary cursor-pointer appearance-none border-none pr-4" value={sortOrder} onChange={(e) => setSortOrder(e.target.value as any)}>
-                <option value="relevance">ORDEM PERSONALIZADA</option>
-                <option value="price-asc">MENOR PREÇO</option>
-                <option value="price-desc">MAIOR PREÇO</option>
-                <option value="az">A - Z</option>
-              </select>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6">
@@ -428,13 +355,6 @@ export default function Storefront() {
                   <Link href={`/produto/${product.id}`} className="relative aspect-square cursor-pointer overflow-hidden bg-muted">
                     <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                   </Link>
-                  <button 
-                    onClick={(e) => handleShareProduct(e, product)}
-                    className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 backdrop-blur-sm text-primary flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all z-10 active:scale-90 hover:bg-[#25D366] hover:text-white"
-                    title="Compartilhar no WhatsApp"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </button>
                   <CardContent className="p-3 md:p-5 flex flex-col flex-1">
                     <div className="flex-1 space-y-1">
                       <p className="text-[9px] font-bold text-primary/60 uppercase tracking-widest">{product.category}</p>
@@ -443,77 +363,13 @@ export default function Storefront() {
                       </Link>
                       <p className="text-base font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
                     </div>
-                    <Link 
-                      href={`/produto/${product.id}`}
-                      className="absolute bottom-3 right-3 h-10 w-10 rounded-2xl flex items-center justify-center bg-primary text-white shadow-lg active:scale-90 transition-transform"
-                      title="Ver Detalhes"
-                    >
-                      <Plus className="h-5 w-5" />
-                    </Link>
                   </CardContent>
                 </Card>
               ))}
             </div>
-
-            <div className="mt-20 py-16 px-4 md:px-8 bg-primary/5 rounded-[3rem] border border-primary/10 relative overflow-hidden">
-               <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
-                  <div className="mx-auto w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg mb-4"><MessageCircle className="h-8 w-8 text-primary" /></div>
-                  <h3 className="text-3xl md:text-5xl font-bold text-primary font-poppins">Atendimento Exclusivo</h3>
-                  <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto leading-relaxed font-poppins">Dúvidas sobre tons, texturas ou seu pedido? Estamos prontos para te atender com todo o carinho que você merece 💖</p>
-                  <div className="pt-4"><Button className="h-16 px-10 rounded-2xl bg-primary hover:bg-primary/90 text-lg font-bold shadow-xl shadow-primary/20 gap-3" onClick={() => window.open(`https://wa.me/${WHATSAPP_LOJA}?text=Olá! Gostaria de um atendimento personalizado.`, '_blank')}><MessageCircle className="h-6 w-6" /> Falar no WhatsApp</Button></div>
-               </div>
-               <div className="absolute top-[-50px] left-[-50px] w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
-               <div className="absolute bottom-[-50px] right-[-50px] w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
-            </div>
           </div>
-
-          <footer className="bg-white border-t pt-16 pb-8 px-4 md:px-8">
-            <div className="container mx-auto">
-              <div className="flex flex-col items-center justify-center text-center space-y-6 mb-16">
-                <div className="space-y-6">
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-primary font-poppins">Contato & Endereço</h4>
-                  <ul className="space-y-4">
-                    <li className="flex items-center justify-center gap-3"><MapPin className="h-5 w-5 text-primary shrink-0" /><span className="text-muted-foreground text-sm font-poppins">Capanema, Pará - Brasil</span></li>
-                    <li className="flex items-center justify-center gap-3"><MessageCircle className="h-5 w-5 text-primary shrink-0" /><span className="text-muted-foreground text-sm font-poppins">(91) 98719-9039</span></li>
-                  </ul>
-                  <div className="flex items-center justify-center gap-4 pt-2">
-                    <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all"><Instagram className="h-5 w-5" /></a>
-                    <a href={`https://wa.me/${WHATSAPP_LOJA}`} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-xl bg-muted/50 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all"><MessageCircle className="h-5 w-5" /></a>
-                  </div>
-                </div>
-              </div>
-              <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                <p className="text-[10px] text-muted-foreground font-medium font-poppins">© {currentYear || '...'} Flor de Batom Makeup. Todos os direitos reservados.</p>
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-poppins">Feito com <Heart className="h-3 w-3 text-red-400 fill-red-400" /> para realçar sua beleza.</div>
-              </div>
-            </div>
-          </footer>
         </main>
       </div>
-
-      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetContent side="left" className="w-[85%] p-0 border-none shadow-2xl z-[110]">
-          <div className="h-full flex flex-col bg-white">
-            <SheetHeader className="p-8 border-b flex flex-row items-center gap-3 bg-primary/5 text-left"><SheetTitle className="text-2xl font-bold text-primary font-poppins">Menu</SheetTitle></SheetHeader>
-            <div className="flex-1 overflow-y-auto p-4 space-y-1">
-              <Link href="/presente" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="flex items-center justify-between p-4 mb-4 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20">
-                  <div className="flex items-center gap-3">
-                    <Gift className="h-6 w-6" />
-                    <span className="font-black uppercase tracking-widest text-sm">Monte seu Presente</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5" />
-                </div>
-              </Link>
-
-              <button className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === 'Todos' ? 'bg-primary/5 text-primary border border-primary/20' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}>TODOS {selectedCategory === 'Todos' && <ChevronRight className="h-5 w-5" />}</button>
-              {categories.map(cat => (
-                <button key={cat.id} className={`w-full text-left px-6 py-4 rounded-2xl text-lg font-bold uppercase tracking-wider transition-all flex items-center justify-between font-poppins ${selectedCategory === cat.name ? 'bg-primary/5 text-primary border border-primary/20' : 'text-muted-foreground'}`} onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}>{cat.name.toUpperCase()}</button>
-              ))}
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
 
       <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
         <DialogContent className="w-[95%] max-w-[400px] p-0 overflow-hidden border-none shadow-2xl z-[130] rounded-[2rem] max-h-[90vh] flex flex-col">
@@ -534,11 +390,9 @@ export default function Storefront() {
               </div>
               {paymentMethod === 'Pix' && (
                 <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2 font-poppins text-center">
-                  <div className="flex flex-col gap-1 items-center"><span className="text-[10px] font-bold uppercase text-primary/60">Chave Pix (Celular)</span><button onClick={copyPixKey} className="group relative flex items-center gap-2 text-sm font-bold text-primary bg-white px-5 py-2.5 rounded-xl border border-primary/20 hover:border-primary/40 active:scale-95 transition-all shadow-sm">(91) 98719-9039<Copy className="h-3 w-3 opacity-50 group-hover:opacity-100" /></button><span className="text-[9px] text-primary/40 italic">Clique no número para copiar</span></div>
-                  <div className="p-2.5 bg-white/50 border border-primary/10 rounded-xl"><p className="text-[10px] leading-relaxed text-primary">⚠️ <span className="font-bold uppercase tracking-tighter">Aviso:</span> Após o pagamento, envie o comprovante para confirmar seu pedido pelo WhatsApp da loja.</p></div>
+                  <div className="flex flex-col gap-1 items-center"><span className="text-[10px] font-bold uppercase text-primary/60">Chave Pix (Celular)</span><button onClick={() => { navigator.clipboard.writeText(PIX_KEY); toast({ title: "Copiado!" }); }} className="text-sm font-bold text-primary bg-white px-5 py-2.5 rounded-xl border border-primary/20 shadow-sm">(91) 98719-9039</button></div>
                 </div>
               )}
-              {paymentMethod === 'Dinheiro' && (<div className="space-y-1.5 animate-in slide-in-from-top-2 font-poppins"><Label htmlFor="change" className="text-[10px] font-bold uppercase text-primary/60 ml-1">Precisa de troco para quanto?</Label><Input id="change" type="number" placeholder="Ex: 50" className="h-11 rounded-2xl bg-muted/30 border-none font-poppins text-sm" value={changeAmount} onChange={e => setChangeAmount(e.target.value)} /></div>)}
             </div>
             <Button 
               className="w-full h-14 rounded-2xl bg-primary text-base font-bold shadow-xl shadow-primary/20 active:scale-95 transition-transform font-poppins" 

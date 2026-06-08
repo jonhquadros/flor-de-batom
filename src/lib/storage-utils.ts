@@ -77,45 +77,6 @@ export const getNextOrderNumber = async (db: Firestore): Promise<string> => {
 };
 
 /**
- * Salva o pedido e JÁ REALIZA A BAIXA NO ESTOQUE automaticamente.
- */
-export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
-  const ordersRef = collection(db, 'orders');
-  const orderDocRef = doc(ordersRef, order.id);
-  
-  const cleanedOrder = sanitizeData({
-    ...order,
-    status: order.status || 'Pendente',
-    createdAt: order.createdAt || new Date().toISOString()
-  });
-
-  // 1. Salva o documento principal do pedido
-  await setDoc(orderDocRef, cleanedOrder, { merge: true });
-
-  // 2. Salva os itens em subcoleção (para relatórios detalhados)
-  const itemsRef = collection(orderDocRef, 'orderItems');
-  for (const item of order.items) {
-    const itemRef = doc(itemsRef);
-    await setDoc(itemRef, sanitizeData({
-      ...item,
-      orderId: order.id,
-      productId: item.id,
-      productName: item.name,
-      productPrice: item.price,
-      subtotal: item.price * item.quantity
-    }), { merge: true });
-  }
-
-  // 3. REALIZA A BAIXA NO ESTOQUE IMEDIATAMENTE (Pendente já retira do estoque)
-  await adjustInventoryForOrder(db, order, 'decrement');
-};
-
-export const updateOrder = (db: Firestore, order: Order) => {
-  const orderRef = doc(db, 'orders', order.id);
-  updateDocumentNonBlocking(orderRef, sanitizeData(order));
-};
-
-/**
  * Ajusta o inventário baseado nos itens do pedido.
  */
 export const adjustInventoryForOrder = async (db: Firestore, order: Order, type: 'decrement' | 'increment') => {
@@ -160,34 +121,73 @@ export const adjustInventoryForOrder = async (db: Firestore, order: Order, type:
 };
 
 /**
+ * Salva o pedido e JÁ REALIZA A BAIXA NO ESTOQUE automaticamente.
+ */
+export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
+  const ordersRef = collection(db, 'orders');
+  const orderDocRef = doc(ordersRef, order.id);
+  
+  const cleanedOrder = sanitizeData({
+    ...order,
+    status: order.status || 'Pendente',
+    createdAt: order.createdAt || new Date().toISOString()
+  });
+
+  // 1. Salva o documento principal do pedido
+  await setDoc(orderDocRef, cleanedOrder, { merge: true });
+
+  // 2. Salva os itens em subcoleção (para relatórios detalhados)
+  const itemsRef = collection(orderDocRef, 'orderItems');
+  for (const item of order.items) {
+    const itemRef = doc(itemsRef);
+    await setDoc(itemRef, sanitizeData({
+      ...item,
+      orderId: order.id,
+      productId: item.id,
+      productName: item.name,
+      productPrice: item.price,
+      subtotal: item.price * item.quantity
+    }), { merge: true });
+  }
+
+  // 3. REALIZA A BAIXA NO ESTOQUE IMEDIATAMENTE (O estoque sai assim que o pedido é gerado)
+  await adjustInventoryForOrder(db, order, 'decrement');
+};
+
+export const updateOrder = (db: Firestore, order: Order) => {
+  const orderRef = doc(db, 'orders', order.id);
+  updateDocumentNonBlocking(orderRef, sanitizeData(order));
+};
+
+/**
  * Atualiza o status do pedido e gerencia o estoque apenas em casos de cancelamento/reativação.
  */
 export const updateOrderStatus = async (db: Firestore, order: Order, newStatus: OrderStatus) => {
   const oldStatus = order.status;
   
-  // Definição de estados: 
-  // 'Cancelado' = Estoque devolvido
-  // 'Pendente', 'Pago', 'Enviado', 'Entregue' = Estoque retirado
+  // Como a baixa agora é feita no checkout (saveOrderToFirestore),
+  // aqui só precisamos lidar com a DEVOLUÇÃO do estoque se for cancelado,
+  // ou RETIRADA novamente se um pedido cancelado for reativado.
   
-  const isStockOutStatus = (s: OrderStatus) => ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Confirmado'].includes(s);
-  const isStockInStatus = (s: OrderStatus) => s === 'Cancelado';
+  const isStockReturned = oldStatus === 'Cancelado';
+  const isStockOut = ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Confirmado'].includes(oldStatus);
 
-  // Se saiu de Cancelado para um estado ativo -> Retira do estoque de novo
-  if (isStockInStatus(oldStatus) && isStockOutStatus(newStatus)) {
-    await adjustInventoryForOrder(db, order, 'decrement');
-  } 
-  // Se saiu de um estado ativo para Cancelado -> Devolve ao estoque
-  else if (isOutStatus(oldStatus) && isStockInStatus(newStatus)) {
+  const willBeStockReturned = newStatus === 'Cancelado';
+  const willBeStockOut = ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Confirmado'].includes(newStatus);
+
+  // 1. Caso especial: Cancelamento (Devolve estoque)
+  if (isStockOut && willBeStockReturned) {
     await adjustInventoryForOrder(db, order, 'increment');
+  } 
+  // 2. Caso especial: Reativar pedido cancelado (Retira estoque novamente)
+  else if (isStockReturned && willBeStockOut) {
+    await adjustInventoryForOrder(db, order, 'decrement');
   }
 
   // Atualiza o documento no Firestore
   const orderRef = doc(db, 'orders', order.id);
   updateDocumentNonBlocking(orderRef, { status: newStatus });
 };
-
-// Helper interno para clareza
-const isOutStatus = (s: OrderStatus) => ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Confirmado'].includes(s);
 
 export const seedInitialDataToFirestore = async (db: Firestore) => {
   const adminCheck = await getDocs(collection(db, 'admin_users'));
