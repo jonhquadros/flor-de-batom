@@ -172,6 +172,12 @@ export function ProdutoDetalhe({ produto }: Props) {
               </div>
             </div>
 
+            {/* Seção de Relacionados - Agora posicionada aqui conforme solicitado */}
+            <ProdutosRelacionados 
+              categoriaAtual={produto.category} 
+              idAtual={produto.id} 
+            />
+
             {/* Ações */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Button
@@ -207,13 +213,8 @@ export function ProdutoDetalhe({ produto }: Props) {
             </div>
           </div>
         </div>
-
-        {/* Seção de Relacionados */}
-        <ProdutosRelacionados 
-          categoriaAtual={produto.category} 
-          idAtual={produto.id} 
-        />
       </div>
     </div>
   );
 }
+
