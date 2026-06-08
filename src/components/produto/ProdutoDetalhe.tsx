@@ -172,34 +172,34 @@ export function ProdutoDetalhe({ produto }: Props) {
               </div>
             </div>
 
-            {/* Seção de Relacionados - Agora posicionada aqui conforme solicitado */}
+            {/* Seção de Relacionados */}
             <ProdutosRelacionados 
               categoriaAtual={produto.category} 
               idAtual={produto.id} 
             />
 
             {/* Ações */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Button
-                onClick={handleAdicionarCarrinho}
-                disabled={esgotado}
-                className={`h-16 rounded-[1.5rem] text-sm uppercase tracking-widest font-black transition-all shadow-xl ${
-                  esgotado ? 'bg-muted text-muted-foreground' : 'bg-primary hover:bg-primary/90 text-white shadow-primary/20'
-                }`}
-              >
-                {esgotado ? 'Esgotado' : adicionado ? '✓ No Carrinho' : 'Adicionar ao Carrinho'}
-              </Button>
-              
-              <BotaoWhatsApp 
-                nomeProduto={produto.name} 
-                preco={produto.price} 
-                urlProduto={urlProduto} 
-                variante="direto" 
-              />
-            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Button
+                  onClick={handleAdicionarCarrinho}
+                  disabled={esgotado}
+                  className={`h-16 rounded-[1.5rem] text-sm uppercase tracking-widest font-black transition-all shadow-xl ${
+                    esgotado ? 'bg-muted text-muted-foreground' : 'bg-primary hover:bg-primary/90 text-white shadow-primary/20'
+                  }`}
+                >
+                  {esgotado ? 'Esgotado' : adicionado ? '✓ No Carrinho' : 'Adicionar ao Carrinho'}
+                </Button>
+                
+                <BotaoWhatsApp 
+                  nomeProduto={produto.name} 
+                  preco={produto.price} 
+                  urlProduto={urlProduto} 
+                  variante="direto" 
+                />
+              </div>
 
-            <div className="pt-4">
-               <BotaoWhatsApp 
+              <BotaoWhatsApp 
                 nomeProduto={produto.name} 
                 preco={produto.price} 
                 urlProduto={urlProduto} 
@@ -217,4 +217,3 @@ export function ProdutoDetalhe({ produto }: Props) {
     </div>
   );
 }
-
