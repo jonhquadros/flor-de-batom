@@ -105,7 +105,7 @@ export function MontadorPresente() {
     setItens(prev => {
       if (itemExistente) {
         return prev.map(i =>
-          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade + 1 } : i
+          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantity: i.quantidade + 1 } : i
         );
       }
       
@@ -241,4 +241,3 @@ export function MontadorPresente() {
     </div>
   );
 }
-

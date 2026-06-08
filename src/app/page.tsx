@@ -115,7 +115,6 @@ export default function Storefront() {
   const updateQuantity = (id: string, delta: number, color?: string) => {
     const cartId = color ? `${id}-${color}` : id;
     
-    // Busca o produto original para checar estoque real
     const originalProduct = productsRaw?.find(p => p.id === id);
     if (!originalProduct) return;
 
@@ -327,7 +326,7 @@ export default function Storefront() {
                         <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                         {esgotado && (
                           <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                            <span className="bg-white text-primary text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-xl">Esgotado</span>
+                            <span className="bg-white text-primary text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-xl">ESGOTADO</span>
                           </div>
                         )}
                       </Link>
@@ -421,4 +420,3 @@ export default function Storefront() {
     </div>
   );
 }
-

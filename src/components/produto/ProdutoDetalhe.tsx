@@ -60,7 +60,7 @@ export function ProdutoDetalhe({ produto }: Props) {
     if (qtyInCart + 1 > variationStock) {
       toast({ 
         variant: "destructive", 
-        title: "Estoque insuficiente", 
+        title: "Limite atingido", 
         description: `Apenas disponível ${variationStock} unidades de ${produto.name}${selectedColor ? ` (${selectedColor})` : ''}.` 
       });
       return;
@@ -93,7 +93,7 @@ export function ProdutoDetalhe({ produto }: Props) {
               <Image src={displayedImage} alt={produto.name} fill className="object-cover" priority />
               {esgotado && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                  <span className="bg-white text-primary text-sm font-black px-8 py-3 rounded-full uppercase tracking-widest shadow-xl">Esgotado</span>
+                  <span className="bg-white text-primary text-sm font-black px-8 py-3 rounded-full uppercase tracking-widest shadow-xl">ESGOTADO</span>
                 </div>
               )}
             </div>
@@ -157,4 +157,3 @@ export function ProdutoDetalhe({ produto }: Props) {
     </div>
   );
 }
-
