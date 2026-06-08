@@ -150,7 +150,7 @@ export const saveOrderToFirestore = async (db: Firestore, order: Order) => {
     }), { merge: true });
   }
 
-  // 3. REALIZA A BAIXA NO ESTOQUE IMEDIATAMENTE (O estoque sai assim que o pedido é gerado)
+  // 3. REALIZA A BAIXA NO ESTOQUE IMEDIATAMENTE
   await adjustInventoryForOrder(db, order, 'decrement');
 };
 
@@ -164,10 +164,6 @@ export const updateOrder = (db: Firestore, order: Order) => {
  */
 export const updateOrderStatus = async (db: Firestore, order: Order, newStatus: OrderStatus) => {
   const oldStatus = order.status;
-  
-  // Como a baixa agora é feita no checkout (saveOrderToFirestore),
-  // aqui só precisamos lidar com a DEVOLUÇÃO do estoque se for cancelado,
-  // ou RETIRADA novamente se um pedido cancelado for reativado.
   
   const isStockReturned = oldStatus === 'Cancelado';
   const isStockOut = ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Confirmado'].includes(oldStatus);
@@ -197,16 +193,5 @@ export const seedInitialDataToFirestore = async (db: Firestore) => {
     
     await setDoc(adminRef, { username: 'flordebatom', password: 'gestaoflor@26', role: 'admin' });
     await setDoc(supportRef, { username: 'suportthreej', password: 'ThreeJ@suport3', role: 'admin' });
-  }
-
-  const productsCheck = await getDocs(collection(db, 'products'));
-  if (productsCheck.empty) {
-    const initialProducts: Product[] = [
-      { id:"p001", name:"Batom Matte Vinho Intenso", category:"Batom", description:"Batom de longa duração.", price:29.90, stock:25, imageUrl:"https://picsum.photos/seed/lip1/400/400", isFeatured:true, isActive: true },
-      { id:"p002", name:"Delineador Líquido Preto", category:"Delineador", description:"Ponta fina precisa.", price:24.90, stock:20, imageUrl:"https://picsum.photos/seed/eye1/400/400", isFeatured:true, isActive: true }
-    ];
-    for (const p of initialProducts) {
-      await setDoc(doc(db, 'products', p.id), sanitizeData(p), { merge: true });
-    }
   }
 };
