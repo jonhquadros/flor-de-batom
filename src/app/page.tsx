@@ -160,6 +160,20 @@ export default function Storefront() {
     setCart(newCart);
   };
 
+  const shareOnWhatsApp = (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/produto/${product.id}`;
+    const msg = encodeURIComponent(
+      `🌸 *Flor de Batom Makeup*\n\n` +
+      `Olha que lindo esse produto! 😍\n\n` +
+      `🛍️ *${product.name}*\n` +
+      `💰 R$ ${product.price.toFixed(2).replace('.', ',')}\n\n` +
+      `🔗 Ver no catálogo:\n${url}`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  };
+
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   const handleCheckout = async () => {
@@ -187,7 +201,6 @@ export default function Storefront() {
       
       if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount) || 0;
       
-      // Salva no banco E já retira do estoque automaticamente
       await saveOrderToFirestore(db, orderData as Order);
       
       const linhasProdutos = cart.map(i => {
@@ -352,10 +365,21 @@ export default function Storefront() {
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6">
               {filteredProducts.map((product) => (
                 <Card key={product.id} className="group relative border-none bg-white rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col h-full">
-                  <Link href={`/produto/${product.id}`} className="relative aspect-square cursor-pointer overflow-hidden bg-muted">
-                    <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
-                  </Link>
-                  <CardContent className="p-3 md:p-5 flex flex-col flex-1">
+                  <div className="relative aspect-square overflow-hidden bg-muted">
+                    <Link href={`/produto/${product.id}`} className="block w-full h-full cursor-pointer">
+                      <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                    </Link>
+                    
+                    {/* Botão de Compartilhamento WhatsApp (como solicitado) */}
+                    <button 
+                      onClick={(e) => shareOnWhatsApp(e, product)}
+                      className="absolute top-3 right-3 z-20 h-9 w-9 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform active:scale-95 border-2 border-white/20"
+                      title="Compartilhar no WhatsApp"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <CardContent className="p-3 md:p-5 flex flex-col flex-1 relative">
                     <div className="flex-1 space-y-1">
                       <p className="text-[9px] font-bold text-primary/60 uppercase tracking-widest">{product.category}</p>
                       <Link href={`/produto/${product.id}`} className="block">
@@ -363,6 +387,11 @@ export default function Storefront() {
                       </Link>
                       <p className="text-base font-semibold text-primary">R$ {product.price.toFixed(2)}</p>
                     </div>
+
+                    {/* Botão + Adicionar no canto inferior direito */}
+                    <Link href={`/produto/${product.id}`} className="absolute bottom-3 right-3 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-primary/90 transition-all active:scale-95">
+                      <Plus className="h-6 w-6" />
+                    </Link>
                   </CardContent>
                 </Card>
               ))}
