@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -21,7 +22,6 @@ export function ProdutoDetalhe({ produto }: Props) {
 
   const formatarReais = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
   
-  // Verifica se a variação selecionada tem estoque
   const variationStock = React.useMemo(() => {
     if (!produto.variations || produto.variations.length === 0) return produto.stock ?? 0;
     const v = produto.variations.find(v => v.name === selectedColor);
@@ -33,7 +33,6 @@ export function ProdutoDetalhe({ produto }: Props) {
 
   useEffect(() => {
     if (produto.variations && produto.variations.length > 0) {
-      // Tenta selecionar a primeira variação com estoque
       const firstAvailable = produto.variations.find(v => (v.stock ?? 0) > 0) || produto.variations[0];
       setSelectedColor(firstAvailable.name);
     }
@@ -55,9 +54,19 @@ export function ProdutoDetalhe({ produto }: Props) {
 
     const savedCart = localStorage.getItem('flordebatom_carrinho_v3');
     let cart: CartItem[] = savedCart ? JSON.parse(savedCart) : [];
-    const itemExistente = cart.find(i => i.id === produto.id && i.selectedColor === selectedColor);
+    const itemInCart = cart.find(i => i.id === produto.id && i.selectedColor === selectedColor);
+    const qtyInCart = itemInCart ? itemInCart.quantity : 0;
+
+    if (qtyInCart + 1 > variationStock) {
+      toast({ 
+        variant: "destructive", 
+        title: "Estoque insuficiente", 
+        description: `Apenas disponível ${variationStock} unidades de ${produto.name}${selectedColor ? ` (${selectedColor})` : ''}.` 
+      });
+      return;
+    }
     
-    if (itemExistente) {
+    if (itemInCart) {
       cart = cart.map(i => (i.id === produto.id && i.selectedColor === selectedColor) ? { ...i, quantity: i.quantity + 1 } : i);
     } else {
       cart.push({ ...produto, quantity: 1, selectedColor, imageUrl: displayedImage });
@@ -148,3 +157,4 @@ export function ProdutoDetalhe({ produto }: Props) {
     </div>
   );
 }
+

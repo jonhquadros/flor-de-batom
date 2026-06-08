@@ -83,6 +83,16 @@ export function ProdutosRelacionados({ categoriaAtual, idAtual }: Props) {
     }
 
     const itemExistente = cart.find(i => i.id === p.id && i.selectedColor === color);
+    const qtdInCart = itemExistente ? itemExistente.quantity : 0;
+
+    if (qtdInCart + 1 > stock) {
+      toast({ 
+        variant: "destructive", 
+        title: "Limite atingido", 
+        description: `Apenas disponível ${stock} unidades de ${p.name}${color ? ` (${color})` : ''}.` 
+      });
+      return;
+    }
     
     if (itemExistente) {
       cart = cart.map(i => (i.id === p.id && i.selectedColor === color) 
@@ -214,3 +224,4 @@ export function ProdutosRelacionados({ categoriaAtual, idAtual }: Props) {
     </section>
   );
 }
+

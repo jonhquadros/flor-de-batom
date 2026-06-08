@@ -114,9 +114,31 @@ export default function Storefront() {
 
   const updateQuantity = (id: string, delta: number, color?: string) => {
     const cartId = color ? `${id}-${color}` : id;
+    
+    // Busca o produto original para checar estoque real
+    const originalProduct = productsRaw?.find(p => p.id === id);
+    if (!originalProduct) return;
+
+    let availableStock = originalProduct.stock;
+    if (color && originalProduct.variations) {
+      const v = originalProduct.variations.find(v => v.name === color);
+      availableStock = v ? v.stock : 0;
+    }
+
     const newCart = cart.map(item => {
       const itemKey = item.selectedColor ? `${item.id}-${item.selectedColor}` : item.id;
-      if (itemKey === cartId) return { ...item, quantity: Math.max(0, item.quantity + delta) };
+      if (itemKey === cartId) {
+        const nextQty = item.quantity + delta;
+        if (delta > 0 && nextQty > availableStock) {
+          toast({
+            variant: "destructive",
+            title: "Limite atingido",
+            description: `Apenas disponível ${availableStock} unidades deste item.`
+          });
+          return item;
+        }
+        return { ...item, quantity: Math.max(0, nextQty) };
+      }
       return item;
     }).filter(item => item.quantity > 0);
     setCart(newCart);
@@ -270,7 +292,11 @@ export default function Storefront() {
                           <h4 className="font-poppins text-sm truncate text-primary">{item.name}</h4>
                           {item.selectedColor && <p className="text-[10px] font-bold uppercase text-muted-foreground">Cor: {item.selectedColor}</p>}
                           <p className="text-primary font-semibold">R$ {item.price.toFixed(2).replace('.', ',')}</p>
-                          <div className="flex items-center gap-3 mt-2"><button onClick={() => updateQuantity(item.id, -1, item.selectedColor)}><Minus className="h-3 w-3" /></button><span className="text-xs font-bold">{item.quantity}</span><button onClick={() => updateQuantity(item.id, 1, item.selectedColor)}><Plus className="h-3 w-3" /></button></div>
+                          <div className="flex items-center gap-3 mt-2">
+                            <button onClick={() => updateQuantity(item.id, -1, item.selectedColor)}><Minus className="h-3 w-3" /></button>
+                            <span className="text-xs font-bold">{item.quantity}</span>
+                            <button onClick={() => updateQuantity(item.id, 1, item.selectedColor)}><Plus className="h-3 w-3" /></button>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -395,3 +421,4 @@ export default function Storefront() {
     </div>
   );
 }
+

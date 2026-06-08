@@ -12,6 +12,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Product } from '@/lib/types';
 import { Embalagem, ItemPresente, Presente } from '@/types/presente';
+import { useToast } from '@/hooks/use-toast';
 
 type Passo = 1 | 2 | 3;
 
@@ -24,7 +25,6 @@ function inferirMaxItens(produto: Product): number {
   
   const nome = (produto.name || '').toLowerCase();
   
-  // Regras de negócio: Somente o Mini Buquê tem 3 itens.
   if (nome.includes('mini') && (nome.includes('buquê') || nome.includes('buque'))) return 3; 
   if (nome.includes('buquê') || nome.includes('buque')) return 10;
   if (nome.includes('copo')) return 5;
@@ -36,6 +36,7 @@ function inferirMaxItens(produto: Product): number {
 
 export function MontadorPresente() {
   const db = useFirestore();
+  const { toast } = useToast();
   const [passoAtual, setPassoAtual] = useState<Passo>(1);
   const [embalagem, setEmbalagem] = useState<Embalagem | null>(null);
   const [itens, setItens] = useState<ItemPresente[]>([]);
@@ -72,12 +73,39 @@ export function MontadorPresente() {
     : null;
 
   function adicionarProduto(produto: Product, corSelecionada?: string) {
-    if (!embalagem || totalItens >= embalagem.maxItens) return;
+    if (!embalagem) return;
+    
+    if (totalItens >= embalagem.maxItens) {
+      toast({ 
+        variant: "destructive", 
+        title: "Capacidade máxima", 
+        description: `Esta embalagem suporta no máximo ${embalagem.maxItens} itens.` 
+      });
+      return;
+    }
+
+    // Verificar estoque real do produto/variação
+    let availableStock = produto.stock;
+    if (corSelecionada && produto.variations) {
+      availableStock = produto.variations.find(v => v.name === corSelecionada)?.stock || 0;
+    }
+
+    const itemExistente = itens.find(i => i.produtoId === produto.id && i.corSelecionada === corSelecionada);
+    const currentQty = itemExistente ? itemExistente.quantidade : 0;
+
+    if (currentQty + 1 > availableStock) {
+      toast({ 
+        variant: "destructive", 
+        title: "Estoque insuficiente", 
+        description: `Apenas disponível ${availableStock} unidades de ${produto.name}${corSelecionada ? ` (${corSelecionada})` : ''}.` 
+      });
+      return;
+    }
+
     setItens(prev => {
-      const existente = prev.find(i => i.produtoId === produto.id && i.corSelecionada === corSelecionada);
-      if (existente) {
+      if (itemExistente) {
         return prev.map(i =>
-          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantity: i.quantidade + 1 } : i
+          (i.produtoId === produto.id && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade + 1 } : i
         );
       }
       
@@ -105,7 +133,7 @@ export function MontadorPresente() {
       if (!item) return prev;
       if (item.quantidade > 1)
         return prev.map(i =>
-          (i.produtoId === produtoId && i.corSelecionada === corSelecionada) ? { ...i, quantity: i.quantidade - 1 } : i
+          (i.produtoId === produtoId && i.corSelecionada === corSelecionada) ? { ...i, quantidade: i.quantidade - 1 } : i
         );
       return prev.filter(i => !(i.produtoId === produtoId && i.corSelecionada === corSelecionada));
     });
@@ -213,3 +241,4 @@ export function MontadorPresente() {
     </div>
   );
 }
+
