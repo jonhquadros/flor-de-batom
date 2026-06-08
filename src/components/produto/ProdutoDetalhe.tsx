@@ -21,12 +21,22 @@ export function ProdutoDetalhe({ produto }: Props) {
   const { toast } = useToast();
 
   const formatarReais = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
-  const esgotado = produto.stock === 0;
+  
+  // Verifica se a variação selecionada tem estoque
+  const variationStock = React.useMemo(() => {
+    if (!produto.variations || produto.variations.length === 0) return produto.stock ?? 0;
+    const v = produto.variations.find(v => v.name === selectedColor);
+    return v ? (v.stock ?? 0) : 0;
+  }, [produto, selectedColor]);
+
+  const esgotado = variationStock <= 0;
   const urlProduto = typeof window !== 'undefined' ? window.location.href : '';
 
   useEffect(() => {
     if (produto.variations && produto.variations.length > 0) {
-      setSelectedColor(produto.variations[0].name);
+      // Tenta selecionar a primeira variação com estoque
+      const firstAvailable = produto.variations.find(v => (v.stock ?? 0) > 0) || produto.variations[0];
+      setSelectedColor(firstAvailable.name);
     }
   }, [produto]);
 
@@ -39,6 +49,11 @@ export function ProdutoDetalhe({ produto }: Props) {
   }, [selectedColor, produto]);
 
   function handleAdicionarCarrinho() {
+    if (esgotado) {
+      toast({ variant: "destructive", title: "Ops!", description: "Este produto ou cor está esgotado no momento." });
+      return;
+    }
+
     const savedCart = localStorage.getItem('flordebatom_carrinho_v3');
     let cart: CartItem[] = savedCart ? JSON.parse(savedCart) : [];
     const itemExistente = cart.find(i => i.id === produto.id && i.selectedColor === selectedColor);
@@ -68,7 +83,11 @@ export function ProdutoDetalhe({ produto }: Props) {
           <div className="relative">
             <div className="aspect-square relative rounded-[2.5rem] overflow-hidden bg-white shadow-2xl border border-primary/5">
               <Image src={displayedImage} alt={produto.name} fill className="object-cover" priority />
-              {esgotado && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><span className="bg-white text-primary text-sm font-black px-8 py-3 rounded-full uppercase tracking-widest">Esgotado</span></div>}
+              {esgotado && (
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
+                  <span className="bg-white text-primary text-sm font-black px-8 py-3 rounded-full uppercase tracking-widest shadow-xl">Esgotado</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -85,12 +104,21 @@ export function ProdutoDetalhe({ produto }: Props) {
               <div className="space-y-4">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Cores Disponíveis</label>
                 <div className="flex flex-wrap gap-3">
-                  {produto.variations.map((v) => (
-                    <button key={v.name} onClick={() => setSelectedColor(v.name)} disabled={v.stock === 0} className={`flex items-center gap-3 pl-2 pr-5 py-2 rounded-2xl border-2 transition-all font-bold text-[10px] uppercase ${selectedColor === v.name ? 'border-primary bg-primary text-white' : 'border-muted bg-white text-muted-foreground'}`}>
-                      {v.imageUrl && <div className="relative h-7 w-7 rounded-xl overflow-hidden border"><Image src={v.imageUrl} alt="" fill className="object-cover" /></div>}
-                      <span>{v.name}</span>
-                    </button>
-                  ))}
+                  {produto.variations.map((v) => {
+                    const varOut = (v.stock ?? 0) <= 0;
+                    return (
+                      <button 
+                        key={v.name} 
+                        onClick={() => !varOut && setSelectedColor(v.name)} 
+                        disabled={varOut}
+                        className={`flex items-center gap-3 pl-2 pr-5 py-2 rounded-2xl border-2 transition-all font-bold text-[10px] uppercase relative ${selectedColor === v.name ? 'border-primary bg-primary text-white shadow-lg' : varOut ? 'border-muted bg-muted/30 text-muted-foreground opacity-50 cursor-not-allowed' : 'border-muted bg-white text-muted-foreground hover:border-primary/30'}`}
+                      >
+                        {v.imageUrl && <div className="relative h-7 w-7 rounded-xl overflow-hidden border"><Image src={v.imageUrl} alt="" fill className="object-cover" /></div>}
+                        <span>{v.name}</span>
+                        {varOut && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[7px] px-1.5 py-0.5 rounded-full shadow-md">FIM</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -102,9 +130,15 @@ export function ProdutoDetalhe({ produto }: Props) {
 
             <ProdutosRelacionados categoriaAtual={produto.category} idAtual={produto.id} />
 
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Button onClick={handleAdicionarCarrinho} disabled={esgotado} className={`h-16 rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all ${esgotado ? 'bg-muted' : 'bg-primary shadow-xl shadow-primary/20'}`}>{esgotado ? 'Esgotado' : adicionado ? '✓ No Carrinho' : 'Adicionar ao Carrinho'}</Button>
+                <Button 
+                  onClick={handleAdicionarCarrinho} 
+                  disabled={esgotado} 
+                  className={`h-16 rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all ${esgotado ? 'bg-muted cursor-not-allowed' : 'bg-primary shadow-xl shadow-primary/20 active:scale-95'}`}
+                >
+                  {esgotado ? 'Item Esgotado' : adicionado ? '✓ No Carrinho' : 'Adicionar ao Carrinho'}
+                </Button>
                 <BotaoWhatsApp nomeProduto={produto.name} preco={produto.price} urlProduto={urlProduto} variante="direto" />
               </div>
               <BotaoWhatsApp nomeProduto={produto.name} preco={produto.price} urlProduto={urlProduto} variante="outline" />

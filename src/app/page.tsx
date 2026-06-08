@@ -20,7 +20,8 @@ import {
   Heart,
   Copy,
   Share2,
-  Gift
+  Gift,
+  X
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,7 +89,6 @@ export default function Storefront() {
 
   const LOGO_URL = "https://i.ibb.co/6J4J1LMd/florlogo.jpg";
   const WHATSAPP_LOJA = "5591987199039";
-  const PIX_KEY = "91987199039";
 
   useEffect(() => {
     if (!mounted) return;
@@ -140,7 +140,6 @@ export default function Storefront() {
 
   const handleOpenCheckout = () => {
     setIsCartOpen(false);
-    // Pequeno delay para garantir que o Sheet fechou antes de abrir o Dialog do checkout
     setTimeout(() => {
       setIsCheckoutOpen(true);
     }, 300);
@@ -155,8 +154,9 @@ export default function Storefront() {
     setIsProcessing(true);
     try {
       const orderNum = await getNextOrderNumber(db);
+      const orderId = `ORD-${Date.now()}-${orderNum}`;
       const orderData: any = {
-        id: `ORD-${Date.now()}-${orderNum}`,
+        id: orderId,
         orderNumber: orderNum,
         customerName,
         customerPhone,
@@ -170,7 +170,6 @@ export default function Storefront() {
       
       if (paymentMethod === 'Dinheiro') orderData.change = parseFloat(changeAmount.replace(',', '.')) || 0;
       
-      // Salva o pedido e JÁ REALIZA A BAIXA NO ESTOQUE
       await saveOrderToFirestore(db, orderData as Order);
       
       const linhasProdutos = cart.map(i => {
@@ -254,7 +253,12 @@ export default function Storefront() {
                 </Button>
               </SheetTrigger>
               <SheetContent className="w-full sm:max-w-md p-0 flex flex-col z-[100]">
-                <SheetHeader className="p-6 border-b text-left"><SheetTitle className="text-2xl text-primary font-bold">Carrinho</SheetTitle></SheetHeader>
+                <SheetHeader className="p-6 border-b text-left">
+                  <div className="flex items-center justify-between">
+                    <SheetTitle className="text-2xl text-primary font-bold">Carrinho</SheetTitle>
+                    <SheetTrigger asChild><Button variant="ghost" size="icon" className="rounded-full"><X className="h-6 w-6" /></Button></SheetTrigger>
+                  </div>
+                </SheetHeader>
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                   {cart.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full opacity-40"><ShoppingCart className="h-16 w-16 mb-4" /><p>Carrinho vazio</p></div>
@@ -288,33 +292,41 @@ export default function Storefront() {
         <main className="flex-1">
           <div className="container mx-auto px-4 mt-8 pb-10">
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6">
-              {filteredProducts.map((product) => (
-                <Card key={product.id} className="group relative border-none bg-white rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
-                  <div className="relative aspect-square overflow-hidden bg-muted">
-                    <Link href={`/produto/${product.id}`} className="block w-full h-full">
-                      <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
-                    </Link>
-                    <button 
-                      onClick={(e) => shareOnWhatsApp(e, product)}
-                      className="absolute top-3 right-3 z-20 h-9 w-9 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform active:scale-95 border-2 border-white/20"
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <CardContent className="p-3 md:p-5 flex flex-col relative">
-                    <div className="space-y-1">
-                      <p className="text-[9px] font-bold text-primary/60 uppercase">{product.category}</p>
-                      <Link href={`/produto/${product.id}`}>
-                        <h4 className="font-poppins text-xs leading-tight line-clamp-2 min-h-[2.5em] text-primary">{product.name}</h4>
+              {filteredProducts.map((product) => {
+                const esgotado = (product.stock ?? 0) <= 0;
+                return (
+                  <Card key={product.id} className={`group relative border-none bg-white rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 ${esgotado ? 'opacity-70 grayscale-[0.5]' : ''}`}>
+                    <div className="relative aspect-square overflow-hidden bg-muted">
+                      <Link href={`/produto/${product.id}`} className="block w-full h-full">
+                        <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                        {esgotado && (
+                          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
+                            <span className="bg-white text-primary text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-xl">Esgotado</span>
+                          </div>
+                        )}
                       </Link>
-                      <p className="text-base font-semibold text-primary">R$ {product.price.toFixed(2).replace('.', ',')}</p>
+                      <button 
+                        onClick={(e) => shareOnWhatsApp(e, product)}
+                        className="absolute top-3 right-3 z-20 h-9 w-9 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform active:scale-95 border-2 border-white/20"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </button>
                     </div>
-                    <Link href={`/produto/${product.id}`} className="absolute bottom-3 right-3 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg active:scale-95">
-                      <Plus className="h-6 w-6" />
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardContent className="p-3 md:p-5 flex flex-col relative">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-bold text-primary/60 uppercase">{product.category}</p>
+                        <Link href={`/produto/${product.id}`}>
+                          <h4 className="font-poppins text-xs leading-tight line-clamp-2 min-h-[2.5em] text-primary">{product.name}</h4>
+                        </Link>
+                        <p className="text-base font-semibold text-primary">R$ {product.price.toFixed(2).replace('.', ',')}</p>
+                      </div>
+                      <Link href={`/produto/${product.id}`} className={`absolute bottom-3 right-3 h-10 w-10 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-95 transition-all ${esgotado ? 'bg-muted cursor-not-allowed' : 'bg-primary'}`}>
+                        <Plus className="h-6 w-6" />
+                      </Link>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </main>
@@ -350,6 +362,36 @@ export default function Storefront() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/90 lg:hidden backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="absolute top-0 left-0 w-[85%] max-w-xs h-full bg-white p-6 flex flex-col shadow-2xl animate-in slide-in-from-left duration-300" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-2">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden shadow-md">
+                  <Image src={LOGO_URL} alt="Logo" fill className="object-cover" />
+                </div>
+                <h2 className="text-lg font-bold text-primary">Menu</h2>
+              </div>
+              <Button variant="ghost" size="icon" className="text-primary hover:bg-muted" onClick={() => setIsMobileMenuOpen(false)}>
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+            <Link href="/presente" className="mb-6">
+              <Button className="w-full h-12 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest gap-2">
+                <Gift className="h-4 w-4" /> Monte seu Presente
+              </Button>
+            </Link>
+            <nav className="space-y-2 flex-1 overflow-y-auto no-scrollbar">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">Categorias</p>
+              <button className={`w-full text-left p-4 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-lg' : 'text-muted-foreground border'}`} onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}>TODOS</button>
+              {categories.map(cat => (
+                <button key={cat.id} className={`w-full text-left p-4 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === cat.name ? 'bg-primary text-white shadow-lg' : 'text-muted-foreground border'}`} onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}>{cat.name.toUpperCase()}</button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
