@@ -193,6 +193,40 @@ export default function AdminOrders() {
     }
   };
 
+  const sendOrderToWhatsApp = (order: Order) => {
+    const NUMERO_LOJA = "5591987199039";
+    const phone = order.customerPhone.replace(/\D/g, '');
+    
+    const linhasProdutos = order.items.map(i => {
+      const labelCor = i.selectedColor ? ` [${i.selectedColor}]` : '';
+      return `• ${i.name}${labelCor} x${i.quantity} — R$ ${(i.price * i.quantity).toFixed(2).replace('.', ',')}`;
+    }).join('\n');
+
+    let linhaPagamento = "";
+    if (order.paymentMethod === 'Dinheiro') {
+      linhaPagamento = `💵 Dinheiro${order.change ? ` (troco para R$ ${order.change})` : ' (sem troco)'}`;
+    } else if (order.paymentMethod === 'Pix') {
+      linhaPagamento = `📱 Pix — comprovante a enviar`;
+    } else {
+      linhaPagamento = `💳 ${order.paymentMethod}`;
+    }
+
+    const totalFormatado = (order.total || 0).toFixed(2).replace('.', ',');
+    
+    const msg = encodeURIComponent(
+      `🌸 *PEDIDO #${order.orderNumber || order.id.substr(0, 6)} - Flor de Batom Makeup*\n\n` +
+      `👤 *Cliente:* ${order.customerName}\n` +
+      `📱 *Telefone:* ${order.customerPhone}\n` +
+      `📍 *Endereço:* ${order.customerAddress || 'Retirada na loja'}\n\n` +
+      `🛍️ *PRODUTOS:*\n${linhasProdutos}\n\n` +
+      `💰 *TOTAL: R$ ${totalFormatado}*\n` +
+      `💳 *Pagamento:* ${linhaPagamento}\n\n` +
+      `_Atendimento Flor de Batom Makeup_`
+    );
+    
+    window.open(`https://wa.me/55${phone}?text=${msg}`, '_blank');
+  };
+
   if (isOrdersLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse font-poppins">Sincronizando pedidos...</div>;
 
   return (
@@ -376,7 +410,7 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
-                {/* 2. SEÇÃO DE PRODUTOS (LAYOUT CONFORME PRINT) */}
+                {/* 2. SEÇÃO DE PRODUTOS */}
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-widest opacity-60">
@@ -500,12 +534,7 @@ export default function AdminOrders() {
               )}
               <Button 
                 className="h-16 px-10 rounded-2xl bg-[#25D366] hover:bg-[#1da851] text-white text-xs font-black uppercase tracking-widest shadow-xl shadow-green-500/20 flex gap-3 transition-all active:scale-95" 
-                onClick={() => {
-                   if (!selectedOrder) return;
-                   const phone = selectedOrder.customerPhone.replace(/\D/g, '');
-                   const msg = encodeURIComponent(`Olá ${selectedOrder.customerName}! Sou da Flor de Batom Makeup sobre seu pedido #${selectedOrder.orderNumber}.`);
-                   window.open(`https://wa.me/55${phone}?text=${msg}`, '_blank');
-                }}
+                onClick={() => selectedOrder && sendOrderToWhatsApp(selectedOrder)}
               >
                 <MessageCircle className="h-6 w-6" /> Enviar p/ WhatsApp
               </Button>
