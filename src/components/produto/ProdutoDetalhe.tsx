@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -115,7 +114,7 @@ export function ProdutoDetalhe({ produto }: Props) {
                       >
                         {v.imageUrl && <div className="relative h-7 w-7 rounded-xl overflow-hidden border"><Image src={v.imageUrl} alt="" fill className="object-cover" /></div>}
                         <span>{v.name}</span>
-                        {varOut && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[7px] px-1.5 py-0.5 rounded-full shadow-md">FIM</span>}
+                        {varOut && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[7px] px-1.5 py-0.5 rounded-full shadow-md">ESGOTADO</span>}
                       </button>
                     );
                   })}
