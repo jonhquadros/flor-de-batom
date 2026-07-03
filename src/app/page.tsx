@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -375,9 +374,6 @@ export default function Storefront() {
               <div className="relative mt-8 group z-10">
                 <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl transition-transform group-hover:scale-105 duration-500 bg-white">
                   <Image src={LOGO_URL} alt="Logo" fill className="object-cover" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-white text-primary p-2 rounded-full shadow-lg">
-                  <Sparkles className="h-5 w-5" />
                 </div>
               </div>
             </div>
