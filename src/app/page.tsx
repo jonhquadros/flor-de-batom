@@ -243,7 +243,7 @@ export default function Storefront() {
       <aside className="hidden lg:flex w-64 flex-col bg-white border-r sticky top-0 h-screen z-40 p-6 space-y-8">
         <div className="flex items-center gap-3">
           <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md border-2 border-primary/20">
-            <Image src={LOGO_URL} alt="Logo" fill className="object-cover" />
+            <Image src={LOGO_URL} alt="Logo" fill className="object-cover rounded-full" />
           </div>
           <h1 className="text-xl font-bold text-primary leading-tight">Flor de Batom</h1>
         </div>
@@ -372,8 +372,8 @@ export default function Storefront() {
               </div>
 
               <div className="relative mt-8 group z-10">
-                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl transition-transform group-hover:scale-105 duration-500 bg-white">
-                  <Image src={LOGO_URL} alt="Logo" fill className="object-cover" />
+                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white shadow-2xl transition-transform group-hover:scale-105 duration-500 bg-white">
+                  <Image src={LOGO_URL} alt="Logo" fill className="object-cover rounded-full" />
                 </div>
               </div>
             </div>
@@ -484,7 +484,7 @@ export default function Storefront() {
             <div className="flex justify-between items-center mb-10">
               <div className="flex items-center gap-3">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-md">
-                  <Image src={LOGO_URL} alt="Logo" fill className="object-cover" />
+                  <Image src={LOGO_URL} alt="Logo" fill className="object-cover rounded-full" />
                 </div>
                 <h2 className="text-xl font-bold text-primary">Menu</h2>
               </div>
