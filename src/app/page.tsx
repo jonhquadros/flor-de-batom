@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -372,7 +373,7 @@ export default function Storefront() {
               </div>
 
               <div className="relative mt-8 group z-10">
-                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white shadow-2xl transition-transform group-hover:scale-105 duration-500 bg-white">
+                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-[6px] border-white shadow-2xl transition-transform group-hover:scale-105 duration-500 bg-white">
                   <Image src={LOGO_URL} alt="Logo" fill className="object-cover rounded-full" />
                 </div>
               </div>
@@ -409,7 +410,7 @@ export default function Storefront() {
                 const esgotado = (product.stock ?? 0) <= 0;
                 return (
                   <Card key={product.id} className={`group relative border-none bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 ${esgotado ? 'opacity-70 grayscale-[0.5]' : ''}`}>
-                    <div className="relative aspect-square overflow-hidden bg-muted">
+                    <div className="relative aspect-square overflow-hidden bg-muted border-4 border-white rounded-[1.8rem] m-1 shadow-sm">
                       <Link href={`/produto/${product.id}`} className="block w-full h-full">
                         <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                         {esgotado && (

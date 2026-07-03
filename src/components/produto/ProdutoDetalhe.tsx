@@ -89,7 +89,7 @@ export function ProdutoDetalhe({ produto }: Props) {
       <div className="max-w-6xl mx-auto px-4 py-6 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
           <div className="relative">
-            <div className="aspect-square relative rounded-[2.5rem] overflow-hidden bg-white shadow-2xl border border-primary/5">
+            <div className="aspect-square relative rounded-[2.5rem] overflow-hidden bg-white shadow-2xl border-[8px] border-white">
               <Image src={displayedImage} alt={produto.name} fill className="object-cover" priority />
               {esgotado && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
