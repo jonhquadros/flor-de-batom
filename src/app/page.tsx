@@ -319,7 +319,7 @@ export default function Storefront() {
         </header>
 
         <main className="flex-1 pb-20">
-          {/* Banner Monte seu Presente (Igual à Imagem) */}
+          {/* Banner Monte seu Presente (Abaixo da busca) */}
           <div className="container mx-auto px-4 mt-6">
             <Link href="/presente">
               <div className="bg-white rounded-[2.5rem] p-5 md:p-8 shadow-sm border border-primary/5 flex items-center justify-between gap-4 group hover:shadow-md transition-all">
@@ -343,52 +343,47 @@ export default function Storefront() {
             </Link>
           </div>
 
-          {/* Hero Card Burgundy (Igual à Imagem) */}
+          {/* Burgundy Hero Card - LUXURY VERSION */}
           <div className="container mx-auto px-4 mt-6">
-            <div className="relative rounded-[2.5rem] overflow-hidden bg-primary text-white p-8 md:p-16 min-h-[400px] flex flex-col items-center justify-center text-center space-y-6">
+            <div className="relative rounded-[2.5rem] overflow-hidden bg-primary text-white p-8 md:p-16 min-h-[420px] flex flex-col items-center justify-center text-center space-y-8 shadow-2xl shadow-primary/10">
               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] pointer-events-none"></div>
               
-              <Badge variant="secondary" className="bg-white/20 text-white border-none text-[10px] md:text-xs font-black px-6 py-2 rounded-full uppercase tracking-[0.2em] animate-pulse">
+              <Badge variant="secondary" className="bg-white/20 text-white border-none text-[10px] md:text-xs font-black px-6 py-2 rounded-full uppercase tracking-[0.3em] animate-pulse">
                 Coleção Exclusiva
               </Badge>
               
-              <div className="relative">
-                <h2 className="font-headline text-4xl md:text-7xl leading-[1.1] mb-2 drop-shadow-lg">
-                  Realce sua beleza todos os dias 💖
+              <div className="relative z-10">
+                <h2 className="font-headline text-4xl md:text-7xl leading-[1.1] mb-4 drop-shadow-xl">
+                  Realce sua beleza <br /> todos os dias 💖
                 </h2>
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-white/20 rounded-full blur-2xl"></div>
+                <div className="w-20 h-1 bg-white/30 mx-auto rounded-full"></div>
               </div>
 
-              <p className="max-w-md text-sm md:text-lg opacity-90 leading-relaxed font-medium">
+              <p className="max-w-md text-sm md:text-xl opacity-90 leading-relaxed font-medium z-10">
                 Maquiagens selecionadas para valorizar sua autoestima com delicadeza ✨
               </p>
 
-              <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
-                <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest">
+              <div className="flex flex-wrap items-center justify-center gap-6 pt-4 z-10">
+                <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
                   <Truck className="h-4 w-4" /> Entrega grátis
                 </div>
-                <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
                   <Store className="h-4 w-4" /> Loja 100% online
                 </div>
               </div>
 
-              <div className="relative mt-8 group">
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl transition-transform group-hover:scale-105 duration-500">
+              <div className="relative mt-8 group z-10">
+                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl transition-transform group-hover:scale-105 duration-500 bg-white">
                   <Image src={LOGO_URL} alt="Logo" fill className="object-cover" />
                 </div>
                 <div className="absolute -bottom-2 -right-2 bg-white text-primary p-2 rounded-full shadow-lg">
-                  <Sparkles className="h-4 w-4" />
+                  <Sparkles className="h-5 w-5" />
                 </div>
-              </div>
-
-              {/* Botão Play Simulado (Igual na Imagem) */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 pointer-events-none">
-                <PlayCircle className="w-20 h-20 md:w-32 md:h-32 text-white/40 fill-white/10" />
               </div>
             </div>
           </div>
 
-          {/* Categorias Pills (Igual na Imagem) */}
+          {/* Categorias Pills (Abaixo do Hero) */}
           <div className="container mx-auto px-4 mt-8">
             <div className="w-full overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
               <div className="flex gap-3 min-w-max">
