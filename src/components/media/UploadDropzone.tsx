@@ -12,6 +12,8 @@ interface Props {
   onUploadComplete: () => void;
 }
 
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 export function UploadDropzone({ onUploadComplete }: Props) {
   const firebase = useFirebase();
   const { user, isUserLoading } = useUser();
@@ -24,10 +26,27 @@ export function UploadDropzone({ onUploadComplete }: Props) {
   if (!firebase) return null;
   const { firestore } = firebase;
 
+  const prepareUpload = (files: File[]) => {
+    const validFiles = files.filter(file => SUPPORTED_IMAGE_TYPES.includes(file.type));
+    if (validFiles.length !== files.length) {
+      toast({
+        variant: 'destructive',
+        title: 'Formato não suportado',
+        description: 'Selecione imagens JPG, PNG ou WebP.',
+      });
+    }
+    if (validFiles.length === 0) return;
+    const newPreviews = validFiles.map(file => ({
+      file,
+      id: Math.random().toString(36).slice(2, 11),
+    }));
+    setPreviews(prev => [...prev, ...newPreviews]);
+  };
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") setIsDragging(true);
+    if (e.type === 'dragenter' || e.type === 'dragover') setIsDragging(true);
     else setIsDragging(false);
   }, []);
 
@@ -35,18 +54,13 @@ export function UploadDropzone({ onUploadComplete }: Props) {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-    if (files.length > 0) prepareUpload(files);
+    prepareUpload(Array.from(e.dataTransfer.files));
   }, []);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
-    if (files.length > 0) prepareUpload(files);
-  };
-
-  const prepareUpload = (files: File[]) => {
-    const newPreviews = files.map(f => ({ file: f, id: Math.random().toString(36).substr(2, 9) }));
-    setPreviews(prev => [...prev, ...newPreviews]);
+    prepareUpload(Array.from(e.target.files || []));
+    // Permite selecionar novamente o mesmo arquivo após uma falha.
+    e.target.value = '';
   };
 
   const removePreview = (id: string) => {
@@ -55,10 +69,10 @@ export function UploadDropzone({ onUploadComplete }: Props) {
 
   const startUpload = async () => {
     if (!user) {
-      toast({ 
-        variant: "destructive", 
-        title: "Acesso Negado", 
-        description: "Você precisa estar logado como administrador para enviar fotos." 
+      toast({
+        variant: 'destructive',
+        title: 'Acesso Negado',
+        description: 'Você precisa estar logado como administrador para enviar fotos.',
       });
       return;
     }
@@ -71,23 +85,26 @@ export function UploadDropzone({ onUploadComplete }: Props) {
     for (const item of previews) {
       try {
         setUploadingFiles(prev => new Map(prev).set(item.id, 0));
-        
-        await uploadMedia(null, firestore, item.file, 'products', (progress) => {
+
+        await uploadMedia(null, firestore, item.file, 'products', progress => {
           setUploadingFiles(prev => {
             const next = new Map(prev);
             next.set(item.id, progress);
             return next;
           });
         });
-        
+
         successCount++;
         setPreviews(prev => prev.filter(p => p.id !== item.id));
       } catch (error: any) {
-        console.error("Erro no processo de upload Cloudinary:", error);
-        toast({ 
-          variant: "destructive", 
-          title: "Falha no arquivo", 
-          description: `Erro ao subir "${item.file.name}". Verifique os limites do Cloudinary.` 
+        console.error('Erro no processo de upload da galeria:', error);
+        const detail = typeof error?.message === 'string' && error.message.trim()
+          ? error.message
+          : 'Falha inesperada ao processar a imagem.';
+        toast({
+          variant: 'destructive',
+          title: `Falha: ${item.file.name}`,
+          description: detail,
         });
       } finally {
         setUploadingFiles(prev => {
@@ -99,12 +116,12 @@ export function UploadDropzone({ onUploadComplete }: Props) {
     }
 
     setIsGlobalLoading(false);
-    
+
     if (successCount > 0) {
       onUploadComplete();
-      toast({ 
-        title: "Sucesso!", 
-        description: `${successCount} imagem(ns) adicionada(s) ao Cloudinary e biblioteca.` 
+      toast({
+        title: 'Sucesso!',
+        description: `${successCount} imagem(ns) adicionada(s) ao Cloudinary e biblioteca.`,
       });
     }
   };
@@ -120,7 +137,7 @@ export function UploadDropzone({ onUploadComplete }: Props) {
         </div>
       )}
 
-      <div 
+      <div
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -129,25 +146,25 @@ export function UploadDropzone({ onUploadComplete }: Props) {
           isDragging ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-primary/20 bg-white hover:border-primary/40'
         } ${isAnythingUploading ? 'opacity-50 pointer-events-none' : ''}`}
       >
-        <input 
-          type="file" 
-          multiple 
-          accept="image/*" 
-          onChange={handleFileInput} 
+        <input
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleFileInput}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={isAnythingUploading || isUserLoading}
         />
-        
+
         <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-2">
           {isUserLoading ? <Loader2 className="h-8 w-8 animate-spin" /> : <ImagePlus className="h-8 w-8" />}
         </div>
-        
+
         <div className="space-y-1">
           <h3 className="text-xl font-bold text-primary">Upload Profissional (Cloudinary)</h3>
           <p className="text-xs text-muted-foreground uppercase tracking-widest font-black opacity-60">Arraste ou clique para escolher</p>
         </div>
-        
-        <p className="text-[10px] text-muted-foreground">Otimização automática (WebP/AVIF) ativa.</p>
+
+        <p className="text-[10px] text-muted-foreground">Imagens JPG, PNG ou WebP. Otimização automática antes do envio.</p>
       </div>
 
       {previews.length > 0 && (
@@ -162,24 +179,24 @@ export function UploadDropzone({ onUploadComplete }: Props) {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-            {previews.map((p) => {
+            {previews.map(p => {
               const progress = uploadingFiles.get(p.id);
               const isUploading = progress !== undefined;
 
               return (
                 <div key={p.id} className="relative aspect-square rounded-2xl overflow-hidden border bg-muted group">
                   <img src={URL.createObjectURL(p.file)} alt="" className="w-full h-full object-cover" />
-                  
+
                   {isUploading ? (
                     <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-4">
                       <Loader2 className="h-6 w-6 text-white animate-spin mb-2" />
                       <div className="w-full space-y-1">
-                         <Progress value={progress} className="h-1 bg-white/20" />
-                         <p className="text-[8px] text-white font-bold text-center">Processando Cloudinary...</p>
+                        <Progress value={progress} className="h-1 bg-white/20" />
+                        <p className="text-[8px] text-white font-bold text-center">Processando Cloudinary...</p>
                       </div>
                     </div>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => removePreview(p.id)}
                       className="absolute top-2 right-2 h-6 w-6 bg-white/90 rounded-full flex items-center justify-center text-destructive hover:bg-white shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                     >
@@ -192,12 +209,12 @@ export function UploadDropzone({ onUploadComplete }: Props) {
           </div>
 
           {!isAnythingUploading && (
-            <Button 
-              className="w-full h-14 rounded-2xl bg-primary text-xs font-black uppercase tracking-widest gap-2 shadow-xl shadow-primary/20" 
+            <Button
+              className="w-full h-14 rounded-2xl bg-primary text-xs font-black uppercase tracking-widest gap-2 shadow-xl shadow-primary/20"
               onClick={startUpload}
               disabled={isUserLoading || previews.length === 0}
             >
-              <Upload className="h-4 w-4" /> Inviar para Biblioteca Otimizada
+              <Upload className="h-4 w-4" /> Enviar para Biblioteca Otimizada
             </Button>
           )}
 
