@@ -1,23 +1,32 @@
-
 'use server';
 
 import { v2 as cloudinary } from 'cloudinary';
 
-cloudinary.config({
-  cloud_name: 'dijgjpenq',
-  api_key: '942439691422265',
-  api_secret: '_lfybHAD8ySuVv5ROjq3mBCH2S4',
-});
+function ensureCloudinaryConfig() {
+  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
+
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+    throw new Error('Cloudinary não configurado no servidor. Defina CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY e CLOUDINARY_API_SECRET nas variáveis de ambiente.');
+  }
+
+  cloudinary.config({
+    cloud_name: CLOUDINARY_CLOUD_NAME,
+    api_key: CLOUDINARY_API_KEY,
+    api_secret: CLOUDINARY_API_SECRET,
+  });
+}
 
 export async function uploadToCloudinary(base64Image: string, fileName: string) {
   try {
+    ensureCloudinaryConfig();
+
     const result = await cloudinary.uploader.upload(base64Image, {
       folder: 'flor-de-batom/products',
       public_id: fileName.split('.')[0] + '-' + Date.now(),
       transformation: [
-        { width: 1200, crop: "limit" },
-        { quality: "auto" },
-        { fetch_format: "auto" }
+        { width: 1200, crop: 'limit' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' }
       ]
     });
 
@@ -36,6 +45,7 @@ export async function uploadToCloudinary(base64Image: string, fileName: string) 
 
 export async function deleteFromCloudinary(publicId: string) {
   try {
+    ensureCloudinaryConfig();
     await cloudinary.uploader.destroy(publicId);
     return { success: true };
   } catch (error: any) {
