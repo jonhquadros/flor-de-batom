@@ -1,7 +1,13 @@
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Base64 aumenta o tamanho do arquivo em aproximadamente 33%.
+    // 5 MB evita que imagens válidas sejam rejeitadas pelo limite padrão de 1 MB.
+    serverActions: {
+      bodySizeLimit: '5mb',
+    },
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
