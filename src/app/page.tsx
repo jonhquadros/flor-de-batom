@@ -111,7 +111,8 @@ export default function Storefront() {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             p.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'Todos' || p.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      const matchesFeatured = selectedCategory !== 'Todos' || p.isFeatured === true;
+      return matchesSearch && matchesCategory && matchesFeatured;
     }).sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
   }, [productsRaw, searchTerm, selectedCategory, mounted]);
 
