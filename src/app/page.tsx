@@ -256,7 +256,7 @@ export default function Storefront() {
         </Link>
         <nav className="space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">Categorias</p>
-          <button className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`} onClick={() => setSelectedCategory('Todos')}>TODOS</button>
+          <button className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`} onClick={() => setSelectedCategory('Todos')}>DESTAQUES</button>
           {categories.map(cat => (
             <button key={cat.id} className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all uppercase tracking-wider ${selectedCategory === cat.name ? 'bg-primary text-white shadow-md' : 'text-muted-foreground hover:bg-muted/50'}`} onClick={() => setSelectedCategory(cat.name)}>{cat.name.toUpperCase()}</button>
           ))}
@@ -389,7 +389,7 @@ export default function Storefront() {
                   className={`px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all border-2 ${selectedCategory === 'Todos' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-muted-foreground border-muted hover:border-primary/30'}`}
                   onClick={() => setSelectedCategory('Todos')}
                 >
-                  Todos
+                  Destaques
                 </button>
                 {categories.map(cat => (
                   <button 
@@ -501,7 +501,7 @@ export default function Storefront() {
             </Link>
             <nav className="space-y-3 flex-1 overflow-y-auto no-scrollbar">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-6">Explorar Categorias</p>
-              <button className={`w-full text-left p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-lg' : 'text-muted-foreground border'}`} onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}>TODOS</button>
+              <button className={`w-full text-left p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedCategory === 'Todos' ? 'bg-primary text-white shadow-lg' : 'text-muted-foreground border'}`} onClick={() => { setSelectedCategory('Todos'); setIsMobileMenuOpen(false); }}>DESTAQUES</button>
               {categories.map(cat => (
                 <button key={cat.id} className={`w-full text-left p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedCategory === cat.name ? 'bg-primary text-white shadow-lg' : 'text-muted-foreground border'}`} onClick={() => { setSelectedCategory(cat.name); setIsMobileMenuOpen(false); }}>{cat.name}</button>
               ))}
