@@ -313,6 +313,19 @@ export default function AdminProducts() {
                 />
               </div>
               <div className="space-y-1.5">
+                <Label htmlFor="order" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Posição no catálogo</Label>
+                <Input
+                  id="order"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={formData.order ?? 0}
+                  onChange={(e) => setFormData(p => ({...p, order: Math.max(0, parseInt(e.target.value, 10) || 0)}))}
+                  className="h-11 rounded-xl"
+                />
+                <p className="text-[10px] text-muted-foreground">Números menores aparecem primeiro. Use a mesma regra para ordenar os produtos no catálogo.</p>
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="cost" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Custo (R$)</Label>
                 <Input 
                   id="cost" 
